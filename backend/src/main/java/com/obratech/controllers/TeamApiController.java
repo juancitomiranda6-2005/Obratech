@@ -191,8 +191,17 @@ public class TeamApiController {
                     .body(new ErrorResponse("El trabajador debe pertenecer al equipo del proyecto."));
         }
 
+        boolean yaEnEsteEquipo = equipo.getIntegrantes() != null
+            && equipo.getIntegrantes().stream()
+                .anyMatch(miembro -> request.memberId().equals(miembro.getId()));
+        if (yaEnEsteEquipo) {
+            return ResponseEntity.badRequest().body(new ErrorResponse(
+                PerfilDisplayName.of(integrante) + " ya pertenece a este equipo."));
+        }
+
         List<EquipoTrabajo> existingTeams = equipoTrabajoRepository.findByProyectoId(projectId);
         boolean yaEnOtroEquipo = existingTeams.stream()
+            .filter(t -> !teamId.equals(t.getId()))
                 .filter(t -> t.getIntegrantes() != null)
                 .flatMap(t -> t.getIntegrantes().stream())
                 .anyMatch(m -> request.memberId().equals(m.getId()));
