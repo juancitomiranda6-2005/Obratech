@@ -1,5 +1,0 @@
-{"properties": [{
-  "name": "app.seed.enabled",
-  "type": "java.lang.String",
-  "description": "A description for 'app.seed.enabled'"
-}]}

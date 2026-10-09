@@ -8,34 +8,25 @@ echo ========================================
 echo.
 
 REM Verificar si el JAR existe
-if not exist "target\obratech-*.jar" (
+if not exist "backend\target\obratech-0.0.1-SNAPSHOT.jar" (
     echo [INFO] JAR no encontrado. Compilando proyecto...
     call mvnw.cmd clean package -DskipTests
     if errorlevel 1 (
-        echo [ERROR] La compilación falló
+        echo [ERROR] La compilacion fallo
         pause
         exit /b 1
     )
 )
 
-echo [INFO] Iniciando aplicación...
+echo [INFO] Iniciando aplicacion...
 echo.
 
-REM Buscar y ejecutar el JAR
-for /f "delims=" %%i in ('dir /b target\obratech-*.jar 2^>nul') do (
-    java -jar "target\%%i"
-    if errorlevel 1 (
-        echo [ERROR] La aplicación falló
-        pause
-        exit /b 1
-    )
-    goto end
+java -jar "backend\target\obratech-0.0.1-SNAPSHOT.jar"
+if errorlevel 1 (
+    echo [ERROR] La aplicacion fallo
+    pause
+    exit /b 1
 )
 
-echo [ERROR] No se encontró el archivo JAR
-pause
-exit /b 1
-
-:end
-echo [INFO] Aplicación finalizada
+echo [INFO] Aplicacion finalizada
 pause
