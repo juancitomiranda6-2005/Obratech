@@ -1,6 +1,13 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { workerDashboardService } from '../../services/professionalDashboardService.js'
+import { ProfileAvatar } from '../../components/shared/ProfileAvatar.jsx'
+
+const money = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 })
+
+function formatDate(date) {
+  return date ? new Intl.DateTimeFormat('es-CO', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(date)) : 'No disponible'
+}
 
 function WorkerDashboard({ onLogout }) {
   const [dashboard, setDashboard] = useState(null)
@@ -61,7 +68,7 @@ function WorkerDashboard({ onLogout }) {
           <a href="#proyectos"><span className="material-symbols-outlined" aria-hidden="true">folder_special</span>Proyectos asignados</a>
         </nav>
         <div className="client-sidebar-footer">
-          <div className="client-user"><span className="client-avatar">{dashboard?.nombre?.slice(0, 1).toUpperCase() || 'T'}</span><div><strong>{dashboard?.nombre || 'Trabajador'}</strong><small>Trabajador</small></div></div>
+          <div className="client-user"><ProfileAvatar className="client-avatar" name={dashboard?.nombre || 'Trabajador'} profileId={dashboard?.username} /><div><strong>{dashboard?.nombre || 'Trabajador'}</strong><small>Trabajador</small></div></div>
           <button className="client-logout" onClick={onLogout} type="button"><span className="material-symbols-outlined" aria-hidden="true">logout</span>Cerrar sesión</button>
         </div>
       </aside>
@@ -83,13 +90,13 @@ function WorkerDashboard({ onLogout }) {
             {!dashboard.usuarioVerificado && (
               <section className="client-verification" aria-label="Estado de verificación">
                 <span className="material-symbols-outlined" aria-hidden="true">gpp_maybe</span>
-                <div><h2>Cuenta pendiente de verificación</h2><p>El administrador debe validar tu información antes de habilitar las postulaciones y otras interacciones.</p>{dashboard.perfilIncompleto && <><p className="client-missing">Completa estos campos: {dashboard.requisitosFaltantes.join(', ')}.</p><Link className="client-verification-action" to="/perfil-trabajador/editar"><span className="material-symbols-outlined" aria-hidden="true">edit</span>Completar perfil</Link></>}</div>
-                <span className="client-review-badge">En revisión</span>
+                <div><h2>Completa tu perfil para obtener la insignia</h2><p>Tu cuenta está activa. La insignia se habilitará automáticamente cuando completes los requisitos.</p>{dashboard.perfilIncompleto && <><p className="client-missing">Completa estos campos: {dashboard.requisitosFaltantes.join(', ')}.</p><Link className="client-verification-action" to="/perfil-trabajador/editar"><span className="material-symbols-outlined" aria-hidden="true">edit</span>Completar perfil</Link></>}</div>
+                <span className="client-review-badge">Activa</span>
               </section>
             )}
 
             <section className="worker-summary-grid">
-              <article className="client-profile"><p className="client-eyebrow">Tu perfil</p><h2>{dashboard.oficio || 'Oficio general'}</h2><div className="client-profile-total"><span>Experiencia</span><strong>{dashboard.experiencia} años</strong></div><div className="client-profile-status"><span className={`client-status-dot ${dashboard.usuarioVerificado ? 'is-verified' : ''}`} /><span>{dashboard.usuarioVerificado ? 'Cuenta verificada' : 'Pendiente de verificación'}</span></div><div className="client-profile-status"><span className={`client-status-dot ${dashboard.cvDisponible ? 'is-verified' : ''}`} /><span>{dashboard.cvDisponible ? 'CV registrado' : 'Sin CV registrado'}</span></div></article>
+              <article className="client-profile"><p className="client-eyebrow">Tu perfil</p><h2>{dashboard.oficio || 'Oficio general'}</h2><div className="client-profile-total"><span>Experiencia</span><strong>{dashboard.experiencia} años</strong></div><div className="client-profile-status"><span className={`client-status-dot ${dashboard.usuarioVerificado ? 'is-verified' : ''}`} /><span>{dashboard.usuarioVerificado ? 'Cuenta verificada' : 'Insignia pendiente'}</span></div><div className="client-profile-status"><span className={`client-status-dot ${dashboard.cvDisponible ? 'is-verified' : ''}`} /><span>{dashboard.cvDisponible ? 'CV registrado' : 'Sin CV registrado'}</span></div></article>
               <article className="client-profile worker-count"><p className="client-eyebrow">Proyectos</p><h2>Asignados</h2><strong>{dashboard.proyectosAsignados.length}</strong><span>proyectos en tu equipo</span></article>
             </section>
 
@@ -99,9 +106,15 @@ function WorkerDashboard({ onLogout }) {
                 <div className="worker-invitation-list">
                   {dashboard.invitacionesPendientes.map((invitation) => (
                     <article className="worker-invitation" key={invitation.id}>
-                      <div><p className="client-eyebrow">Nueva invitación</p><h3>{invitation.proyecto}</h3><p>{invitation.ubicacion || 'Ubicación pendiente'} · Invitado por {invitation.contratista}</p></div>
+                      <div><p className="client-eyebrow">Nueva invitación</p><h3>{invitation.proyecto || 'Proyecto no disponible'}</h3><p>{invitation.ubicacion || 'Ubicación pendiente'} · Invitado por {invitation.contratistaPerfilId ? <Link to={`/contratistas/${invitation.contratistaPerfilId}`}>{invitation.contratista}</Link> : invitation.contratista}</p>
+                        <section className="worker-invitation-description"><h4>Descripción del proyecto</h4><p>{invitation.descripcion || 'El proyecto no incluye una descripción.'}</p></section>
+                        <dl className="worker-invitation-details"><div><dt>Pago ofrecido</dt><dd>{invitation.pagoOfrecido > 0 ? money.format(invitation.pagoOfrecido) : 'No especificado'}</dd></div><div><dt>Vence</dt><dd>{formatDate(invitation.fechaExpiracion)}</dd></div></dl>
+                        {!invitation.proyectoDisponible && <p className="worker-invitation-unavailable" role="status">Este proyecto fue eliminado o ya no está disponible. No puedes aceptar esta invitación.</p>}
+                        {invitation.proyectoDisponible && !(invitation.pagoOfrecido > 0) && <p className="worker-invitation-unavailable" role="status">No se indicó el pago. Rechaza esta invitación y solicita una nueva oferta.</p>}
+                        {invitation.proyectoDisponible && dashboard.proyectosAsignados.some((project) => project.estado !== 'COMPLETADO' && project.estado !== 'CANCELADO') && <p className="worker-invitation-unavailable" role="status">Ya estás ocupado en otro proyecto. No puedes aceptar una segunda invitación activa.</p>}
+                      </div>
                       <div className="worker-invitation-actions">
-                        <button className="worker-accept" disabled={pendingInvitation === invitation.id} onClick={() => respondToInvitation(invitation.id, 'ACEPTADA')} type="button">Aceptar</button>
+                        <button className="worker-accept" disabled={pendingInvitation === invitation.id || !dashboard.disponible || !invitation.proyectoDisponible || !(invitation.pagoOfrecido > 0)} onClick={() => respondToInvitation(invitation.id, 'ACEPTADA')} title={!dashboard.disponible ? 'Debes estar disponible para aceptar' : !invitation.proyectoDisponible ? 'Proyecto no disponible' : !(invitation.pagoOfrecido > 0) ? 'Falta indicar el pago' : 'Aceptar invitación'} type="button">Aceptar</button>
                         <button className="worker-reject" disabled={pendingInvitation === invitation.id} onClick={() => respondToInvitation(invitation.id, 'RECHAZADA')} type="button">Rechazar</button>
                       </div>
                     </article>

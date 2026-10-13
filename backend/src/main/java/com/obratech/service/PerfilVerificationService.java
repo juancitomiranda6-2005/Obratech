@@ -6,6 +6,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import com.obratech.entity.Perfil;
+import com.obratech.entity.Usuario;
 
 @Service
 public class PerfilVerificationService {
@@ -48,6 +49,15 @@ public class PerfilVerificationService {
 
     public boolean isComplete(Perfil perfil) {
         return getMissingRequirements(perfil).isEmpty();
+    }
+
+    public boolean synchronizeVerification(Perfil perfil, Usuario usuario) {
+        boolean verified = isComplete(perfil);
+        perfil.setVerificado(verified);
+        if (usuario != null) {
+            usuario.setVerificado(verified);
+        }
+        return verified;
     }
 
     private boolean hasRole(Perfil perfil, String role) {

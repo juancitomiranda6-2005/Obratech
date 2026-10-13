@@ -29,6 +29,7 @@ import com.obratech.entity.Perfil;
 import com.obratech.entity.Usuario;
 import com.obratech.repository.PerfilRepository;
 import com.obratech.repository.UsuarioRepository;
+import com.obratech.service.PerfilVerificationService;
 
 @RestController
 @RequestMapping("/api/worker")
@@ -37,14 +38,17 @@ public class WorkerProfileApiController {
     private final UsuarioRepository usuarioRepository;
     private final PerfilRepository perfilRepository;
     private final GridFsTemplate gridFsTemplate;
+    private final PerfilVerificationService verificationService;
 
     public WorkerProfileApiController(
             UsuarioRepository usuarioRepository,
             PerfilRepository perfilRepository,
-            GridFsTemplate gridFsTemplate) {
+            GridFsTemplate gridFsTemplate,
+            PerfilVerificationService verificationService) {
         this.usuarioRepository = usuarioRepository;
         this.perfilRepository = perfilRepository;
         this.gridFsTemplate = gridFsTemplate;
+        this.verificationService = verificationService;
     }
 
     @GetMapping("/profile")
@@ -74,7 +78,8 @@ public class WorkerProfileApiController {
                 perfil.getDisponibilidad() != null && perfil.getDisponibilidad(),
                 perfil.getDescripcion(),
                 perfil.getCvUrl(),
-                perfil.getVerificado()))
+                perfil.getVerificado(),
+                perfil.getFotoPerfilUrl() != null && !perfil.getFotoPerfilUrl().isBlank()))
         ;
     }
 
@@ -82,6 +87,7 @@ public class WorkerProfileApiController {
         public ResponseEntity<?> updateProfile(
             @RequestPart("profile") WorkerProfileRequest request,
             @RequestPart(value = "cvFile", required = false) MultipartFile cvFile,
+            @RequestPart(value = "fotoFile", required = false) MultipartFile photo,
             Authentication authentication) {
         if (request == null) {
             return ResponseEntity.badRequest().body(Map.of("error", "Los datos del perfil son obligatorios."));
@@ -93,6 +99,10 @@ public class WorkerProfileApiController {
         String cvError = validateCv(cvFile);
         if (cvError != null) {
             return ResponseEntity.badRequest().body(Map.of("error", cvError));
+        }
+        String photoError = validateProfilePhoto(photo);
+        if (photoError != null) {
+            return ResponseEntity.badRequest().body(Map.of("error", photoError));
         }
 
         Usuario usuario = usuarioRepository.findByUsernameIgnoreCase(authentication.getName()).orElse(null);
@@ -117,10 +127,6 @@ public class WorkerProfileApiController {
         perfil.setDisponibilidad(Boolean.TRUE.equals(request.disponible()));
         perfil.setDescripcion(request.descripcion() == null ? "" : request.descripcion().trim());
         perfil.setEmail(usuario.getUsername());
-        perfil.setVerificado(false);
-        usuario.setVerificado(false);
-        usuarioRepository.save(usuario);
-
         if (cvFile != null && !cvFile.isEmpty()) {
             try {
                 String filename = UUID.randomUUID() + "_cv_" + cvFile.getOriginalFilename();
@@ -131,7 +137,19 @@ public class WorkerProfileApiController {
             }
         }
 
+        if (photo != null && !photo.isEmpty()) {
+            try {
+                String filename = UUID.randomUUID() + "_foto_" + photo.getOriginalFilename();
+                ObjectId fileId = gridFsTemplate.store(photo.getInputStream(), filename, photo.getContentType());
+                perfil.setFotoPerfilUrl(fileId.toHexString());
+            } catch (IOException exception) {
+                return ResponseEntity.badRequest().body(Map.of("error", "No se pudo guardar la foto de perfil."));
+            }
+        }
+
+        verificationService.synchronizeVerification(perfil, usuario);
         Perfil saved = perfilRepository.save(perfil);
+        usuarioRepository.save(usuario);
         return ResponseEntity.ok(new WorkerProfileResponse(
                 saved.getUsername(),
                 saved.getNombre(),
@@ -142,7 +160,8 @@ public class WorkerProfileApiController {
                 saved.getDisponibilidad() != null && saved.getDisponibilidad(),
                 saved.getDescripcion(),
                 saved.getCvUrl(),
-                saved.getVerificado()));
+                saved.getVerificado(),
+                saved.getFotoPerfilUrl() != null && !saved.getFotoPerfilUrl().isBlank()));
     }
 
     @GetMapping("/profile/files/{fileId}")
@@ -177,6 +196,18 @@ public class WorkerProfileApiController {
         return null;
     }
 
+    private String validateProfilePhoto(MultipartFile photo) {
+        if (photo == null || photo.isEmpty()) return null;
+        String filename = photo.getOriginalFilename() == null ? "" : photo.getOriginalFilename().toLowerCase(Locale.ROOT);
+        String contentType = photo.getContentType() == null ? "" : photo.getContentType().toLowerCase(Locale.ROOT);
+        if (photo.getSize() > 5L * 1024 * 1024
+                || !((filename.endsWith(".jpg") || filename.endsWith(".jpeg")) && contentType.equals("image/jpeg")
+                        || filename.endsWith(".png") && contentType.equals("image/png"))) {
+            return "La foto debe ser JPG o PNG y no superar 5 MB.";
+        }
+        return null;
+    }
+
     private boolean isBlank(String value) {
         return value == null || value.isBlank();
     }
@@ -200,5 +231,6 @@ public class WorkerProfileApiController {
             Boolean disponible,
             String descripcion,
             String cvUrl,
-            Boolean verificado) {}
+            Boolean verificado,
+            boolean fotoDisponible) {}
 }

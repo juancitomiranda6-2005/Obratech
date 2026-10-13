@@ -17,8 +17,6 @@ public class ContratistaProfileValidator {
 
     public List<String> validate(Perfil perfil) {
         List<String> errors = new ArrayList<>();
-        if (isBlank(perfil.getFotoPerfilUrl()))
-            errors.add("Debes subir una foto de perfil JPG o PNG.");
         if (isBlank(perfil.getDescripcion()) || perfil.getDescripcion().trim().length() < 150) {
             errors.add("La presentación profesional debe tener al menos 150 caracteres.");
         }
@@ -29,6 +27,8 @@ public class ContratistaProfileValidator {
             errors.add("La matrícula o tarjeta profesional es obligatoria.");
         if (isBlank(perfil.getMatriculaDocumentoUrl()))
             errors.add("Debes adjuntar el PDF de la matrícula profesional.");
+        if (isBlank(perfil.getCvUrl()))
+            errors.add("Debes cargar tu hoja de vida.");
         if (isBlank(perfil.getTelefono()) || !perfil.getTelefono().matches("^\\+?[0-9][0-9 ()-]{7,19}$")) {
             errors.add("Ingresa un número telefónico válido.");
         }
@@ -36,8 +36,6 @@ public class ContratistaProfileValidator {
             errors.add("La ciudad de cobertura es obligatoria.");
         if (isBlank(perfil.getDepartamento()))
             errors.add("El departamento o región de cobertura es obligatorio.");
-        if (isBlank(perfil.getCvUrl()))
-            errors.add("Debes cargar la Hoja de Vida.");
         if (isBlank(perfil.getEstatutosUrl()))
             errors.add("Debes cargar los Estatutos o RUT.");
         return errors;
@@ -45,7 +43,7 @@ public class ContratistaProfileValidator {
 
     public String validateImage(MultipartFile file) {
         if (file == null || file.isEmpty())
-            return "La foto de perfil es obligatoria.";
+            return null;
         if (file.getSize() > MAX_IMAGE_BYTES)
             return "La foto de perfil no puede superar 5 MB.";
         if (!hasExtension(file, ".jpg", ".jpeg", ".png"))

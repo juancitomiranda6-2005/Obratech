@@ -14,7 +14,9 @@ import org.springframework.data.mongodb.core.mapping.DBRef;
 
 import com.obratech.entity.enums.EstadoAsignacion;
 import com.obratech.entity.enums.EstadoEjecucion;
+import com.obratech.entity.enums.EstadoFaseObra;
 import com.obratech.entity.enums.EstadoValidacion;
+import com.obratech.entity.enums.FaseObra;
 
 @Document(collection = "proyectos")
 public class Proyecto {
@@ -38,6 +40,17 @@ public class Proyecto {
     private EstadoAsignacion estadoAsignacion = EstadoAsignacion.SIN_ASIGNAR;
     @Indexed
     private EstadoEjecucion estadoEjecucion = EstadoEjecucion.PENDIENTE;
+
+    private FaseObra faseActual = FaseObra.PLANEACION;
+    private EstadoFaseObra estadoFaseActual = EstadoFaseObra.BLOQUEADA;
+    private Integer semanasEstimadasFase1 = 3;
+    private Integer semanasEstimadasFase2 = 10;
+    private Integer cuotasSemanaPagadas = 0;
+    private Integer cuotasTotalesEsperadas = 0;
+    private Boolean tareasFaseCompletadas = false;
+    private Boolean aprobacionClienteFase = false;
+    private Boolean limpiezaProfundaCompletada = false;
+    private List<String> evidenciasFotograficas = new ArrayList<>();
 
     private Double areaTotal;
     private Integer numeroPisos;
@@ -182,6 +195,86 @@ public class Proyecto {
 
     public void setEstadoEjecucion(EstadoEjecucion estadoEjecucion) {
         this.estadoEjecucion = estadoEjecucion;
+    }
+
+    public FaseObra getFaseActual() {
+        return faseActual;
+    }
+
+    public void setFaseActual(FaseObra faseActual) {
+        this.faseActual = faseActual;
+    }
+
+    public EstadoFaseObra getEstadoFaseActual() {
+        return estadoFaseActual;
+    }
+
+    public void setEstadoFaseActual(EstadoFaseObra estadoFaseActual) {
+        this.estadoFaseActual = estadoFaseActual;
+    }
+
+    public Integer getSemanasEstimadasFase1() {
+        return semanasEstimadasFase1;
+    }
+
+    public void setSemanasEstimadasFase1(Integer semanasEstimadasFase1) {
+        this.semanasEstimadasFase1 = semanasEstimadasFase1;
+    }
+
+    public Integer getSemanasEstimadasFase2() {
+        return semanasEstimadasFase2;
+    }
+
+    public void setSemanasEstimadasFase2(Integer semanasEstimadasFase2) {
+        this.semanasEstimadasFase2 = semanasEstimadasFase2;
+    }
+
+    public Integer getCuotasSemanaPagadas() {
+        return cuotasSemanaPagadas;
+    }
+
+    public void setCuotasSemanaPagadas(Integer cuotasSemanaPagadas) {
+        this.cuotasSemanaPagadas = cuotasSemanaPagadas;
+    }
+
+    public Integer getCuotasTotalesEsperadas() {
+        return cuotasTotalesEsperadas;
+    }
+
+    public void setCuotasTotalesEsperadas(Integer cuotasTotalesEsperadas) {
+        this.cuotasTotalesEsperadas = cuotasTotalesEsperadas;
+    }
+
+    public Boolean getTareasFaseCompletadas() {
+        return tareasFaseCompletadas;
+    }
+
+    public void setTareasFaseCompletadas(Boolean tareasFaseCompletadas) {
+        this.tareasFaseCompletadas = tareasFaseCompletadas;
+    }
+
+    public Boolean getAprobacionClienteFase() {
+        return aprobacionClienteFase;
+    }
+
+    public void setAprobacionClienteFase(Boolean aprobacionClienteFase) {
+        this.aprobacionClienteFase = aprobacionClienteFase;
+    }
+
+    public Boolean getLimpiezaProfundaCompletada() {
+        return limpiezaProfundaCompletada;
+    }
+
+    public void setLimpiezaProfundaCompletada(Boolean limpiezaProfundaCompletada) {
+        this.limpiezaProfundaCompletada = limpiezaProfundaCompletada;
+    }
+
+    public List<String> getEvidenciasFotograficas() {
+        return evidenciasFotograficas;
+    }
+
+    public void setEvidenciasFotograficas(List<String> evidenciasFotograficas) {
+        this.evidenciasFotograficas = evidenciasFotograficas == null ? new ArrayList<>() : evidenciasFotograficas;
     }
 
     public Double getAreaTotal() {

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { ProfileAvatar } from '../../components/shared/ProfileAvatar.jsx'
 import { teamService } from '../../services/teamService.js'
 import { workerRecruitmentService } from '../../services/workerRecruitmentService.js'
 
@@ -7,6 +8,7 @@ export function MercadoTrabajadores({ onLogout, workerId = '' }) {
   const [workers, setWorkers] = useState([])
   const [projects, setProjects] = useState([])
   const [projectId, setProjectId] = useState('')
+  const [pagoOfrecido, setPagoOfrecido] = useState('')
   const [query, setQuery] = useState('')
   const [loading, setLoading] = useState(true)
   const [pendingId, setPendingId] = useState('')
@@ -69,11 +71,15 @@ export function MercadoTrabajadores({ onLogout, workerId = '' }) {
   }
 
   const invite = async (worker) => {
+    if (!Number(pagoOfrecido) || Number(pagoOfrecido) <= 0) {
+      setError('Indica cuánto le pagarás al trabajador por este proyecto.')
+      return
+    }
     setPendingId(worker.id)
     setError('')
     setNotice('')
     try {
-      await workerRecruitmentService.invite(worker.id, projectId)
+      await workerRecruitmentService.invite(worker.id, projectId, Number(pagoOfrecido))
       setWorkers((current) => current.map((item) => (item.id === worker.id ? { ...item, estado: 'INVITADO', invitado: true } : item)))
       setNotice(`Invitación enviada a ${worker.nombre}.`)
     } catch (requestError) {
@@ -112,6 +118,7 @@ export function MercadoTrabajadores({ onLogout, workerId = '' }) {
         <section className="worker-market-controls">
           <label className="admin-search"><span className="material-symbols-outlined" aria-hidden="true">search</span><span className="sr-only">Buscar trabajadores</span><input onChange={(event) => setQuery(event.target.value)} placeholder="Buscar por nombre, correo u oficio" type="search" value={query} /></label>
           <label className="worker-project-select"><span>Invitar al proyecto</span><select disabled={!projects.length} onChange={(event) => handleProjectChange(event.target.value)} value={projectId}>{projects.length ? projects.map((project) => <option key={project.id} value={project.id}>{project.titulo || 'Proyecto sin título'}</option>) : <option value="">No tienes proyectos activos</option>}</select></label>
+          <label className="worker-project-select"><span>Pago total ofrecido a esta persona (COP)</span><input min="1" onChange={(event) => setPagoOfrecido(event.target.value)} placeholder="Ej. 1.500.000" step="1000" type="number" value={pagoOfrecido} /><small>Valor total acordado con este trabajador; no es el presupuesto general de la obra.</small></label>
           <span className="worker-market-count">{filtered.length} registrados</span>
         </section>
 
@@ -120,7 +127,7 @@ export function MercadoTrabajadores({ onLogout, workerId = '' }) {
         {!loading && filtered.length > 0 && <section aria-label="Trabajadores disponibles" className="worker-market-grid">{filtered.map((worker) => (
           <article className="worker-market-card" key={worker.id}>
             <header>
-              <span className="team-member-avatar">{worker.nombre.slice(0, 1).toUpperCase()}</span>
+              <ProfileAvatar className="team-member-avatar" name={worker.nombre} profileId={worker.id} />
               <div>
                 <h2><Link to={`/trabajadores/${worker.id}`}>{worker.nombre}</Link></h2>
                 <p>{worker.oficio || 'Oficio no registrado'}</p>

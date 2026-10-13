@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { clientDashboardService } from '../../services/clientDashboardService.js'
+import { ProfileAvatar } from '../../components/shared/ProfileAvatar.jsx'
 
 const stateLabels = { PENDIENTE: 'Pendiente', EN_PROGRESO: 'En progreso', COMPLETADO: 'Completado', CANCELADO: 'Cancelado' }
 
@@ -9,7 +10,7 @@ function ContractorCard({ contractor }) {
   return (
     <article className="contractor-history-card">
       <header className="contractor-history-header">
-        <span className="contractor-history-avatar">{initials}</span>
+        <ProfileAvatar className="contractor-history-avatar" name={contractor.nombre || contractor.username} profileId={contractor.id} />
         <div><h2><Link to={`/contratistas/${contractor.id}`}>{contractor.nombre || contractor.username}</Link></h2><p>{contractor.especialidad || 'Sin especialidad'}</p></div>
         {contractor.calificacionPromedio != null && <span className="contractor-history-rating"><span className="material-symbols-outlined" aria-hidden="true">star</span>{contractor.calificacionPromedio.toFixed(1)}</span>}
       </header>

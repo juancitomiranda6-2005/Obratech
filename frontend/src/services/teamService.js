@@ -1,13 +1,13 @@
 import api from '../config/api.js'
 
 export const teamService = {
-  getContractorTeams: () => api.get('/contractor/teams'),
+  getContractorTeams: (projectId) => api.get('/contractor/teams', { params: projectId ? { projectId } : undefined }),
   getContractorOptions: () => api.get('/contractor/teams/options'),
   createContractorTeam: (projectId, payload) => api.post(`/contractor/projects/${projectId}/teams`, payload),
   deleteContractorTeam: (projectId, teamId) => api.delete(`/contractor/projects/${projectId}/teams/${teamId}`),
   addMemberToTeam: (projectId, teamId, memberId) => api.post(`/contractor/projects/${projectId}/teams/${teamId}/members`, { memberId }),
   removeMemberFromTeam: (projectId, teamId, memberId) => api.delete(`/contractor/projects/${projectId}/teams/${teamId}/members/${memberId}`),
-  getWorkerTeams: () => api.get('/worker/teams'),
+  getWorkerTeams: (projectId) => api.get('/worker/teams', { params: projectId ? { projectId } : undefined }),
   updateWorkerProgress: (teamId, porcentajeAvance) => api.put(`/worker/teams/${teamId}/progress`, { porcentajeAvance }),
   createWorkerReport: (teamId, contenido, files) => {
     const formData = new FormData()

@@ -74,6 +74,7 @@ public class SecurityConfig {
                         .permitAll()
 
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/public/profiles/*/photo").permitAll()
 
                         .requestMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN")
                         .requestMatchers("/api/client/projects/*/applications/**")

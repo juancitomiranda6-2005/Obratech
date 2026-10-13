@@ -88,8 +88,8 @@ public class WorkerProgressReportApiController {
         if (!isTeamMember(trabajador, equipo) || equipo.getProyecto() == null || equipo.getProyecto().getId() == null) {
             return ResponseEntity.notFound().build();
         }
-        if (!Boolean.TRUE.equals(trabajador.getVerificado())) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Tu cuenta debe estar verificada para enviar avances."));
+        if (proyectoRepository.findById(equipo.getProyecto().getId()).isEmpty()) {
+            return ResponseEntity.notFound().build();
         }
 
         ReporteAvanceTrabajador reporte = new ReporteAvanceTrabajador();
@@ -119,9 +119,6 @@ public class WorkerProgressReportApiController {
         if (!isTeamMember(trabajador, equipo)) {
             return ResponseEntity.notFound().build();
         }
-        if (!Boolean.TRUE.equals(trabajador.getVerificado())) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Tu cuenta debe estar verificada para consultar avances."));
-        }
         return ResponseEntity.ok(reporteRepository
                 .findByEquipoIdAndTrabajadorIdOrderByCreadoDesc(teamId, trabajador.getId())
                 .stream().map(this::toResponse).toList());
@@ -138,12 +135,15 @@ public class WorkerProgressReportApiController {
             return ResponseEntity.badRequest().body(Map.of("error", "El avance debe tener entre 10 y 3000 caracteres."));
         }
         Perfil trabajador = perfilRepository.findByUsernameIgnoreCase(authentication.getName()).orElse(null);
-        if (trabajador == null || trabajador.getId() == null || !Boolean.TRUE.equals(trabajador.getVerificado())) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Tu cuenta debe estar verificada para editar avances."));
+        if (trabajador == null || trabajador.getId() == null) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "No se encontró el perfil del trabajador."));
         }
         ReporteAvanceTrabajador reporte = reporteRepository
                 .findByIdAndEquipoIdAndTrabajadorId(reportId, teamId, trabajador.getId()).orElse(null);
         if (reporte == null) {
+            return ResponseEntity.notFound().build();
+        }
+        if (proyectoRepository.findById(reporte.getProyectoId()).isEmpty()) {
             return ResponseEntity.notFound().build();
         }
         if (reporte.getCreado() == null
@@ -164,9 +164,6 @@ public class WorkerProgressReportApiController {
                 || !contratista.getId().equals(proyecto.getContratistaAsignado().getId())) {
             return ResponseEntity.notFound().build();
         }
-        if (!Boolean.TRUE.equals(contratista.getVerificado())) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Tu cuenta debe estar verificada para consultar avances."));
-        }
         return ResponseEntity.ok(reporteRepository.findByProyectoIdOrderByCreadoDesc(projectId).stream()
                 .map(this::toResponse)
                 .toList());
@@ -181,7 +178,7 @@ public class WorkerProgressReportApiController {
         Perfil viewer = perfilRepository.findByUsernameIgnoreCase(authentication.getName()).orElse(null);
         EquipoTrabajo team = equipoTrabajoRepository.findById(teamId).orElse(null);
         ReporteAvanceTrabajador report = reporteRepository.findByIdAndEquipoId(reportId, teamId).orElse(null);
-        if (viewer == null || !Boolean.TRUE.equals(viewer.getVerificado())
+        if (viewer == null
             || team == null || report == null || !canViewEvidence(viewer, team)) {
             return ResponseEntity.notFound().build();
         }

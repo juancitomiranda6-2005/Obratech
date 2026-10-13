@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react'
-import { BrowserRouter, Link, useLocation, useNavigate } from 'react-router-dom'
+import { BrowserRouter, Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { authService } from './services/authService.js'
-import { clientDashboardService } from './services/clientDashboardService.js'
-import { contractorDashboardService, workerDashboardService } from './services/professionalDashboardService.js'
 import { AuthProvider, useAuth } from './context/AuthContext.jsx'
 import { DashboardAdmin } from './pages/dashboard/DashboardAdmin.jsx'
 import { DashboardCliente } from './pages/dashboard/DashboardCliente.jsx'
@@ -65,39 +63,6 @@ const roleOptions = {
   ROLE_WORKER: { label: 'Trabajador', description: 'Buscar oportunidades laborales', icon: 'construction' },
 }
 
-const verificationServices = {
-  ROLE_CLIENT: { load: clientDashboardService.getDashboard, profile: '/perfil-cliente/editar', label: 'cliente' },
-  ROLE_CONTRACTOR: { load: contractorDashboardService.getDashboard, profile: '/perfil-contratista/editar', label: 'contratista' },
-  ROLE_WORKER: { load: workerDashboardService.getDashboard, profile: '/perfil-trabajador/editar', label: 'trabajador' },
-}
-
-function VerificationGate({ role, status, onRetry, onLogout }) {
-  const account = verificationServices[role]
-  const requirements = status?.requisitosFaltantes || []
-  const profileIncomplete = Boolean(status?.perfilIncompleto)
-
-  return (
-    <main className="auth-page verification-gate-page">
-      <section aria-labelledby="verification-gate-title" className="auth-shell verification-gate">
-        <span className="material-symbols-outlined verification-gate-icon" aria-hidden="true">{status?.error ? 'cloud_off' : 'gpp_maybe'}</span>
-        <p className="eyebrow">Verificación de cuenta</p>
-        <h1 id="verification-gate-title">{status?.error ? 'No pudimos confirmar tu estado' : profileIncomplete ? 'Completa tu perfil para continuar' : 'Tu cuenta está en revisión'}</h1>
-        <p className="auth-copy">{status?.error
-          ? 'Por seguridad, no habilitamos las opciones hasta confirmar tu estado de verificación.'
-          : profileIncomplete
-            ? 'Completa la información pendiente. Después, el equipo de ObraTech podrá revisar tu cuenta.'
-            : `El administrador debe verificar tu perfil de ${account.label} antes de habilitar las demás opciones.`}</p>
-        {requirements.length > 0 && <ul className="verification-gate-requirements">{requirements.map((requirement) => <li key={requirement}>{requirement}</li>)}</ul>}
-        <div className="verification-gate-actions">
-          <Link className="button button-primary" to={account.profile}><span className="material-symbols-outlined" aria-hidden="true">edit</span>{profileIncomplete ? 'Completar perfil' : 'Revisar perfil'}</Link>
-          {status?.error && <button className="button button-secondary" onClick={onRetry} type="button"><span className="material-symbols-outlined" aria-hidden="true">refresh</span>Volver a verificar</button>}
-          <button className="verification-gate-logout" onClick={onLogout} type="button">Cerrar sesión</button>
-        </div>
-      </section>
-    </main>
-  )
-}
-
 function RoleSelectionPage({ roles, onSelect, onLogout }) {
   const availableRoles = roles.filter((role) => roleOptions[role])
 
@@ -130,9 +95,6 @@ function LoginApp() {
   const location = useLocation()
   const navigate = useNavigate()
   const { user, isAuthenticated, login, logout, selectRole } = useAuth()
-  const [verificationStatus, setVerificationStatus] = useState(null)
-  const [verificationRetry, setVerificationRetry] = useState(0)
-  const accountIdentity = user?.email || user?.name || ''
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [rememberMe, setRememberMe] = useState(false)
@@ -156,27 +118,6 @@ function LoginApp() {
             : query.has('logout')
               ? { message: 'Sesión cerrada correctamente.', tone: 'success' }
               : null
-
-  useEffect(() => {
-    const role = user?.role
-    const verificationService = verificationServices[role]
-    if (!isAuthenticated || !verificationService) return undefined
-    let active = true
-    verificationService.load()
-      .then(({ data }) => {
-        if (active) setVerificationStatus({
-          role,
-          identity: accountIdentity,
-          verified: Boolean(data.usuarioVerificado),
-          perfilIncompleto: Boolean(data.perfilIncompleto),
-          requisitosFaltantes: data.requisitosFaltantes || [],
-        })
-      })
-      .catch(() => {
-        if (active) setVerificationStatus({ role, identity: accountIdentity, error: true, verified: false })
-      })
-    return () => { active = false }
-  }, [accountIdentity, isAuthenticated, user?.role, verificationRetry])
 
   useEffect(() => {
     if (isAuthenticated) return
@@ -238,24 +179,12 @@ function LoginApp() {
   }
 
   if (isAuthenticated) {
+    const canonicalPath = location.pathname.replace(/\/+$/, '') || '/'
+    if (canonicalPath !== location.pathname) {
+      return <Navigate replace to={`${canonicalPath}${location.search}${location.hash}`} />
+    }
     if (location.pathname === '/seleccionar-perfil' || !user?.role) {
       return <RoleSelectionPage roles={user?.roles || []} onSelect={(role) => { selectRole(role); navigate('/', { replace: true }) }} onLogout={logout} />
-    }
-    const accountVerification = verificationServices[user?.role]
-    const profileRoutes = user?.role === 'ROLE_CLIENT'
-      ? ['/perfil-cliente', '/perfil-cliente/editar']
-      : user?.role === 'ROLE_CONTRACTOR'
-        ? ['/perfil-contratista', '/perfil-contratista/editar', '/contratistas/editar']
-        : user?.role === 'ROLE_WORKER'
-          ? ['/perfil-trabajador', '/perfil-trabajador/editar', '/perfil-laboral', '/trabajadores/perfil']
-          : []
-    if (accountVerification && !profileRoutes.includes(location.pathname)) {
-      if (verificationStatus?.role !== user.role || verificationStatus?.identity !== accountIdentity) {
-        return <VerificationGate role={user.role} status={null} onRetry={() => setVerificationRetry((current) => current + 1)} onLogout={logout} />
-      }
-      if (!verificationStatus.verified) {
-        return <VerificationGate role={user.role} status={verificationStatus} onRetry={() => setVerificationRetry((current) => current + 1)} onLogout={logout} />
-      }
     }
     if (user?.role === 'ROLE_ADMIN') {
       if (location.pathname === '/admin/usuarios') return <Usuarios onLogout={logout} />
@@ -317,11 +246,11 @@ function LoginApp() {
           : <MisContratistasPage onLogout={logout} />
       }
       const publicWorkerRoute = location.pathname.match(/^\/trabajadores\/([^/]+)$/)
-      if (publicWorkerRoute) return <PerfilPublico id={decodeURIComponent(publicWorkerRoute[1])} onLogout={logout} />
+      if (publicWorkerRoute) return <PerfilPublico id={decodeURIComponent(publicWorkerRoute[1])} onLogout={logout} viewerRole={user.role} />
       const contractorUsernameRoute = location.pathname.match(/^\/contratistas\/por-username\/([^/]+)$/)
-      if (contractorUsernameRoute) return <PerfilPublico id={decodeURIComponent(contractorUsernameRoute[1])} onLogout={logout} />
+      if (contractorUsernameRoute) return <PerfilPublico id={decodeURIComponent(contractorUsernameRoute[1])} onLogout={logout} viewerRole={user.role} />
       const publicContractorRoute = location.pathname.match(/^\/contratistas\/([^/]+)$/)
-      if (publicContractorRoute) return <PerfilPublico id={decodeURIComponent(publicContractorRoute[1])} onLogout={logout} />
+      if (publicContractorRoute) return <PerfilPublico id={decodeURIComponent(publicContractorRoute[1])} onLogout={logout} viewerRole={user.role} />
       const ratingRoute = location.pathname.match(/^\/calificaciones\/(?:crear|calificar)\/([^/]+)\/([^/]+)$/)
       if (ratingRoute) {
         return <CalificarContratista onLogout={logout} projectId={decodeURIComponent(ratingRoute[1])} contractorId={decodeURIComponent(ratingRoute[2])} />
@@ -346,6 +275,8 @@ function LoginApp() {
       return <DashboardCliente onLogout={logout} />
     }
     if (user?.role === 'ROLE_CONTRACTOR') {
+      const publicClientRoute = location.pathname.match(/^\/clientes\/perfil\/([^/]+)$/)
+      if (publicClientRoute) return <PerfilPublico id={decodeURIComponent(publicClientRoute[1])} onLogout={logout} viewerRole={user.role} />
       if (location.pathname === '/clientes') return <DirectorioPerfiles kind="clients" onLogout={logout} />
       if (location.pathname === '/contratistas' || location.pathname.startsWith('/contratistas/buscar/')) {
         const specialty = location.pathname.startsWith('/contratistas/buscar/')
@@ -362,7 +293,7 @@ function LoginApp() {
       const legacyAvailableProject = location.pathname.match(/^\/proyectos\/postular\/([^/]+)$/)
       if (legacyAvailableProject) return <ProyectosDisponibles onLogout={logout} role={user.role} projectId={decodeURIComponent(legacyAvailableProject[1])} />
       const publicWorkerRoute = location.pathname.match(/^\/trabajadores\/([^/]+)$/)
-      if (publicWorkerRoute) return <PerfilPublico id={decodeURIComponent(publicWorkerRoute[1])} onLogout={logout} />
+      if (publicWorkerRoute) return <PerfilPublico id={decodeURIComponent(publicWorkerRoute[1])} onLogout={logout} viewerRole={user.role} />
       if (location.pathname === '/contratistas/mi-equipo') return <EquiposPage onLogout={logout} role={user.role} />
       if (location.pathname === '/contratistas/historial') return <HistorialContratista onLogout={logout} />
       if (location.pathname === '/contratistas/proyectos-asignados') return <DashboardContratista onLogout={logout} />
@@ -381,6 +312,8 @@ function LoginApp() {
       return <DashboardContratista onLogout={logout} />
     }
     if (user?.role === 'ROLE_WORKER') {
+      const publicClientRoute = location.pathname.match(/^\/clientes\/perfil\/([^/]+)$/)
+      if (publicClientRoute) return <PerfilPublico id={decodeURIComponent(publicClientRoute[1])} onLogout={logout} viewerRole={user.role} />
       if (location.pathname === '/trabajadores/perfil' || location.pathname === '/perfil-laboral') return <PerfilTrabajador editing />
       if (location.pathname === '/trabajadores/mi-equipo') return <EquiposPage onLogout={logout} role={user.role} />
       if (location.pathname === '/trabajadores/disponibles') return <ProyectosDisponibles onLogout={logout} role={user.role} />
@@ -394,9 +327,9 @@ function LoginApp() {
         return <DirectorioPerfiles kind="contractors" specialty={specialty} onLogout={logout} />
       }
       const contractorUsernameRoute = location.pathname.match(/^\/contratistas\/por-username\/([^/]+)$/)
-      if (contractorUsernameRoute) return <PerfilPublico id={decodeURIComponent(contractorUsernameRoute[1])} onLogout={logout} />
+      if (contractorUsernameRoute) return <PerfilPublico id={decodeURIComponent(contractorUsernameRoute[1])} onLogout={logout} viewerRole={user.role} />
       const publicContractorRoute = location.pathname.match(/^\/contratistas\/([^/]+)$/)
-      if (publicContractorRoute) return <PerfilPublico id={decodeURIComponent(publicContractorRoute[1])} onLogout={logout} />
+      if (publicContractorRoute) return <PerfilPublico id={decodeURIComponent(publicContractorRoute[1])} onLogout={logout} viewerRole={user.role} />
       if (location.pathname === '/trabajadores/mi-equipo') return <EquiposPage onLogout={logout} role={user.role} />
       if (location.pathname === '/perfil-trabajador/editar') return <PerfilTrabajador editing />
       if (location.pathname === '/perfil-trabajador') return <PerfilTrabajador />

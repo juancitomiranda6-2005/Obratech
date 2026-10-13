@@ -22,6 +22,8 @@ public class Perfil {
 
     private String telefono;
 
+    private String fotoPerfilUrl;
+
     private java.util.Set<String> roles = new java.util.HashSet<>(); // ROLE_CLIENT | ROLE_CONTRACTOR | ROLE_WORKER
 
     private Boolean activo = true;
@@ -249,13 +251,12 @@ public class Perfil {
     }
 
     public String getFotoPerfilUrl() {
-        return contratista != null ? contratista.getFotoPerfilUrl() : null;
+        return fotoPerfilUrl != null ? fotoPerfilUrl
+                : contratista != null ? contratista.getFotoPerfilUrl() : null;
     }
 
     public void setFotoPerfilUrl(String fotoPerfilUrl) {
-        if (contratista == null)
-            contratista = new Contratista();
-        contratista.setFotoPerfilUrl(fotoPerfilUrl);
+        this.fotoPerfilUrl = fotoPerfilUrl;
     }
 
     public String getCiudad() {

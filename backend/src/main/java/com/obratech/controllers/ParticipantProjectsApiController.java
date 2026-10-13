@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.obratech.entity.Postulacion;
+import com.obratech.entity.Perfil;
 import com.obratech.entity.Proyecto;
 import com.obratech.entity.Usuario;
 import com.obratech.entity.enums.EstadoValidacion;
@@ -25,6 +26,7 @@ import com.obratech.repository.PostulacionRepository;
 import com.obratech.repository.ProyectoRepository;
 import com.obratech.repository.UsuarioRepository;
 import com.obratech.service.ContratistaProfileValidator;
+import com.obratech.util.PerfilDisplayName;
 
 @RestController
 @RequestMapping("/api/participant/projects")
@@ -79,12 +81,25 @@ public class ParticipantProjectsApiController {
                 .stream()
                 .map(postulacion -> {
                     Proyecto proyecto = postulacion.getProyecto();
+                    Perfil clientePerfil = proyecto == null || proyecto.getCliente() == null
+                        ? null
+                        : perfilRepository.findByUsernameIgnoreCase(proyecto.getCliente().getUsername()).orElse(null);
                     return new MyApplicationItem(
                             postulacion.getId(),
                             proyecto == null ? null : proyecto.getId(),
                             proyecto == null ? "Proyecto no disponible" : proyecto.getTitulo(),
+                        proyecto == null ? null : proyecto.getDescripcion(),
+                        proyecto == null ? null : proyecto.getTipoProyecto(),
                             proyecto == null ? null : proyecto.getUbicacion(),
                             proyecto == null ? null : proyecto.getPresupuesto(),
+                        proyecto == null ? null : proyecto.getFechaInicio(),
+                        proyecto == null ? null : proyecto.getFechaEntrega(),
+                        proyecto == null ? null : proyecto.getFechaLimitePostulacion(),
+                        proyecto == null ? null : proyecto.getPlazoEstimado(),
+                        proyecto == null ? null : proyecto.getAreaTotal(),
+                        proyecto == null ? null : proyecto.getObservaciones(),
+                        clientePerfil == null ? null : clientePerfil.getId(),
+                        clientePerfil == null ? "Cliente" : PerfilDisplayName.of(clientePerfil),
                             postulacion.getEstado() == null ? "PENDING" : postulacion.getEstado().name(),
                             postulacion.getMensaje(),
                             postulacion.getFechaPostulacion());
@@ -113,11 +128,6 @@ public class ParticipantProjectsApiController {
             return ResponseEntity.status(HttpStatus.CONFLICT)
                     .body(new ApiError("Las postulaciones para este proyecto están cerradas."));
         }
-        if (!usuario.isVerificado()) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(new ApiError("Debes tener la cuenta verificada para postularte."));
-        }
-
         boolean isContractor = hasAuthority(authentication, "ROLE_CONTRACTOR");
         if (isContractor) {
             var perfil = perfilRepository.findByUsernameIgnoreCase(usuario.getUsername()).orElse(null);
@@ -151,10 +161,15 @@ public class ParticipantProjectsApiController {
     }
 
     private ProjectItem toProjectItem(Proyecto proyecto, Usuario usuario) {
+        Perfil clientProfile = proyecto.getCliente() == null ? null
+            : perfilRepository.findByUsernameIgnoreCase(proyecto.getCliente().getUsername()).orElse(null);
         return new ProjectItem(
                 proyecto.getId(), proyecto.getTitulo(), proyecto.getDescripcion(), proyecto.getTipoProyecto(),
                 proyecto.getUbicacion(), proyecto.getPresupuesto(), proyecto.getFechaInicio(),
-                proyecto.getFechaEntrega(), proyecto.getFechaLimitePostulacion(),
+            proyecto.getFechaEntrega(), proyecto.getFechaLimitePostulacion(),
+            proyecto.getPlazoEstimado(), proyecto.getAreaTotal(), proyecto.getObservaciones(),
+            clientProfile == null ? null : clientProfile.getId(),
+            clientProfile == null ? "Cliente" : PerfilDisplayName.of(clientProfile),
                 postulacionRepository.existsByProyectoIdAndUsuarioId(proyecto.getId(), usuario.getId()));
     }
 
@@ -168,6 +183,11 @@ public class ParticipantProjectsApiController {
             LocalDate fechaInicio,
             LocalDate fechaEntrega,
             LocalDate fechaLimitePostulacion,
+            Integer plazoEstimado,
+            Double areaTotal,
+            String observaciones,
+            String clientePerfilId,
+            String clienteNombre,
             boolean yaPostulado) {}
 
     public record ProjectMarketResponse(
@@ -184,8 +204,18 @@ public class ParticipantProjectsApiController {
             String id,
             String projectId,
             String projectTitle,
+            String descripcion,
+            String tipoProyecto,
             String ubicacion,
             Double presupuesto,
+            LocalDate fechaInicio,
+            LocalDate fechaEntrega,
+            LocalDate fechaLimitePostulacion,
+            Integer plazoEstimado,
+            Double areaTotal,
+            String observaciones,
+            String clientePerfilId,
+            String clienteNombre,
             String estado,
             String mensaje,
             LocalDateTime fechaPostulacion) {}

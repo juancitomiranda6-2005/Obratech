@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { EvidenceAttachment } from '../../components/shared/EvidenceAttachment.jsx'
+import { ProfileAvatar } from '../../components/shared/ProfileAvatar.jsx'
 import { contractorDashboardService } from '../../services/professionalDashboardService.js'
 
 async function loadProjectWorkerReports(projects = []) {
@@ -126,10 +127,10 @@ function ContractorDashboard({ onLogout }) {
           <Link to="/contratistas/historial"><span className="material-symbols-outlined" aria-hidden="true">history</span>Historial de proyectos</Link>
           <a href="#proyectos"><span className="material-symbols-outlined" aria-hidden="true">folder_special</span>Proyectos asignados</a>
           <a href="#proyectos"><span className="material-symbols-outlined" aria-hidden="true">description</span>Hacer reporte</a>
-          <a href="#perfil"><span className="material-symbols-outlined" aria-hidden="true">person</span>Mi perfil</a>
+          <Link to="/perfil-contratista"><span className="material-symbols-outlined" aria-hidden="true">person</span>Mi perfil</Link>
         </nav>
         <div className="client-sidebar-footer">
-          <div className="client-user"><span className="client-avatar">{dashboard?.nombre?.slice(0, 1).toUpperCase() || 'C'}</span><div><strong>{dashboard?.nombre || 'Contratista'}</strong><small>Contratista</small></div></div>
+          <div className="client-user"><ProfileAvatar className="client-avatar" name={dashboard?.nombre || 'Contratista'} profileId={dashboard?.username} /><div><strong>{dashboard?.nombre || 'Contratista'}</strong><small>Contratista</small></div></div>
           <button className="client-logout" onClick={onLogout} type="button"><span className="material-symbols-outlined" aria-hidden="true">logout</span>Cerrar sesión</button>
         </div>
       </aside>
@@ -137,7 +138,7 @@ function ContractorDashboard({ onLogout }) {
       <main className="client-main" id="resumen">
         <header className="client-header">
           <div><p className="client-eyebrow">Área de contratista</p><h1>Bienvenido, {dashboard?.nombre || '…'}</h1><p>Gestiona tu equipo y tus proyectos de construcción.</p></div>
-          <button aria-label="Actualizar dashboard" className="admin-icon-button" onClick={reload} title="Actualizar" type="button"><span className="material-symbols-outlined" aria-hidden="true">refresh</span></button>
+          <button aria-label="Actualizar dashboard" className="admin-icon-button" disabled={loading} onClick={reload} title={loading ? 'Actualizando…' : 'Actualizar'} type="button"><span className={`material-symbols-outlined ${loading ? 'is-refreshing' : ''}`} aria-hidden="true">refresh</span></button>
         </header>
 
         {error && <div className="admin-alert admin-alert-error" role="alert">{error}</div>}
@@ -149,8 +150,8 @@ function ContractorDashboard({ onLogout }) {
             {!dashboard.usuarioVerificado && (
               <section className="client-verification" aria-label="Estado de verificación">
                 <span className="material-symbols-outlined" aria-hidden="true">gpp_maybe</span>
-                <div><h2>Cuenta pendiente de verificación</h2><p>El administrador debe validar tu información antes de habilitar las postulaciones y otras interacciones.</p>{dashboard.perfilIncompleto && <><p className="client-missing">Completa estos campos: {dashboard.requisitosFaltantes.join(', ')}.</p><Link className="client-verification-action" to="/perfil-contratista/editar"><span className="material-symbols-outlined" aria-hidden="true">edit</span>Completar perfil</Link></>}</div>
-                <span className="client-review-badge">En revisión</span>
+                <div><h2>Completa tu perfil para obtener la insignia</h2><p>Tu cuenta está activa. La insignia se habilitará automáticamente cuando completes los requisitos.</p>{dashboard.perfilIncompleto && <><p className="client-missing">Completa estos campos: {dashboard.requisitosFaltantes.join(', ')}.</p><Link className="client-verification-action" to="/perfil-contratista/editar"><span className="material-symbols-outlined" aria-hidden="true">edit</span>Completar perfil</Link></>}</div>
+                <span className="client-review-badge">Activa</span>
               </section>
             )}
 
@@ -207,7 +208,7 @@ function ContractorDashboard({ onLogout }) {
               <section className="client-profile" id="perfil">
                 <p className="client-eyebrow">Perfil profesional</p><h2>{dashboard.especialidad || 'Contratista general'}</h2>
                 <div className="client-profile-email"><span className="material-symbols-outlined" aria-hidden="true">location_on</span><span>{dashboard.ubicacion || 'Ubicación no definida'}</span></div>
-                <div className="client-profile-status"><span className={`client-status-dot ${dashboard.usuarioVerificado ? 'is-verified' : ''}`} /><span>{dashboard.usuarioVerificado ? 'Cuenta verificada' : 'Pendiente de verificación'}</span></div>
+                <div className="client-profile-status"><span className={`client-status-dot ${dashboard.usuarioVerificado ? 'is-verified' : ''}`} /><span>{dashboard.usuarioVerificado ? 'Cuenta verificada' : 'Insignia pendiente'}</span></div>
                 <div className="client-profile-total"><span>Proyectos completados</span><strong>{dashboard.proyectosCompletados}</strong></div>
                 <Link className="profile-open-link" to="/perfil-contratista">Ver perfil completo<span className="material-symbols-outlined" aria-hidden="true">arrow_forward</span></Link>
               </section>
@@ -218,9 +219,9 @@ function ContractorDashboard({ onLogout }) {
               {reports.length ? <div className="contractor-report-list">{reports.map((report) => (
                 <article className="contractor-report-item" key={report.id}>
                   <div><strong>{report.proyecto || 'Proyecto'}</strong><time dateTime={report.creado}>{report.creado ? new Intl.DateTimeFormat('es-CO', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(report.creado)) : 'Fecha no disponible'}</time>
-                    <button aria-label="Editar informe enviado al cliente" className="report-edit-button" onClick={() => { setEditingReportId(report.id); setEditingReportContent(report.contenido) }} title="Editar informe" type="button"><span className="material-symbols-outlined" aria-hidden="true">edit</span></button>
+                    {report.proyectoDisponible !== false ? <button aria-label="Editar informe enviado al cliente" className="report-edit-button" onClick={() => { setEditingReportId(report.id); setEditingReportContent(report.contenido) }} title="Editar informe" type="button"><span className="material-symbols-outlined" aria-hidden="true">edit</span></button> : <span className="report-project-unavailable">Proyecto eliminado · solo lectura</span>}
                   </div>
-                  {editingReportId === report.id ? <form className="contractor-report-edit-form" onSubmit={(event) => updateReport(event, report.id)}>
+                  {editingReportId === report.id && report.proyectoDisponible !== false ? <form className="contractor-report-edit-form" onSubmit={(event) => updateReport(event, report.id)}>
                     <label htmlFor={`edit-contractor-report-${report.id}`}>Editar informe enviado al cliente</label>
                     <textarea id={`edit-contractor-report-${report.id}`} maxLength={3000} minLength={10} onChange={(event) => setEditingReportContent(event.target.value)} required rows={4} value={editingReportContent} />
                     <div className="team-add-member-actions">

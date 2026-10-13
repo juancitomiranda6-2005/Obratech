@@ -62,7 +62,8 @@ public class ProfileDirectoryApiController {
                         profile.getExperiencia(),
                         Boolean.TRUE.equals(profile.getDisponibilidad()),
                         profile.getCalificacionPromedio() == null ? 0.0 : profile.getCalificacionPromedio(),
-                        Boolean.TRUE.equals(profile.getVerificado())))
+                        Boolean.TRUE.equals(profile.getVerificado()),
+                        profile.getFotoPerfilUrl() != null && !profile.getFotoPerfilUrl().isBlank()))
                 .sorted(Comparator.comparing(DirectoryProfile::nombre, String.CASE_INSENSITIVE_ORDER))
                 .toList();
     }
@@ -79,5 +80,6 @@ public class ProfileDirectoryApiController {
             Integer experiencia,
             boolean disponible,
             double calificacionPromedio,
-            boolean verificado) {}
+            boolean verificado,
+            boolean fotoDisponible) {}
 }

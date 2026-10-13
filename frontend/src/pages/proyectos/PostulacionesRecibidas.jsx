@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { clientApplicationsService } from '../../services/postulacionService.js'
 
-const statusLabels = { PENDING: 'Pendiente', ACCEPTED: 'Aceptada', REJECTED: 'Rechazada' }
+const statusLabels = { PENDING: 'Pendiente', OFFERED: 'Esperando confirmación', ACCEPTED: 'Aceptada', REJECTED: 'Rechazada' }
 const money = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 })
 
 function ApplicantProfileLink({ application }) {
@@ -15,6 +15,25 @@ export function PostulacionesRecibidas({ onLogout }) {
   const [projects, setProjects] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [pendingAction, setPendingAction] = useState('')
+
+  const reload = async () => {
+    const { data } = await clientApplicationsService.listForClient()
+    setProjects(data)
+  }
+
+  const respond = async (projectId, applicationId, state) => {
+    setPendingAction(applicationId)
+    setError('')
+    try {
+      await clientApplicationsService.respond(projectId, applicationId, state)
+      await reload()
+    } catch (requestError) {
+      setError(requestError.response?.data?.error || 'No se pudo actualizar la postulación.')
+    } finally {
+      setPendingAction('')
+    }
+  }
 
   useEffect(() => {
     document.title = 'Postulaciones recibidas | ObraTech'
@@ -63,12 +82,15 @@ export function PostulacionesRecibidas({ onLogout }) {
                 <ul className="received-applications-list">
                   {project.applications.map((application) => (
                     <li key={application.id}>
-                      <div><ApplicantProfileLink application={application} />{application.usuarioVerificado && <span className="material-symbols-outlined applicant-verified" aria-label="Verificado">verified</span>}<small>{application.rol.replace('ROLE_', '') || 'Postulante'} · {application.username}</small></div>
+                      <div className="received-applicant-identity"><ApplicantProfileLink application={application} />{application.usuarioVerificado && <span className="material-symbols-outlined applicant-verified" aria-label="Verificado">verified</span>}<small>{application.rol.replace('ROLE_', '') || 'Postulante'} · {application.username}</small></div>
                       <span className={`application-status status-${application.estado.toLowerCase()}`}>{statusLabels[application.estado] || application.estado}</span>
+                      {application.estado === 'PENDING' && <div className="received-applicant-actions">
+                        <button className="admin-action admin-action-success" disabled={pendingAction === application.id || project.contractorAssigned} onClick={() => respond(project.projectId, application.id, 'ACCEPTED')} type="button">{pendingAction === application.id ? 'Procesando…' : 'Seleccionar'}</button>
+                        <button className="admin-action admin-action-danger" disabled={pendingAction === application.id} onClick={() => respond(project.projectId, application.id, 'REJECTED')} type="button">Rechazar</button>
+                      </div>}
                     </li>
                   ))}
                 </ul>
-                <Link className="profile-open-link" to={`/proyectos/${project.projectId}/postulantes`}>Gestionar postulaciones<span className="material-symbols-outlined" aria-hidden="true">arrow_forward</span></Link>
               </article>
             ))}
           </section>

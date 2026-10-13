@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { clientProfileService } from '../../services/perfilService.js'
+import { ProfileAvatar } from '../../components/shared/ProfileAvatar.jsx'
 
 function ClientProfile({ editing }) {
   const navigate = useNavigate()
@@ -10,6 +11,7 @@ function ClientProfile({ editing }) {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
+  const [photoFile, setPhotoFile] = useState(null)
 
   useEffect(() => {
     document.title = editing ? 'Editar Perfil | ObraTech' : 'Perfil Cliente | ObraTech'
@@ -37,7 +39,7 @@ function ClientProfile({ editing }) {
     setSaving(true)
     setError('')
     try {
-      const { data } = await clientProfileService.updateMine(form)
+      const { data } = await clientProfileService.updateMine(form, photoFile)
       setProfile(data)
       setNotice('Tus datos se guardaron correctamente.')
       navigate('/perfil-cliente')
@@ -67,16 +69,17 @@ function ClientProfile({ editing }) {
             <label className="publish-field"><span>Apellido</span><input autoComplete="family-name" maxLength={100} name="apellido" onChange={updateField} required value={form.apellido} /></label>
             <label className="publish-field"><span>Empresa</span><input maxLength={140} name="empresa" onChange={updateField} required value={form.empresa} /></label>
             <label className="publish-field"><span>Teléfono de contacto</span><input autoComplete="tel" maxLength={24} name="telefono" onChange={updateField} required type="tel" value={form.telefono} /></label>
+            <label className="publish-field publish-field-full"><span>Foto de perfil (opcional, JPG o PNG, máximo 5 MB)</span><input accept=".jpg,.jpeg,.png,image/jpeg,image/png" onChange={(event) => setPhotoFile(event.target.files?.[0] || null)} type="file" /></label>
             <div className="publish-actions publish-field-full"><button className="button button-primary" disabled={saving} type="submit"><span className="material-symbols-outlined" aria-hidden="true">save</span>{saving ? 'Guardando…' : 'Guardar cambios'}</button><Link className="button button-secondary" to="/perfil-cliente">Cancelar</Link></div>
           </form>
         )}
         {profile && !editing && (
           <div className="client-profile-page-grid">
             <section className="client-profile identity-profile">
-              <span className="client-avatar profile-large-avatar">{(profile.nombre || profile.username).slice(0, 1).toUpperCase()}</span>
+              <ProfileAvatar className="client-avatar profile-large-avatar" name={profile.nombre || profile.username} photoAvailable={profile.fotoDisponible} profileId={profile.username} />
               <p className="client-eyebrow">Cliente</p>
               <h2>{`${profile.nombre} ${profile.apellido}`.trim() || profile.username}</h2>
-              <span className={`profile-verification ${profile.verificado ? 'is-verified' : ''}`}><span className="material-symbols-outlined" aria-hidden="true">{profile.verificado ? 'verified' : 'pending'}</span>{profile.verificado ? 'Cliente verificado' : 'Pendiente de verificación'}</span>
+              <span className={`profile-verification ${profile.verificado ? 'is-verified' : ''}`}><span className="material-symbols-outlined" aria-hidden="true">{profile.verificado ? 'verified' : 'pending'}</span>{profile.verificado ? 'Cliente verificado' : 'Insignia pendiente'}</span>
             </section>
             <section className="client-profile profile-details">
               <p className="client-eyebrow">Información</p><h2>Detalles de la cuenta</h2>

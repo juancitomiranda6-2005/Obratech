@@ -16,6 +16,20 @@ public class InvitacionTrabajo {
     @Indexed
     private Proyecto proyecto;
 
+    private String proyectoId;
+
+    private String proyectoTitulo;
+
+    private String proyectoUbicacion;
+
+    private String proyectoDescripcion;
+
+    private String clientePerfilId;
+
+    private String contratistaPerfilId;
+
+    private Double pagoOfrecido;
+
     @DBRef
     @Indexed
     private Perfil trabajador;
@@ -27,6 +41,8 @@ public class InvitacionTrabajo {
     private String estado = "PENDIENTE"; // PENDIENTE, ACEPTADA, RECHAZADA
 
     private LocalDateTime fechaCreacion = LocalDateTime.now();
+
+    private LocalDateTime fechaExpiracion;
 
     public InvitacionTrabajo() {}
 
@@ -44,6 +60,62 @@ public class InvitacionTrabajo {
 
     public void setProyecto(Proyecto proyecto) {
         this.proyecto = proyecto;
+    }
+
+    public String getProyectoId() {
+        return proyectoId != null ? proyectoId : proyecto == null ? null : proyecto.getId();
+    }
+
+    public void setProyectoId(String proyectoId) {
+        this.proyectoId = proyectoId;
+    }
+
+    public String getProyectoTitulo() {
+        return proyectoTitulo;
+    }
+
+    public void setProyectoTitulo(String proyectoTitulo) {
+        this.proyectoTitulo = proyectoTitulo;
+    }
+
+    public String getProyectoUbicacion() {
+        return proyectoUbicacion;
+    }
+
+    public void setProyectoUbicacion(String proyectoUbicacion) {
+        this.proyectoUbicacion = proyectoUbicacion;
+    }
+
+    public String getProyectoDescripcion() {
+        return proyectoDescripcion;
+    }
+
+    public void setProyectoDescripcion(String proyectoDescripcion) {
+        this.proyectoDescripcion = proyectoDescripcion;
+    }
+
+    public String getClientePerfilId() {
+        return clientePerfilId;
+    }
+
+    public void setClientePerfilId(String clientePerfilId) {
+        this.clientePerfilId = clientePerfilId;
+    }
+
+    public String getContratistaPerfilId() {
+        return contratistaPerfilId != null ? contratistaPerfilId : contratista == null ? null : contratista.getId();
+    }
+
+    public void setContratistaPerfilId(String contratistaPerfilId) {
+        this.contratistaPerfilId = contratistaPerfilId;
+    }
+
+    public Double getPagoOfrecido() {
+        return pagoOfrecido;
+    }
+
+    public void setPagoOfrecido(Double pagoOfrecido) {
+        this.pagoOfrecido = pagoOfrecido;
     }
 
     public Perfil getTrabajador() {
@@ -76,5 +148,13 @@ public class InvitacionTrabajo {
 
     public void setFechaCreacion(LocalDateTime fechaCreacion) {
         this.fechaCreacion = fechaCreacion;
+    }
+
+    public LocalDateTime getFechaExpiracion() {
+        return fechaExpiracion;
+    }
+
+    public void setFechaExpiracion(LocalDateTime fechaExpiracion) {
+        this.fechaExpiracion = fechaExpiracion;
     }
 }

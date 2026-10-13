@@ -536,6 +536,22 @@
   border-top: 1px solid rgba(255, 255, 255, .08);
 }
 
+.team-project-unavailable,
+.report-project-unavailable {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  max-width: 100%;
+  margin: 12px 0;
+  padding: 8px 10px;
+  border: 1px solid rgba(255, 153, 0, .24);
+  border-radius: 6px;
+  color: #ffc178;
+  background: rgba(255, 153, 0, .06);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
 .worker-progress-report-form>label:first-child,
 .worker-progress-report-form small {
   color: #aaa;
@@ -889,38 +905,74 @@
   margin-top: 8px;
 }
 
-.evidence-image-link {
+.evidence-attachment {
+  min-width: 0;
   display: grid;
-  width: 100px;
-  gap: 4px;
-  color: #bbb;
-  font-size: 9px;
-  text-decoration: none;
+  gap: 8px;
 }
 
-.evidence-image-link img {
-  width: 100px;
-  height: 72px;
-  border: 1px solid rgba(255, 255, 255, .12);
-  border-radius: 5px;
-  object-fit: cover;
+.evidence-attachment-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
-.evidence-image-link span,
-.evidence-file-link {
-  overflow-wrap: anywhere;
-}
-
-.evidence-file-link {
+.evidence-file-link,
+.evidence-download-link {
   display: inline-flex;
   align-items: center;
   gap: 5px;
+  min-height: 32px;
+  padding: 5px 9px;
+  border: 1px solid rgba(255, 173, 51, .3);
+  border-radius: 6px;
   color: #ffbd4a;
+  background: #171717;
+  overflow-wrap: anywhere;
+  font: inherit;
   font-size: 10px;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.evidence-file-link:disabled {
+  opacity: .65;
+  cursor: wait;
 }
 
 .evidence-file-link .material-symbols-outlined {
   font-size: 16px;
+}
+
+.evidence-preview {
+  width: min(100%, 900px);
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, .12);
+  border-radius: 6px;
+  background: #101010;
+}
+
+.evidence-preview img {
+  display: block;
+  max-width: 100%;
+  max-height: 560px;
+  margin: auto;
+  object-fit: contain;
+}
+
+.evidence-preview iframe {
+  display: block;
+  width: 100%;
+  height: min(72vh, 720px);
+  border: 0;
+  background: #fff;
+}
+
+.evidence-preview p {
+  margin: 0;
+  padding: 16px;
+  color: #bbb;
+  font-size: 12px;
 }
 
 .evidence-attachment-loading,
@@ -1762,7 +1814,8 @@
   font-size: 10px;
 }
 
-.worker-project-select select {
+.worker-project-select select,
+.worker-project-select input {
   height: 38px;
   min-width: 0;
   padding: 0 10px;
@@ -1771,6 +1824,12 @@
   color: #eee;
   background: #1b1b1b;
   font-size: 11px;
+}
+
+.worker-project-select small {
+  color: #888;
+  font-size: 10px;
+  line-height: 1.4;
 }
 
 .contractor-rate-link {
@@ -2021,6 +2080,80 @@
   line-height: 1.4;
 }
 
+.worker-invitation-details {
+  display: grid;
+  gap: 4px;
+  margin: 12px 0 0;
+  padding: 10px 0;
+  border-top: 1px solid rgba(255, 255, 255, .08);
+  border-bottom: 1px solid rgba(255, 255, 255, .08);
+}
+
+.worker-invitation-description {
+  margin-top: 12px;
+  padding: 10px 11px;
+  border-left: 2px solid #ffad33;
+  background: rgba(255, 255, 255, .025);
+}
+
+.worker-invitation-description h4 {
+  margin: 0;
+  color: #ddd;
+  font-size: 10px;
+}
+
+.worker-invitation-description p {
+  margin: 5px 0 0;
+  color: #aaa;
+  font-size: 11px;
+  line-height: 1.5;
+  white-space: pre-line;
+}
+
+.worker-invitation-details>div {
+  display: grid;
+  grid-template-columns: minmax(85px, auto) minmax(0, 1fr);
+  align-items: baseline;
+  gap: 8px;
+}
+
+.worker-invitation-details dt {
+  color: #999;
+  font-size: 10px;
+}
+
+.worker-invitation-details dd {
+  margin: 3px 0 0;
+  color: #ffd08a;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.worker-invitation-details>div+div dd {
+  color: #bbb;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.worker-invitation-client-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 10px;
+  color: #ffbd4a;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.worker-invitation-client-link .material-symbols-outlined {
+  font-size: 16px;
+}
+
+.worker-invitation-unavailable {
+  margin: 10px 0 0 !important;
+  color: #ff9b86 !important;
+}
+
 .worker-invitation-actions {
   display: flex;
   gap: 8px;
@@ -2038,7 +2171,7 @@
 
 .worker-invitation-actions button:disabled {
   opacity: .55;
-  cursor: wait;
+  cursor: not-allowed;
 }
 
 .worker-accept {

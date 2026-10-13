@@ -17,6 +17,8 @@ import com.obratech.entity.Perfil;
 import com.obratech.entity.Usuario;
 import com.obratech.repository.PerfilRepository;
 import com.obratech.repository.UsuarioRepository;
+import com.obratech.service.ContratistaProfileValidator;
+import com.obratech.service.PerfilVerificationService;
 
 class WorkerProfileApiControllerTest {
 
@@ -30,7 +32,11 @@ class WorkerProfileApiControllerTest {
         usuarioRepository = mock(UsuarioRepository.class);
         perfilRepository = mock(PerfilRepository.class);
         gridFsTemplate = mock(GridFsTemplate.class);
-        controller = new WorkerProfileApiController(usuarioRepository, perfilRepository, gridFsTemplate);
+        controller = new WorkerProfileApiController(
+            usuarioRepository,
+            perfilRepository,
+            gridFsTemplate,
+            new PerfilVerificationService(new ContratistaProfileValidator()));
     }
 
     @Test

@@ -70,6 +70,9 @@ public class PublicProfileApiController {
                 perfil.getCalificacionPromedio() == null ? 0.0 : perfil.getCalificacionPromedio(),
                 perfil.getDisponibilidad(),
                 perfil.getCvUrl() != null && !perfil.getCvUrl().isBlank(),
+                perfil.getMatriculaDocumentoUrl() != null && !perfil.getMatriculaDocumentoUrl().isBlank(),
+                perfil.getEstatutosUrl() != null && !perfil.getEstatutosUrl().isBlank(),
+                perfil.getFotoPerfilUrl() != null && !perfil.getFotoPerfilUrl().isBlank(),
                 projects.stream().map(this::toProjectCard).toList(),
                 reviews));
     }
@@ -112,6 +115,9 @@ public class PublicProfileApiController {
             double calificacionPromedio,
             Boolean disponible,
             boolean cvDisponible,
+            boolean matriculaDisponible,
+            boolean estatutosDisponibles,
+            boolean fotoDisponible,
             List<ProjectCard> proyectos,
             List<ReviewCard> calificaciones) {}
 

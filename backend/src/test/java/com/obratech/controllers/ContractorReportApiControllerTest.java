@@ -170,7 +170,7 @@ class ContractorReportApiControllerTest {
     }
 
     @Test
-    void unverifiedContractorCannotCreateClientReport() {
+    void unverifiedContractorCanCreateClientReport() {
         Perfil contractor = new Perfil();
         contractor.setId("contractor-1");
         contractor.setUsername("contractor@example.test");
@@ -183,12 +183,13 @@ class ContractorReportApiControllerTest {
         when(authentication.getName()).thenReturn("contractor@example.test");
         when(perfilRepository.findByUsernameIgnoreCase("contractor@example.test")).thenReturn(Optional.of(contractor));
         when(proyectoRepository.findById("project-1")).thenReturn(Optional.of(project));
+        when(reporteRepository.save(any(ReporteProyecto.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         ResponseEntity<?> response = controller.createReport(
                 new ContractorReportApiController.ReportRequest("project-1", "Avance terminado de obra."),
                 authentication);
 
-        assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
-        verify(reporteRepository, org.mockito.Mockito.never()).save(any(ReporteProyecto.class));
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        verify(reporteRepository).save(any(ReporteProyecto.class));
     }
 }

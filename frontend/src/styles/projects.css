@@ -16,6 +16,49 @@
   overflow-wrap: anywhere;
 }
 
+.market-project-scope {
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, .08);
+}
+
+.market-project-scope h3 {
+  margin: 0;
+  color: #f1f1f1;
+  font-size: 13px;
+}
+
+.market-project-scope p {
+  margin: 7px 0 0;
+  color: #aaa;
+  font-size: 12px;
+  line-height: 1.6;
+  white-space: pre-line;
+}
+
+.market-project-specs dd a {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.market-project-specs dd a .material-symbols-outlined {
+  font-size: 16px;
+}
+
+.market-project-specs a,
+.market-project-client a {
+  color: #ffbd4a;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.market-project-client {
+  margin: -5px 0 0;
+  color: #999;
+  font-size: 11px;
+}
+
 .market-project-description {
   margin: 0;
   color: #d0d0d0;
@@ -214,6 +257,23 @@
   gap: 4px;
 }
 
+.received-applications-list .received-applicant-identity {
+  flex: 1;
+  min-width: 180px;
+}
+
+.received-applicant-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 7px;
+}
+
+.received-applicant-actions .admin-action {
+  min-height: 30px;
+  padding: 0 10px;
+}
+
 .received-applications-list small {
   color: var(--text-muted);
   font-size: 12px;
@@ -239,7 +299,7 @@
 
 .worker-market-controls {
   display: grid;
-  grid-template-columns: minmax(220px, 1fr) minmax(220px, .8fr) auto;
+  grid-template-columns: minmax(220px, 1fr) minmax(200px, .75fr) minmax(200px, .75fr) auto;
   align-items: end;
   gap: 12px;
   margin-top: 20px;
@@ -836,6 +896,13 @@
   border-bottom: 1px solid rgba(255, 255, 255, .08);
 }
 
+.project-page-header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
 .project-page-header h1 {
   margin: 0;
   font-size: 24px;
@@ -997,8 +1064,17 @@
 .applicant-identity {
   min-width: 0;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 10px;
+}
+
+.applicant-identity .profile-open-link {
+  flex-basis: 100%;
+  justify-content: flex-start;
+  margin: 2px 0 0 42px;
+  padding: 0;
+  border: 0;
 }
 
 .applicant-identity h2 {
@@ -1287,6 +1363,14 @@
   font-size: 19px;
 }
 
+.application-project-description {
+  margin: -8px 0 18px;
+  color: #aaa;
+  font-size: 12px;
+  line-height: 1.6;
+  white-space: pre-line;
+}
+
 .application-detail-panel dl {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1329,6 +1413,24 @@
   color: #aaa;
   font-size: 11px;
   line-height: 1.6;
+}
+
+.application-detail-panel .application-client-profile {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 0;
+  border-top: 1px solid rgba(255, 255, 255, .07);
+  border-bottom: 1px solid rgba(255, 255, 255, .07);
+}
+
+.application-detail-panel .application-client-profile h3 {
+  margin: 0;
+}
+
+.application-detail-panel .application-client-profile .application-detail-link {
+  margin: 0;
 }
 
 @media (max-width: 760px) {

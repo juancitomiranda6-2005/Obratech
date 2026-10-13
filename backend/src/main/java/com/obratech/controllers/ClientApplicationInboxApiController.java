@@ -51,6 +51,7 @@ public class ClientApplicationInboxApiController {
                         Comparator.nullsLast(Comparator.reverseOrder())))
                 .map(project -> new ProjectApplications(
                         project.getId(), project.getTitulo(), project.getUbicacion(), project.getPresupuesto(),
+                        project.getContratistaAsignado() != null,
                         postulacionRepository.findByProyectoId(project.getId()).stream()
                                 .map(this::toItem).toList()))
                 .toList();
@@ -78,6 +79,7 @@ public class ClientApplicationInboxApiController {
             String projectTitle,
             String ubicacion,
             Double presupuesto,
+            boolean contractorAssigned,
             List<ApplicationItem> applications) {}
 
     public record ApplicationItem(

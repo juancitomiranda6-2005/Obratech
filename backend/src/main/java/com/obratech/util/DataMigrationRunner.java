@@ -1,6 +1,8 @@
 package com.obratech.util;
 
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Component;
 import org.bson.Document;
@@ -8,6 +10,7 @@ import org.bson.Document;
 import java.util.List;
 
 @Component
+@Order(Ordered.LOWEST_PRECEDENCE - 1)
 public class DataMigrationRunner implements CommandLineRunner {
 
     private final MongoTemplate mongoTemplate;

@@ -4,34 +4,46 @@ import api from '../../config/api.js'
 export function EvidenceAttachment({ evidence }) {
   const [objectUrl, setObjectUrl] = useState('')
   const [failed, setFailed] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [previewOpen, setPreviewOpen] = useState(false)
 
   useEffect(() => {
-    let active = true
-    let createdUrl = ''
-    api.get(evidence.url, { responseType: 'blob' })
-      .then(({ data }) => {
-        createdUrl = URL.createObjectURL(data)
-        if (active) setObjectUrl(createdUrl)
-        else URL.revokeObjectURL(createdUrl)
-      })
-      .catch(() => { if (active) setFailed(true) })
-    return () => {
-      active = false
-      if (createdUrl) URL.revokeObjectURL(createdUrl)
-    }
-  }, [evidence.url])
+    return () => { if (objectUrl) URL.revokeObjectURL(objectUrl) }
+  }, [objectUrl])
 
   if (failed) return <span className="evidence-attachment-error">No se pudo cargar {evidence.filename}</span>
-  if (!objectUrl) return <span className="evidence-attachment-loading">Cargando {evidence.filename}…</span>
 
-  if (evidence.contentType?.startsWith('image/')) {
-    return <a className="evidence-image-link" href={objectUrl} rel="noreferrer" target="_blank" title={`Abrir ${evidence.filename}`}>
-      <img alt={evidence.filename} loading="lazy" src={objectUrl} />
-      <span>{evidence.filename}</span>
-    </a>
+  const openPreview = async () => {
+    if (objectUrl) {
+      setPreviewOpen((current) => !current)
+      return
+    }
+    setLoading(true)
+    try {
+      const { data } = await api.get(evidence.url, { responseType: 'blob' })
+      setObjectUrl(URL.createObjectURL(data))
+      setPreviewOpen(true)
+    } catch {
+      setFailed(true)
+    } finally {
+      setLoading(false)
+    }
   }
 
-  return <a className="evidence-file-link" download={evidence.filename} href={objectUrl} rel="noreferrer" target="_blank">
-    <span className="material-symbols-outlined" aria-hidden="true">picture_as_pdf</span>{evidence.filename}
-  </a>
+  return <div className="evidence-attachment">
+    <div className="evidence-attachment-actions">
+      <button aria-expanded={previewOpen} className="evidence-file-link" disabled={loading} onClick={openPreview} type="button">
+        <span className="material-symbols-outlined" aria-hidden="true">{loading ? 'hourglass_top' : previewOpen ? 'visibility_off' : 'visibility'}</span>
+        {loading ? 'Cargando vista previa…' : previewOpen ? 'Cerrar vista previa' : `Ver ${evidence.filename}`}
+      </button>
+      {objectUrl && <a className="evidence-download-link" download={evidence.filename} href={objectUrl}><span className="material-symbols-outlined" aria-hidden="true">download</span>Descargar</a>}
+    </div>
+    {previewOpen && objectUrl && <div className="evidence-preview">
+      {evidence.contentType?.startsWith('image/')
+        ? <img alt={evidence.filename} src={objectUrl} />
+        : evidence.contentType === 'application/pdf'
+          ? <iframe title={`Vista previa: ${evidence.filename}`} src={objectUrl} />
+          : <p>Este formato no tiene vista previa en el navegador. Puedes descargarlo si lo necesitas.</p>}
+    </div>}
+  </div>
 }

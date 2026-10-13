@@ -16,11 +16,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.obratech.entity.EquipoTrabajo;
 import com.obratech.entity.Perfil;
 import com.obratech.entity.Proyecto;
+import com.obratech.entity.enums.EstadoAsignacion;
 import com.obratech.entity.enums.EstadoEjecucion;
 import com.obratech.repository.EquipoTrabajoRepository;
 import com.obratech.repository.PerfilRepository;
@@ -45,13 +47,26 @@ public class TeamApiController {
     }
 
     @GetMapping("/contractor/teams")
-    public ResponseEntity<List<TeamCard>> getContractorTeams(Authentication authentication) {
+    public ResponseEntity<List<TeamCard>> getContractorTeams(
+            @RequestParam(required = false) String projectId,
+            Authentication authentication) {
         Perfil contratista = perfilRepository.findByUsernameIgnoreCase(authentication.getName()).orElse(null);
         if (contratista == null || contratista.getId() == null) {
             return ResponseEntity.ok(List.of());
         }
 
+        if (projectId != null && !projectId.isBlank()) {
+            Proyecto proyecto = proyectoRepository.findById(projectId).orElse(null);
+            if (!ownsProject(contratista, proyecto)) {
+                return ResponseEntity.notFound().build();
+            }
+            List<TeamCard> projectTeams = equipoTrabajoRepository.findByProyectoId(projectId).stream()
+                    .map(this::toTeamCard).toList();
+            return ResponseEntity.ok(projectTeams);
+        }
+
         List<EquipoTrabajo> equipos = proyectoRepository.findByContratistaAsignadoId(contratista.getId()).stream()
+                .filter(proyecto -> !isPendingContractorOffer(proyecto))
                 .filter(proyecto -> proyecto.getId() != null)
                 .flatMap(proyecto -> equipoTrabajoRepository.findByProyectoId(proyecto.getId()).stream())
                 .toList();
@@ -66,6 +81,7 @@ public class TeamApiController {
         }
 
         List<ProjectTeamOption> options = proyectoRepository.findByContratistaAsignadoId(contratista.getId()).stream()
+            .filter(proyecto -> !isPendingContractorOffer(proyecto))
                 .filter(proyecto -> proyecto.getId() != null)
             .filter(proyecto -> proyecto.getEstadoEjecucion() != EstadoEjecucion.COMPLETADO)
                 .map(proyecto -> new ProjectTeamOption(
@@ -243,13 +259,17 @@ public class TeamApiController {
     }
 
     @GetMapping("/worker/teams")
-    public ResponseEntity<List<TeamCard>> getWorkerTeams(Authentication authentication) {
+    public ResponseEntity<List<TeamCard>> getWorkerTeams(
+            @RequestParam(required = false) String projectId,
+            Authentication authentication) {
         Perfil trabajador = perfilRepository.findByUsernameIgnoreCase(authentication.getName()).orElse(null);
         if (trabajador == null) {
             return ResponseEntity.ok(List.of());
         }
 
-        List<EquipoTrabajo> equipos = equipoTrabajoRepository.findByIntegrantesContaining(trabajador);
+        List<EquipoTrabajo> equipos = projectId == null || projectId.isBlank()
+                ? equipoTrabajoRepository.findByIntegrantesContaining(trabajador)
+                : equipoTrabajoRepository.findByProyectoIdAndIntegrantesContaining(projectId, trabajador);
         return ResponseEntity.ok(equipos.stream().map(this::toTeamCard).toList());
     }
 
@@ -271,9 +291,15 @@ public class TeamApiController {
             return ResponseEntity.notFound().build();
         }
 
+        String projectId = equipo.getProyecto() == null ? null : equipo.getProyecto().getId();
+        Proyecto proyecto = projectId == null ? null : proyectoRepository.findById(projectId).orElse(null);
+        if (proyecto == null) {
+            return ResponseEntity.notFound().build();
+        }
+
         equipo.setPorcentajeAvance(request.porcentajeAvance());
         EquipoTrabajo saved = equipoTrabajoRepository.save(equipo);
-        updateProjectProgressState(saved.getProyecto());
+        updateProjectProgressState(proyecto);
         return ResponseEntity.ok(toTeamCard(saved));
     }
 
@@ -299,7 +325,12 @@ public class TeamApiController {
     private boolean ownsProject(Perfil contratista, Proyecto proyecto) {
         return contratista != null && contratista.getId() != null && proyecto != null
                 && proyecto.getContratistaAsignado() != null
-                && contratista.getId().equals(proyecto.getContratistaAsignado().getId());
+                && contratista.getId().equals(proyecto.getContratistaAsignado().getId())
+                && !isPendingContractorOffer(proyecto);
+    }
+
+    private boolean isPendingContractorOffer(Proyecto proyecto) {
+        return EstadoAsignacion.SELECCIONADO_PENDIENTE_CONTRATACION.equals(proyecto.getEstadoAsignacion());
     }
 
     private boolean isBlank(String value) {
@@ -307,7 +338,8 @@ public class TeamApiController {
     }
 
     private TeamCard toTeamCard(EquipoTrabajo equipo) {
-        Proyecto proyecto = equipo.getProyecto();
+        String projectId = equipo.getProyecto() == null ? null : equipo.getProyecto().getId();
+        Proyecto proyecto = projectId == null ? null : proyectoRepository.findById(projectId).orElse(null);
         List<MemberCard> integrantes = equipo.getIntegrantes() == null
                 ? List.of()
                 : equipo.getIntegrantes().stream().map(this::toMemberCard).toList();
@@ -316,10 +348,11 @@ public class TeamApiController {
                 equipo.getNombre(),
                 equipo.getActividad(),
                 equipo.getPorcentajeAvance() == null ? 0.0 : equipo.getPorcentajeAvance(),
-                proyecto == null ? null : proyecto.getId(),
-                proyecto == null ? "Proyecto" : proyecto.getTitulo(),
+                projectId,
+                proyecto == null ? "Proyecto no disponible" : proyecto.getTitulo(),
                 proyecto == null ? null : proyecto.getUbicacion(),
                 proyecto == null || proyecto.getEstadoEjecucion() == null ? "PENDIENTE" : proyecto.getEstadoEjecucion().name(),
+                proyecto != null,
                 integrantes);
     }
 
@@ -349,6 +382,7 @@ public class TeamApiController {
             String proyecto,
             String ubicacion,
             String estadoProyecto,
+            boolean proyectoDisponible,
             List<MemberCard> integrantes) {}
 
     public record MemberCard(String id, String nombre, String username, String oficio, boolean verificado) {}

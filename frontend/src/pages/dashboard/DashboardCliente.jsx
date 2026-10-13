@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { clientDashboardService } from '../../services/clientDashboardService.js'
+import { ProfileAvatar } from '../../components/shared/ProfileAvatar.jsx'
 
 const currencyFormatter = new Intl.NumberFormat('es-CO', {
   style: 'currency',
@@ -69,7 +70,7 @@ function ClientDashboard({ onLogout }) {
         </nav>
         <div className="client-sidebar-footer">
           <div className="client-user">
-            <span className="client-avatar">{dashboard?.username?.slice(0, 1).toUpperCase() || 'C'}</span>
+            <ProfileAvatar className="client-avatar" name={dashboard?.username || 'Cliente'} profileId={dashboard?.username} />
             <div><strong>{dashboard?.username || 'Cliente'}</strong><small>Cliente</small></div>
           </div>
           <button className="client-logout" onClick={onLogout} type="button">
@@ -103,8 +104,8 @@ function ClientDashboard({ onLogout }) {
               <section className="client-verification" aria-label="Estado de verificación">
                 <span className="material-symbols-outlined" aria-hidden="true">gpp_maybe</span>
                 <div>
-                  <h2>Cuenta pendiente de verificación</h2>
-                  <p>El administrador debe verificar tu información antes de habilitar todas las interacciones de la plataforma.</p>
+                  <h2>Completa tu perfil para obtener la insignia</h2>
+                  <p>Tu cuenta está activa. La insignia se habilitará automáticamente cuando completes los requisitos.</p>
                   {dashboard.perfilIncompleto && dashboard.requisitosFaltantes.length > 0 && (
                     <>
                       <p className="client-missing">Completa estos campos: {dashboard.requisitosFaltantes.join(', ')}.</p>
@@ -112,7 +113,7 @@ function ClientDashboard({ onLogout }) {
                     </>
                   )}
                 </div>
-                <span className="client-review-badge">En revisión</span>
+                <span className="client-review-badge">Activa</span>
               </section>
             )}
 
@@ -146,9 +147,6 @@ function ClientDashboard({ onLogout }) {
                           <span>{project.miembrosEquipo} miembros</span>
                           <strong>{project.presupuesto == null ? 'Sin presupuesto' : currencyFormatter.format(project.presupuesto)}</strong>
                         </div>
-                        <Link className="profile-open-link" to={`/proyectos/${project.id}/postulantes`}>
-                          Ver postulantes<span className="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
-                        </Link>
                       </article>
                     ))}
                   </div>
@@ -170,7 +168,7 @@ function ClientDashboard({ onLogout }) {
                 </div>
                 <div className="client-profile-status">
                   <span className={`client-status-dot ${dashboard.usuarioVerificado ? 'is-verified' : ''}`} />
-                  <span>{dashboard.usuarioVerificado ? 'Cuenta verificada' : 'Pendiente de verificación'}</span>
+                  <span>{dashboard.usuarioVerificado ? 'Cuenta verificada' : 'Insignia pendiente'}</span>
                 </div>
                 <div className="client-profile-total">
                   <span>Proyectos registrados</span><strong>{dashboard.totalProyectos}</strong>

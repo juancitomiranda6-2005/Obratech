@@ -89,13 +89,14 @@ class ClientDashboardApiControllerTest {
     }
 
     @Test
-    void unverifiedClientCannotReadReports() {
+        void unverifiedClientCanReadReports() {
         Usuario client = new Usuario();
         client.setId("client-1");
         client.setUsername("client@example.test");
         client.setVerificado(false);
         when(authentication.getName()).thenReturn("client@example.test");
         when(usuarioRepository.findByUsernameIgnoreCase("client@example.test")).thenReturn(Optional.of(client));
+        when(proyectoRepository.findByClienteId("client-1")).thenReturn(List.of());
 
         ClientDashboardApiController controller = new ClientDashboardApiController(
                 usuarioRepository,
@@ -108,6 +109,7 @@ class ClientDashboardApiControllerTest {
         ResponseEntity<ClientDashboardApiController.ClientReportsResponse> response =
                 controller.getClientReports(authentication);
 
-        assertEquals(org.springframework.http.HttpStatus.FORBIDDEN, response.getStatusCode());
+        assertEquals(org.springframework.http.HttpStatus.OK, response.getStatusCode());
+        assertEquals(List.of(), response.getBody().informes());
     }
 }

@@ -15,6 +15,10 @@ function ContractorProfile({ editing }) {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
+  const reviews = Array.isArray(profile?.reviews) ? profile.reviews : []
+  const subespecialidades = Array.isArray(profile?.subespecialidades) ? profile.subespecialidades : []
+  const calificacionPromedio = Number(profile?.calificacionPromedio) || 0
+
   useEffect(() => {
     document.title = editing ? 'Editar Perfil Contratista | ObraTech' : 'Perfil Contratista | ObraTech'
     let active = true
@@ -116,6 +120,7 @@ function ContractorProfile({ editing }) {
 
         {profile && editing && form && (
           <form className="publish-form contractor-profile-form" onSubmit={save}>
+            {!profile.usuarioVerificado && profile.requisitosFaltantes?.length > 0 && <div className="admin-alert admin-alert-warning publish-field-full" role="status">Para obtener la insignia de verificación, completa: {profile.requisitosFaltantes.join(' · ')}.</div>}
             <label className="publish-field"><span>Nombre</span><input maxLength={100} name="nombre" onChange={updateField} required value={form.nombre} /></label>
             <label className="publish-field"><span>Apellido</span><input maxLength={100} name="apellido" onChange={updateField} required value={form.apellido} /></label>
             <label className="publish-field"><span>Correo electrónico</span><input readOnly value={profile.email || profile.username} /></label>
@@ -130,7 +135,7 @@ function ContractorProfile({ editing }) {
             <div className="contractor-upload-grid publish-field-full">
               <FileField label="Foto de perfil (JPG/PNG, 5 MB máx.)" name="fotoFile" accept=".jpg,.jpeg,.png,image/jpeg,image/png" file={files.fotoFile} onChange={selectFile} />
               <FileField label="PDF de matrícula (10 MB máx.)" name="matriculaFile" accept=".pdf,application/pdf" file={files.matriculaFile} onChange={selectFile} />
-              <FileField label="Hoja de vida (PDF/DOC/DOCX, 10 MB máx.)" name="cvFile" accept=".pdf,.doc,.docx" file={files.cvFile} onChange={selectFile} />
+              <FileField label="Hoja de vida requerida (PDF/DOC/DOCX, 10 MB máx.)" name="cvFile" accept=".pdf,.doc,.docx" file={files.cvFile} onChange={selectFile} required={!profile.cvUrl} />
               <FileField label="Estatutos / RUT (PDF/DOC/DOCX, 10 MB máx.)" name="estatutosFile" accept=".pdf,.doc,.docx" file={files.estatutosFile} onChange={selectFile} />
             </div>
             <div className="publish-actions publish-field-full"><button className="button button-primary" disabled={saving} type="submit"><span className="material-symbols-outlined" aria-hidden="true">save</span>{saving ? 'Guardando…' : 'Guardar cambios'}</button><Link className="button button-secondary" to="/perfil-contratista">Cancelar</Link></div>
@@ -142,8 +147,8 @@ function ContractorProfile({ editing }) {
             <section className="client-profile contractor-identity">
               {photoUrl ? <img alt="Foto de perfil" className="contractor-profile-photo" src={photoUrl} /> : <span className="client-avatar profile-large-avatar">{(profile.nombre || profile.username).slice(0, 1).toUpperCase()}</span>}
               <p className="client-eyebrow">Contratista</p><h2>{profile.especialidad || 'Especialidad pendiente'}</h2>
-              <span className={`profile-verification ${profile.usuarioVerificado ? 'is-verified' : ''}`}><span className="material-symbols-outlined" aria-hidden="true">{profile.usuarioVerificado ? 'verified' : 'pending'}</span>{profile.usuarioVerificado ? 'Verificado' : 'Pendiente de verificación'}</span>
-              <div className="contractor-profile-rating"><span className="material-symbols-outlined" aria-hidden="true">star</span><strong>{profile.calificacionPromedio.toFixed(1)}</strong><small>{profile.reviews.length} reseñas</small></div>
+              <span className={`profile-verification ${profile.usuarioVerificado ? 'is-verified' : ''}`}><span className="material-symbols-outlined" aria-hidden="true">{profile.usuarioVerificado ? 'verified' : 'pending'}</span>{profile.usuarioVerificado ? 'Verificado' : 'Insignia pendiente'}</span>
+              <div className="contractor-profile-rating"><span className="material-symbols-outlined" aria-hidden="true">star</span><strong>{calificacionPromedio.toFixed(1)}</strong><small>{reviews.length} reseñas</small></div>
               <div className="client-profile-total"><span>Proyectos completados</span><strong>{profile.proyectosCompletados}</strong></div>
               <div className="client-profile-total"><span>En progreso</span><strong>{profile.proyectosEnProgreso}</strong></div>
             </section>
@@ -154,15 +159,15 @@ function ContractorProfile({ editing }) {
               <ProfileLine label="Cobertura" value={`${profile.ciudad || 'Ciudad pendiente'} · ${profile.departamento || 'Región pendiente'}`} icon="location_on" />
               <ProfileLine label="Experiencia" value={`${profile.experiencia ?? 0} años`} icon="work_history" />
               <ProfileLine label="Matrícula profesional" value={profile.matriculaProfesional} icon="verified" />
-              <div className="contractor-specialty-list">{profile.subespecialidades.map((item) => <span key={item}>{item}</span>)}</div>
+              <div className="contractor-specialty-list" aria-label="Subespecialidades">{subespecialidades.length ? subespecialidades.map((item) => <span key={item}>{item}</span>) : <span>Sin subespecialidades registradas</span>}</div>
               <div className="contractor-document-list">
                 <DocumentButton label="Foto de perfil" id={profile.fotoPerfilUrl} onOpen={download} />
-                <DocumentButton label="Matrícula profesional" id={profile.matriculaDocumentoUrl} onOpen={download} />
+                <DocumentButton label="Certificado de matrícula profesional" id={profile.matriculaDocumentoUrl} onOpen={download} />
                 <DocumentButton label="Hoja de vida" id={profile.cvUrl} onOpen={download} />
-                <DocumentButton label="Estatutos / RUT" id={profile.estatutosUrl} onOpen={download} />
+                <DocumentButton label="Estatutos o RUT" id={profile.estatutosUrl} onOpen={download} />
               </div>
             </section>
-            <section className="contractor-reviews"><div><p className="client-eyebrow">Reputación</p><h2>Reseñas recibidas</h2></div>{profile.reviews.length ? profile.reviews.map((review) => <article className="contractor-review" key={review.id}><div><strong>{review.proyecto}</strong><span><span className="material-symbols-outlined" aria-hidden="true">star</span>{review.puntuacion}/5</span></div><p>{review.comentario || 'Sin comentario.'}</p><small>{review.fecha ? new Intl.DateTimeFormat('es-CO', { dateStyle: 'medium' }).format(new Date(review.fecha)) : ''}</small></article>) : <p className="contractor-no-reviews">Aún no has recibido reseñas.</p>}</section>
+            <section className="contractor-reviews"><div><p className="client-eyebrow">Reputación</p><h2>Reseñas recibidas</h2></div>{reviews.length ? reviews.map((review) => <article className="contractor-review" key={review.id}><div><strong>{review.proyecto}</strong><span><span className="material-symbols-outlined" aria-hidden="true">star</span>{review.puntuacion}/5</span></div><p>{review.comentario || 'Sin comentario.'}</p><small>{review.fecha ? new Intl.DateTimeFormat('es-CO', { dateStyle: 'medium' }).format(new Date(review.fecha)) : ''}</small></article>) : <p className="contractor-no-reviews">Aún no has recibido reseñas.</p>}</section>
           </div>
         )}
       </main>
@@ -170,12 +175,12 @@ function ContractorProfile({ editing }) {
   )
 }
 
-function FileField({ label, name, accept, file, onChange }) {
-  return <label className="contractor-file-field"><span className="material-symbols-outlined" aria-hidden="true">upload_file</span><span>{file?.name || label}</span><input accept={accept} name={name} onChange={onChange} type="file" /></label>
+function FileField({ label, name, accept, file, onChange, required = false }) {
+  return <label className="contractor-file-field"><span className="material-symbols-outlined" aria-hidden="true">upload_file</span><span>{file?.name || label}</span><input accept={accept} name={name} onChange={onChange} required={required && !file} type="file" /></label>
 }
 
 function DocumentButton({ label, id, onOpen }) {
-  return <button className="contractor-document-button" disabled={!id} onClick={() => onOpen(id)} type="button"><span className="material-symbols-outlined" aria-hidden="true">{id ? 'description' : 'block'}</span><span>{label}</span><small>{id ? 'Abrir' : 'No disponible'}</small></button>
+  return <button aria-label={`${id ? 'Abrir' : 'Documento no disponible'}: ${label}`} className="contractor-document-button" disabled={!id} onClick={() => onOpen(id)} type="button"><span className="material-symbols-outlined" aria-hidden="true">{id ? 'description' : 'block'}</span><span className="contractor-document-copy"><strong>{label}</strong><small>{id ? 'Abrir documento' : 'No disponible'}</small></span><span className="material-symbols-outlined contractor-document-arrow" aria-hidden="true">{id ? 'open_in_new' : 'remove'}</span></button>
 }
 
 function ProfileLine({ label, value, icon }) {

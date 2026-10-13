@@ -220,6 +220,11 @@
   font-size: 26px;
 }
 
+.profile-avatar-image {
+  display: block;
+  object-fit: cover;
+}
+
 .identity-profile h2 {
   overflow-wrap: anywhere;
   font-size: 17px;
@@ -438,6 +443,279 @@
 
 .public-profile-reviews .client-section-heading h2 {
   margin: 0;
+}
+
+.contractor-specialty-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+.contractor-specialty-grid label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 42px;
+  padding: 8px 10px;
+  border: 1px solid rgba(255, 255, 255, .08);
+  border-radius: 7px;
+  background: rgba(255, 255, 255, .02);
+  color: #ddd;
+  font-size: 11px;
+}
+
+.contractor-specialty-grid input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: #ffad33;
+}
+
+.contractor-upload-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.contractor-profile-grid {
+  display: grid;
+  grid-template-columns: minmax(240px, .8fr) minmax(0, 1.8fr);
+  gap: 14px;
+  max-width: 1120px;
+  margin: 24px auto 0;
+}
+
+.contractor-identity {
+  text-align: center;
+}
+
+.contractor-identity h2 {
+  margin: 4px 0 0;
+  overflow-wrap: anywhere;
+  font-size: 20px;
+}
+
+.contractor-profile-photo {
+  width: 92px;
+  height: 92px;
+  margin: 0 auto 12px;
+  border: 2px solid rgba(255, 173, 51, .55);
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.contractor-profile-rating {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin-top: 16px;
+  color: #ffc45c;
+}
+
+.contractor-profile-rating strong {
+  color: #f3f3f3;
+  font-size: 17px;
+}
+
+.contractor-profile-rating small {
+  color: #999;
+  font-size: 11px;
+}
+
+.contractor-profile-details > h2,
+.contractor-reviews h2 {
+  margin: 4px 0 12px;
+  font-size: 17px;
+}
+
+.contractor-bio {
+  margin: 0 0 12px;
+  color: #c4c4c4;
+  font-size: 13px;
+  line-height: 1.65;
+  white-space: pre-line;
+}
+
+.contractor-reviews {
+  grid-column: 1 / -1;
+  padding: 18px;
+  border: 1px solid rgba(255, 255, 255, .08);
+  border-radius: 8px;
+  background: #191919;
+}
+
+.contractor-review {
+  padding: 12px 0;
+  border-top: 1px solid rgba(255, 255, 255, .08);
+}
+
+.contractor-review > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.contractor-review > div > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #ffc45c;
+  white-space: nowrap;
+}
+
+.contractor-review p {
+  margin: 8px 0;
+  color: #c4c4c4;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.contractor-review small,
+.contractor-no-reviews {
+  color: #999;
+  font-size: 12px;
+}
+
+@media (max-width: 760px) {
+  .contractor-profile-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .contractor-reviews {
+    grid-column: auto;
+  }
+}
+
+.contractor-specialty-list,
+.contractor-document-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin-top: 16px;
+}
+
+.contractor-specialty-list > span {
+  padding: 6px 10px;
+  border: 1px solid rgba(255, 173, 51, .28);
+  border-radius: 6px;
+  color: #ffd08a;
+  background: #181818;
+  font-size: 12px;
+}
+
+.contractor-document-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+}
+
+.contractor-document-button {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-width: 0;
+  min-height: 64px;
+  padding: 10px 12px;
+  border: 1px solid #383838;
+  border-radius: 7px;
+  color: #f3f3f3;
+  background: #101010;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color .18s ease, background .18s ease;
+}
+
+.contractor-document-button:hover:not(:disabled) {
+  border-color: #ffad33;
+  background: #191919;
+}
+
+.contractor-document-button:disabled {
+  color: #858585;
+  cursor: not-allowed;
+}
+
+.contractor-document-button > .material-symbols-outlined {
+  flex: 0 0 auto;
+  color: #ffad33;
+  font-size: 20px;
+}
+
+.contractor-document-copy {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+  gap: 4px;
+}
+
+.contractor-document-copy strong {
+  overflow-wrap: anywhere;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.contractor-document-copy small {
+  color: #aaa;
+  font-size: 11px;
+}
+
+.contractor-document-arrow {
+  font-size: 17px !important;
+}
+
+.is-refreshing {
+  animation: contractor-refresh-spin .8s linear infinite;
+}
+
+.market-refresh-status {
+  margin: -12px 0 14px;
+  color: #aaa;
+  font-size: 12px;
+}
+
+@keyframes contractor-refresh-spin {
+  to { transform: rotate(360deg); }
+}
+
+.contractor-file-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 52px;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 255, 255, .08);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, .02);
+  color: #f2f2f2;
+  font-size: 11px;
+  cursor: pointer;
+  transition: border-color .2s ease, background .2s ease;
+}
+
+.contractor-file-field:hover {
+  border-color: rgba(255, 153, 0, .35);
+  background: rgba(255, 153, 0, .04);
+}
+
+.contractor-file-field .material-symbols-outlined {
+  color: #ffad33;
+  font-size: 18px;
+}
+
+.contractor-file-field span:last-of-type {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.contractor-file-field input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
 }
 
 .public-review-list article {

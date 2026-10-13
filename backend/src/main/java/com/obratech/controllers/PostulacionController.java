@@ -63,7 +63,7 @@ public class PostulacionController {
         }
 
         Usuario dbUsuario = usuarioRepository.findById(usuario.getId()).orElse(null);
-        if (dbUsuario == null || !dbUsuario.isVerificado()) {
+        if (dbUsuario == null) {
             session.setAttribute("error", "No puedes postularte a proyectos hasta que tu cuenta sea verificada por el administrador.");
             return "redirect:/postulaciones/" + id;
         }
@@ -279,28 +279,31 @@ public class PostulacionController {
         }
 
         try {
-            java.util.List<com.obratech.entity.Postulacion> todas = postulacionRepository.findByProyectoId(proyectoId);
-            for (com.obratech.entity.Postulacion p : todas) {
-                if (!p.getId().equals(postId)) {
-                    p.setEstado(EstadoPostulacion.REJECTED);
-                    postulacionRepository.save(p);
-                }
+            String username = post.getUsuario() != null ? post.getUsuario().getUsername() : null;
+            Perfil applicant = username == null ? null : perfilRepository.findByUsernameIgnoreCase(username).orElse(null);
+            boolean contractorOffer = applicant != null && "ROLE_CONTRACTOR".equals(applicant.getRole());
+            if (contractorOffer) {
+                post.setEstado(EstadoPostulacion.OFFERED);
+                proyecto.setContratistaAsignado(applicant);
+                proyecto.setEstadoAsignacion(EstadoAsignacion.SELECCIONADO_PENDIENTE_CONTRATACION);
+                proyecto.setPostulacionesAbiertas(false);
+                proyectoRepository.save(proyecto);
+            } else {
+                postulacionRepository.findByProyectoId(proyectoId).stream()
+                        .filter(candidate -> !candidate.getId().equals(postId))
+                        .forEach(candidate -> {
+                            candidate.setEstado(EstadoPostulacion.REJECTED);
+                            postulacionRepository.save(candidate);
+                        });
+                post.setEstado(EstadoPostulacion.ACCEPTED);
             }
-
-            post.setEstado(EstadoPostulacion.ACCEPTED);
             postulacionRepository.save(post);
 
-            String username = post.getUsuario() != null ? post.getUsuario().getUsername() : null;
-            if (username != null) {
-                Perfil cont = perfilRepository.findByUsernameIgnoreCase(username).orElse(null);
-                if (cont != null && "ROLE_CONTRACTOR".equals(cont.getRole())) {
-                    proyecto.setContratistaAsignado(cont);
-                    proyecto.setEstadoAsignacion(EstadoAsignacion.SELECCIONADO_PENDIENTE_CONTRATACION);
-                    proyecto.setPostulacionesAbiertas(false);
-                    proyectoRepository.save(proyecto);
-                }
+            if (contractorOffer) {
+                session.setAttribute("mensaje", "Oferta enviada al contratista " + username + " para su confirmación.");
+            } else {
+                session.setAttribute("mensaje", "Has aceptado al postulante " + username + ".");
             }
-            session.setAttribute("mensaje", "Has aceptado al postulante " + username + ".");
         } catch (Exception ex) {
             session.setAttribute("error", "Ocurrió un error al aceptar la postulación: " + ex.getMessage());
         }

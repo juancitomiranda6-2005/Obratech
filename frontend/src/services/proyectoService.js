@@ -4,6 +4,8 @@ export const clientProjectsService = {
   listMine: () => api.get('/client/projects'),
   getMineById: (id) => api.get(`/client/projects/${id}`),
   getWorkspace: (id) => api.get(`/projects/${id}/workspace`),
+  getPhaseStatus: (id) => api.get(`/projects/${id}/phase-status`),
+  advancePhase: (id) => api.post(`/projects/${id}/phase/advance`),
   getLegalDocument: (id, download = false) => api.get(`/projects/${id}/document`, {
     params: { download },
     responseType: 'blob',

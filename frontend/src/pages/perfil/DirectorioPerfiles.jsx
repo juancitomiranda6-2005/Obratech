@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { profileDirectoryService } from '../../services/perfilService.js'
+import { ProfileAvatar } from '../../components/shared/ProfileAvatar.jsx'
 
 export function DirectorioPerfiles({ kind, specialty = '', availableOnly = false, onLogout }) {
   const isContractorDirectory = kind === 'contractors'
@@ -52,7 +53,7 @@ export function DirectorioPerfiles({ kind, specialty = '', availableOnly = false
         {loading && <div className="admin-loading" role="status">Cargando directorio…</div>}
         {!loading && filtered.length > 0 && <section aria-label={isContractorDirectory ? 'Contratistas' : 'Clientes'} className="directory-grid">
           {filtered.map((profile) => <article className="directory-profile" key={profile.id}>
-            <header><span className="team-member-avatar">{profile.nombre?.slice(0, 1).toUpperCase() || 'P'}</span><div><h2>{isContractorDirectory ? <Link to={`/contratistas/${profile.id}`}>{profile.nombre || profile.username}</Link> : isWorkerDirectory ? <Link to={`/trabajadores/${profile.id}`}>{profile.nombre || profile.username}</Link> : profile.nombre || profile.username}</h2><p>{isContractorDirectory ? profile.especialidad || 'Especialidad no registrada' : isWorkerDirectory ? profile.oficio || 'Oficio no registrado' : profile.empresa || 'Cliente particular'}</p></div>{profile.verificado && <span className="material-symbols-outlined team-member-verified" aria-label="Verificado">verified</span>}</header>
+            <header><ProfileAvatar className="team-member-avatar" name={profile.nombre || profile.username} photoAvailable={profile.fotoDisponible} profileId={profile.id} /><div><h2>{isContractorDirectory ? <Link to={`/contratistas/${profile.id}`}>{profile.nombre || profile.username}</Link> : isWorkerDirectory ? <Link to={`/trabajadores/${profile.id}`}>{profile.nombre || profile.username}</Link> : profile.nombre || profile.username}</h2><p>{isContractorDirectory ? profile.especialidad || 'Especialidad no registrada' : isWorkerDirectory ? profile.oficio || 'Oficio no registrado' : profile.empresa || 'Cliente particular'}</p></div>{profile.verificado && <span className="material-symbols-outlined team-member-verified" aria-label="Verificado">verified</span>}</header>
             <dl>{profile.email && <div><dt>Correo</dt><dd>{profile.email}</dd></div>}{profile.telefono && <div><dt>Teléfono</dt><dd>{profile.telefono}</dd></div>}{isContractorDirectory && <div><dt>Calificación</dt><dd><span className="material-symbols-outlined" aria-hidden="true">star</span> {profile.calificacionPromedio.toFixed(1)} / 5</dd></div>}{isWorkerDirectory && <><div><dt>Experiencia</dt><dd>{profile.experiencia ?? 0} años</dd></div><div><dt>Disponibilidad</dt><dd>{profile.disponible ? 'Disponible' : 'No disponible'}</dd></div></>}</dl>
           </article>)}
         </section>}

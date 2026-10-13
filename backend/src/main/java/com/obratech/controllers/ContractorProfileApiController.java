@@ -35,6 +35,7 @@ import com.obratech.repository.PerfilRepository;
 import com.obratech.repository.ProyectoRepository;
 import com.obratech.repository.UsuarioRepository;
 import com.obratech.service.ContratistaProfileValidator;
+import com.obratech.service.PerfilVerificationService;
 
 @RestController
 @RequestMapping("/api/contractor/profile")
@@ -48,6 +49,7 @@ public class ContractorProfileApiController {
     private final ProyectoRepository proyectoRepository;
     private final CalificacionRepository calificacionRepository;
     private final ContratistaProfileValidator profileValidator;
+        private final PerfilVerificationService verificationService;
     private final GridFsTemplate gridFsTemplate;
 
     public ContractorProfileApiController(
@@ -56,12 +58,14 @@ public class ContractorProfileApiController {
             ProyectoRepository proyectoRepository,
             CalificacionRepository calificacionRepository,
             ContratistaProfileValidator profileValidator,
+            PerfilVerificationService verificationService,
             GridFsTemplate gridFsTemplate) {
         this.usuarioRepository = usuarioRepository;
         this.perfilRepository = perfilRepository;
         this.proyectoRepository = proyectoRepository;
         this.calificacionRepository = calificacionRepository;
         this.profileValidator = profileValidator;
+        this.verificationService = verificationService;
         this.gridFsTemplate = gridFsTemplate;
     }
 
@@ -137,8 +141,8 @@ public class ContractorProfileApiController {
             return ResponseEntity.badRequest().body(new ApiError("No se pudieron guardar los documentos."));
         }
 
+        verificationService.synchronizeVerification(perfil, usuario);
         Perfil saved = perfilRepository.save(perfil);
-        usuario.setVerificado(false);
         usuarioRepository.save(usuario);
         List<Proyecto> activeProjects = proyectoRepository
                 .findByContratistaAsignadoIdAndEstadoEjecucionNot(saved.getId(), EstadoEjecucion.COMPLETADO);

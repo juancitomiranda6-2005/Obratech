@@ -7,5 +7,6 @@ import java.util.List;
 
 public interface EquipoTrabajoRepository extends MongoRepository<EquipoTrabajo, String> {
     List<EquipoTrabajo> findByProyectoId(String proyectoId);
+    List<EquipoTrabajo> findByProyectoIdAndIntegrantesContaining(String proyectoId, Perfil trabajador);
     List<EquipoTrabajo> findByIntegrantesContaining(Perfil trabajador);
 }

@@ -56,7 +56,8 @@ public class ClientApplicationsApiController {
                 .stream().map(this::toItem).toList();
         return ResponseEntity.ok(new ApplicationsResponse(
                 proyecto.getId(), proyecto.getTitulo(), proyecto.isPostulacionesAbiertas(),
-                proyecto.getContratistaAsignado() != null, applications));
+            proyecto.getContratistaAsignado() != null,
+            proyecto.getEstadoAsignacion() == null ? null : proyecto.getEstadoAsignacion().name(), applications));
     }
 
     @PatchMapping("/{applicationId}")
@@ -83,14 +84,22 @@ public class ClientApplicationsApiController {
                     .body(new ApiError("Esta postulación ya fue respondida."));
         }
 
-        EstadoPostulacion nextState = "ACCEPTED".equals(request.estado())
-                ? EstadoPostulacion.ACCEPTED : EstadoPostulacion.REJECTED;
-        if (nextState == EstadoPostulacion.ACCEPTED && proyecto.getContratistaAsignado() != null) {
+        EstadoPostulacion requestedState = "ACCEPTED".equals(request.estado())
+            ? EstadoPostulacion.ACCEPTED : EstadoPostulacion.REJECTED;
+        if (requestedState == EstadoPostulacion.ACCEPTED && proyecto.getContratistaAsignado() != null) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
                     .body(new ApiError("El proyecto ya tiene un contratista seleccionado."));
         }
 
-        if (nextState == EstadoPostulacion.ACCEPTED) {
+        String applicantUsername = postulacion.getUsuario() == null ? null : postulacion.getUsuario().getUsername();
+        Perfil applicantProfile = applicantUsername == null ? null
+            : perfilRepository.findByUsernameIgnoreCase(applicantUsername).orElse(null);
+        boolean contractorApplicant = applicantProfile != null && applicantProfile.getRoles() != null
+            && applicantProfile.getRoles().contains("ROLE_CONTRACTOR");
+        EstadoPostulacion nextState = requestedState == EstadoPostulacion.ACCEPTED && contractorApplicant
+            ? EstadoPostulacion.OFFERED : requestedState;
+
+        if (requestedState == EstadoPostulacion.ACCEPTED && !contractorApplicant) {
             postulacionRepository.findByProyectoId(projectId).stream()
                     .filter(candidate -> !candidate.getId().equals(applicationId))
                     .forEach(candidate -> {
@@ -101,15 +110,11 @@ public class ClientApplicationsApiController {
         postulacion.setEstado(nextState);
         postulacionRepository.save(postulacion);
 
-        String applicantUsername = postulacion.getUsuario() == null ? null : postulacion.getUsuario().getUsername();
-        if (nextState == EstadoPostulacion.ACCEPTED && applicantUsername != null) {
-            Perfil perfil = perfilRepository.findByUsernameIgnoreCase(applicantUsername).orElse(null);
-            if (perfil != null && perfil.getRoles() != null && perfil.getRoles().contains("ROLE_CONTRACTOR")) {
-                proyecto.setContratistaAsignado(perfil);
-                proyecto.setEstadoAsignacion(EstadoAsignacion.SELECCIONADO_PENDIENTE_CONTRATACION);
-                proyecto.setPostulacionesAbiertas(false);
-                proyectoRepository.save(proyecto);
-            }
+        if (nextState == EstadoPostulacion.OFFERED) {
+            proyecto.setContratistaAsignado(applicantProfile);
+            proyecto.setEstadoAsignacion(EstadoAsignacion.SELECCIONADO_PENDIENTE_CONTRATACION);
+            proyecto.setPostulacionesAbiertas(false);
+            proyectoRepository.save(proyecto);
         }
 
         return ResponseEntity.ok(new ActionResponse(applicationId, nextState.name()));
@@ -182,6 +187,7 @@ public class ClientApplicationsApiController {
             String projectTitle,
             boolean applicationsOpen,
             boolean contractorAssigned,
+            String assignmentState,
             List<ApplicationItem> applications) {}
 
     public record ApplicationItem(

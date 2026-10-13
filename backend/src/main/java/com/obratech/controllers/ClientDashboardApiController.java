@@ -114,10 +114,6 @@ public class ClientDashboardApiController {
         if (usuario == null) {
             return ResponseEntity.notFound().build();
         }
-                if (!usuario.isVerificado()) {
-                        return ResponseEntity.status(org.springframework.http.HttpStatus.FORBIDDEN).build();
-                }
-
         List<Proyecto> proyectos = proyectoRepository.findByClienteId(usuario.getId());
         if (proyectos == null) {
             proyectos = List.of();

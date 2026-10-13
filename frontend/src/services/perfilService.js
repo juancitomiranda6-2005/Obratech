@@ -2,7 +2,12 @@ import api from '../config/api.js'
 
 export const clientProfileService = {
   getMine: () => api.get('/client/projects/profile'),
-  updateMine: (payload) => api.put('/client/projects/profile', payload),
+  updateMine: (payload, photoFile) => {
+    const formData = new FormData()
+    formData.append('profile', new Blob([JSON.stringify(payload)], { type: 'application/json' }))
+    if (photoFile) formData.append('fotoFile', photoFile)
+    return api.put('/client/projects/profile', formData, { headers: { 'Content-Type': 'multipart/form-data' } })
+  },
 }
 
 export const contractorProfileService = {
@@ -20,10 +25,11 @@ export const contractorProfileService = {
 
 export const workerProfileService = {
   getMine: () => api.get('/worker/profile'),
-  updateMine: (payload, cvFile) => {
+  updateMine: (payload, cvFile, photoFile) => {
     const formData = new FormData()
     formData.append('profile', new Blob([JSON.stringify(payload)], { type: 'application/json' }))
     if (cvFile) formData.append('cvFile', cvFile)
+    if (photoFile) formData.append('fotoFile', photoFile)
     return api.put('/worker/profile', formData, { headers: { 'Content-Type': 'multipart/form-data' } })
   },
   getCv: (id) => api.get(`/worker/profile/files/${id}`, { responseType: 'blob' }),
@@ -39,6 +45,10 @@ export const perfilService = {
 
 export const publicProfileService = {
   getById: (id) => api.get(`/public/profiles/${id}`),
+  getPhoto: (id) => api.get(`/public/profiles/${encodeURIComponent(id)}/photo`, { responseType: 'blob', skipAuth: true }),
+  getContractorDocument: (contractorId, documentType) => api.get(`/client/contractors/${contractorId}/documents/${documentType}`, { responseType: 'blob' }),
+  getContractorStatutes: (contractorId) => api.get(`/worker/contractors/${contractorId}/statutes`, { responseType: 'blob' }),
+  getWorkerCv: (workerId) => api.get(`/contractor/workers/${workerId}/cv`, { responseType: 'blob' }),
 }
 
 export const profileDirectoryService = {

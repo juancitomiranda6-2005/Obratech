@@ -76,4 +76,82 @@ class TeamApiControllerTest {
         assertTrue(error.error().contains("ya pertenece a este equipo"));
         verify(equipoTrabajoRepository, never()).save(equipo);
     }
+
+    @Test
+    void workerCannotUpdateProgressWhenProjectWasDeleted() {
+        Perfil trabajador = new Perfil();
+        trabajador.setId("worker-id");
+        Proyecto deletedProject = new Proyecto();
+        deletedProject.setId("project-id");
+        EquipoTrabajo equipo = new EquipoTrabajo();
+        equipo.setId("team-id");
+        equipo.setProyecto(deletedProject);
+        equipo.setIntegrantes(new ArrayList<>(List.of(trabajador)));
+
+        when(perfilRepository.findByUsernameIgnoreCase("worker")).thenReturn(Optional.of(trabajador));
+        when(equipoTrabajoRepository.findById("team-id")).thenReturn(Optional.of(equipo));
+        when(proyectoRepository.findById("project-id")).thenReturn(Optional.empty());
+        Authentication authentication = mock(Authentication.class);
+        when(authentication.getName()).thenReturn("worker");
+
+        ResponseEntity<?> response = controller.updateWorkerTeamProgress(
+                "team-id", new TeamApiController.TeamProgressRequest(50.0), authentication);
+
+        assertEquals(404, response.getStatusCode().value());
+        verify(equipoTrabajoRepository, never()).save(equipo);
+    }
+
+    @Test
+    void contractorTeamListUsesOnlyTheRequestedProjectId() {
+        Perfil contractor = new Perfil();
+        contractor.setId("contractor-id");
+        contractor.setUsername("contractor");
+        Proyecto project = new Proyecto();
+        project.setId("casa-id");
+        project.setContratistaAsignado(contractor);
+        EquipoTrabajo houseTeam = new EquipoTrabajo();
+        houseTeam.setId("house-team");
+        houseTeam.setNombre("Cuadrilla casa");
+        houseTeam.setProyecto(project);
+
+        when(perfilRepository.findByUsernameIgnoreCase("contractor")).thenReturn(Optional.of(contractor));
+        when(proyectoRepository.findById("casa-id")).thenReturn(Optional.of(project));
+        when(equipoTrabajoRepository.findByProyectoId("casa-id")).thenReturn(List.of(houseTeam));
+        Authentication authentication = mock(Authentication.class);
+        when(authentication.getName()).thenReturn("contractor");
+
+        ResponseEntity<List<TeamApiController.TeamCard>> response =
+                controller.getContractorTeams("casa-id", authentication);
+
+        assertEquals(1, response.getBody().size());
+        assertEquals("house-team", response.getBody().get(0).id());
+        assertEquals("casa-id", response.getBody().get(0).proyectoId());
+        verify(equipoTrabajoRepository).findByProyectoId("casa-id");
+        verify(proyectoRepository, never()).findByContratistaAsignadoId("contractor-id");
+    }
+
+    @Test
+    void workerTeamListUsesProjectAndWorkerTogether() {
+        Perfil worker = new Perfil();
+        worker.setId("worker-id");
+        worker.setUsername("worker");
+        Proyecto project = new Proyecto();
+        project.setId("casa-id");
+        EquipoTrabajo houseTeam = new EquipoTrabajo();
+        houseTeam.setId("house-team");
+        houseTeam.setProyecto(project);
+        houseTeam.setIntegrantes(List.of(worker));
+
+        when(perfilRepository.findByUsernameIgnoreCase("worker")).thenReturn(Optional.of(worker));
+        when(equipoTrabajoRepository.findByProyectoIdAndIntegrantesContaining("casa-id", worker))
+                .thenReturn(List.of(houseTeam));
+        Authentication authentication = mock(Authentication.class);
+        when(authentication.getName()).thenReturn("worker");
+
+        ResponseEntity<List<TeamApiController.TeamCard>> response = controller.getWorkerTeams("casa-id", authentication);
+
+        assertEquals(1, response.getBody().size());
+        assertEquals("casa-id", response.getBody().get(0).proyectoId());
+        verify(equipoTrabajoRepository).findByProyectoIdAndIntegrantesContaining("casa-id", worker);
+    }
 }

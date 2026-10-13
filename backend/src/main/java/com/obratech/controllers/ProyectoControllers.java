@@ -59,7 +59,7 @@ public class ProyectoControllers {
             return "redirect:/login";
 
         Usuario dbUsuario = usuarioRepository.findByUsernameIgnoreCase(usuario.getUsername()).orElse(null);
-        if (dbUsuario == null || !dbUsuario.isVerificado()) {
+        if (dbUsuario == null) {
             return "redirect:/desboard?errorVerificacion=true";
         }
 
@@ -80,7 +80,7 @@ public class ProyectoControllers {
             return "redirect:/login";
 
         Usuario dbUsuario = usuarioRepository.findByUsernameIgnoreCase(usuario.getUsername()).orElse(null);
-        if (dbUsuario == null || !dbUsuario.isVerificado()) {
+        if (dbUsuario == null) {
             return "redirect:/desboard?errorVerificacion=true";
         }
 

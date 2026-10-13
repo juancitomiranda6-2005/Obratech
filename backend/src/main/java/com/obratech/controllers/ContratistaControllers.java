@@ -49,6 +49,8 @@ public class ContratistaControllers {
     private org.springframework.data.mongodb.gridfs.GridFsTemplate gridFsTemplate;
     @Autowired
     private com.obratech.service.ContratistaProfileValidator contratistaProfileValidator;
+    @Autowired
+    private com.obratech.service.InvitacionTrabajoService invitacionTrabajoService;
 
     @GetMapping
     public String listarContratistas(HttpSession session, Model model) {
@@ -283,6 +285,12 @@ public class ContratistaControllers {
         if (contratista == null || trabajador == null || proyecto == null) {
             return "redirect:/trabajadores";
         }
+        if (!invitacionTrabajoService.isActiveProject(proyecto)) {
+            return "redirect:/contratistas/contratar/" + trabajadorId + "?error_contrato=proyecto_no_disponible";
+        }
+        if (!Boolean.TRUE.equals(trabajador.getDisponibilidad()) || invitacionTrabajoService.hasActiveProject(trabajador)) {
+            return "redirect:/contratistas/contratar/" + trabajadorId + "?error_contrato=trabajador_ocupado";
+        }
 
         if (proyecto.getContratistaAsignado() != null
                 && proyecto.getContratistaAsignado().getId().equals(contratista.getId())) {
@@ -296,7 +304,10 @@ public class ContratistaControllers {
 
             List<InvitacionTrabajo> pendientes = invitacionTrabajoRepository
                     .findByTrabajadorIdAndEstado(trabajador.getId(), "PENDIENTE");
+                java.time.LocalDateTime now = java.time.LocalDateTime.now();
+                pendientes.forEach(invitacion -> invitacionTrabajoService.expireIfNeeded(invitacion, now));
             boolean yaInvitado = pendientes.stream()
+                    .filter(inv -> "PENDIENTE".equals(inv.getEstado()))
                     .anyMatch(inv -> inv.getProyecto() != null && inv.getProyecto().getId().equals(proyecto.getId()));
             if (yaInvitado) {
                 return "redirect:/contratistas/contratar/" + trabajadorId + "?error_contrato=ya_invitado";
@@ -307,7 +318,10 @@ public class ContratistaControllers {
             invitacion.setTrabajador(trabajador);
             invitacion.setContratista(contratista);
             invitacion.setEstado("PENDIENTE");
-            invitacion.setFechaCreacion(java.time.LocalDateTime.now());
+            invitacion.setProyectoDescripcion(proyecto.getDescripcion());
+            invitacion.setContratistaPerfilId(contratista.getId());
+            invitacion.setFechaCreacion(now);
+            invitacion.setFechaExpiracion(now.plusHours(com.obratech.service.InvitacionTrabajoService.EXPIRATION_HOURS));
 
             invitacionTrabajoRepository.save(invitacion);
 

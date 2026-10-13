@@ -32,6 +32,7 @@ import com.obratech.repository.PerfilRepository;
 import com.obratech.repository.ProyectoRepository;
 import com.obratech.repository.UsuarioRepository;
 import com.obratech.service.ProyectoService;
+import com.obratech.service.PerfilVerificationService;
 
 @RestController
 @RequestMapping("/api/client/projects")
@@ -47,6 +48,7 @@ public class ClientProjectsApiController {
     private final GridFsTemplate gridFsTemplate;
     private final EquipoTrabajoRepository equipoTrabajoRepository;
     private final PostulacionRepository postulacionRepository;
+    private final PerfilVerificationService verificationService;
 
     public ClientProjectsApiController(
             UsuarioRepository usuarioRepository,
@@ -55,7 +57,8 @@ public class ClientProjectsApiController {
             ProyectoService proyectoService,
             GridFsTemplate gridFsTemplate,
             EquipoTrabajoRepository equipoTrabajoRepository,
-            PostulacionRepository postulacionRepository) {
+            PostulacionRepository postulacionRepository,
+            PerfilVerificationService verificationService) {
         this.usuarioRepository = usuarioRepository;
         this.perfilRepository = perfilRepository;
         this.proyectoRepository = proyectoRepository;
@@ -63,6 +66,7 @@ public class ClientProjectsApiController {
         this.gridFsTemplate = gridFsTemplate;
         this.equipoTrabajoRepository = equipoTrabajoRepository;
         this.postulacionRepository = postulacionRepository;
+        this.verificationService = verificationService;
     }
 
     @GetMapping
@@ -94,12 +98,14 @@ public class ClientProjectsApiController {
             perfil != null && Boolean.TRUE.equals(perfil.getVerificado()),
             projects.size(),
             inProgress,
-            perfil == null ? null : perfil.getCreado()));
+            perfil == null ? null : perfil.getCreado(),
+            perfil != null && perfil.getFotoPerfilUrl() != null && !perfil.getFotoPerfilUrl().isBlank()));
         }
 
-        @PutMapping("/profile")
+        @PutMapping(value = "/profile", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
         public ResponseEntity<?> updateProfile(
-            @RequestBody ClientProfileRequest request,
+            @RequestPart("profile") ClientProfileRequest request,
+            @RequestPart(value = "fotoFile", required = false) MultipartFile photo,
             Authentication authentication) {
         if (request == null || isBlank(request.nombre()) || isBlank(request.apellido())
             || isBlank(request.telefono()) || isBlank(request.empresa())) {
@@ -107,6 +113,8 @@ public class ClientProjectsApiController {
         }
         Usuario cliente = usuarioRepository.findByUsernameIgnoreCase(authentication.getName()).orElse(null);
         if (cliente == null) return ResponseEntity.notFound().build();
+        String photoError = validateProfilePhoto(photo);
+        if (photoError != null) return ResponseEntity.badRequest().body(new ApiError(photoError));
 
         var perfil = perfilRepository.findByUsernameIgnoreCase(cliente.getUsername()).orElseGet(() -> {
             var nuevo = new com.obratech.entity.Perfil();
@@ -121,7 +129,18 @@ public class ClientProjectsApiController {
         perfil.setApellido(request.apellido().trim());
         perfil.setTelefono(request.telefono().trim());
         perfil.setEmpresa(request.empresa().trim());
+        if (photo != null && !photo.isEmpty()) {
+            try {
+                ObjectId photoId = gridFsTemplate.store(photo.getInputStream(),
+                        "perfil_" + cliente.getId() + "_" + photo.getOriginalFilename(), photo.getContentType());
+                perfil.setFotoPerfilUrl(photoId.toHexString());
+            } catch (IOException exception) {
+                return ResponseEntity.badRequest().body(new ApiError("No se pudo guardar la foto de perfil."));
+            }
+        }
+        verificationService.synchronizeVerification(perfil, cliente);
         var saved = perfilRepository.save(perfil);
+        usuarioRepository.save(cliente);
         List<Proyecto> projects = proyectoRepository.findByClienteId(cliente.getId());
         long inProgress = projects.stream()
             .filter(project -> project.getEstadoEjecucion() != null
@@ -130,7 +149,7 @@ public class ClientProjectsApiController {
         return ResponseEntity.ok(new ClientProfile(
             cliente.getUsername(), saved.getNombre(), saved.getApellido(), saved.getTelefono(),
             saved.getEmpresa(), Boolean.TRUE.equals(saved.getVerificado()), projects.size(),
-            inProgress, saved.getCreado()));
+            inProgress, saved.getCreado(), saved.getFotoPerfilUrl() != null && !saved.getFotoPerfilUrl().isBlank()));
         }
 
     @GetMapping("/{id}")
@@ -226,11 +245,6 @@ public class ClientProjectsApiController {
         if (cliente == null) {
             return ResponseEntity.notFound().build();
         }
-        if (!cliente.isVerificado()) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(new ApiError("Tu cuenta debe estar verificada para publicar proyectos."));
-        }
-
         Proyecto proyecto = new Proyecto();
         applyRequest(proyecto, request);
 
@@ -255,6 +269,17 @@ public class ClientProjectsApiController {
 
     private boolean isBlank(String value) {
         return value == null || value.isBlank();
+    }
+
+    private String validateProfilePhoto(MultipartFile photo) {
+        if (photo == null || photo.isEmpty()) return null;
+        String name = photo.getOriginalFilename() == null ? "" : photo.getOriginalFilename().toLowerCase(java.util.Locale.ROOT);
+        String type = photo.getContentType() == null ? "" : photo.getContentType().toLowerCase(java.util.Locale.ROOT);
+        if (photo.getSize() > 5L * 1024 * 1024 || !((name.endsWith(".jpg") || name.endsWith(".jpeg")) && type.equals("image/jpeg")
+                || name.endsWith(".png") && type.equals("image/png"))) {
+            return "La foto debe ser JPG o PNG y no superar 5 MB.";
+        }
+        return null;
     }
 
     private String valueOrEmpty(String value) {
@@ -354,5 +379,6 @@ public class ClientProjectsApiController {
             boolean verificado,
             int proyectosPublicados,
             long proyectosEnProgreso,
-            java.time.LocalDateTime creado) {}
+            java.time.LocalDateTime creado,
+            boolean fotoDisponible) {}
 }

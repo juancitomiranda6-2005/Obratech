@@ -69,7 +69,7 @@ public class ReportEvidenceApiController {
         Proyecto project = proyectoRepository.findById(projectId).orElse(null);
         ReporteAvanceTrabajador report = avanceRepository.findById(reportId).orElse(null);
         Perfil viewer = perfilRepository.findByUsernameIgnoreCase(authentication.getName()).orElse(null);
-        if (project == null || report == null || viewer == null || !Boolean.TRUE.equals(viewer.getVerificado())
+        if (project == null || report == null || viewer == null
             || !projectId.equals(report.getProyectoId())) {
             return ResponseEntity.notFound().build();
         }
@@ -110,9 +110,6 @@ public class ReportEvidenceApiController {
     }
 
     private boolean canAccessProject(Proyecto project, Usuario viewer) {
-        if (!viewer.isVerificado()) {
-            return false;
-        }
         boolean client = project.getCliente() != null && project.getCliente().getId() != null
                 && project.getCliente().getId().equals(viewer.getId());
         boolean contractor = project.getContratistaAsignado() != null

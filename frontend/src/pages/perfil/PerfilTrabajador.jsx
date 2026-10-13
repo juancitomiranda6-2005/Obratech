@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { workerProfileService } from '../../services/perfilService.js'
+import { ProfileAvatar } from '../../components/shared/ProfileAvatar.jsx'
 
 export function PerfilTrabajador({ editing = false }) {
   const navigate = useNavigate()
@@ -8,7 +9,8 @@ export function PerfilTrabajador({ editing = false }) {
   const [form, setForm] = useState(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-    const [cvFile, setCvFile] = useState(null)
+  const [cvFile, setCvFile] = useState(null)
+  const [photoFile, setPhotoFile] = useState(null)
   const [error, setError] = useState('')
 
   useEffect(() => {
@@ -65,7 +67,7 @@ export function PerfilTrabajador({ editing = false }) {
         experiencia: Number(form.experiencia),
         disponible: Boolean(form.disponible),
       }
-      const { data } = await workerProfileService.updateMine(payload, cvFile)
+      const { data } = await workerProfileService.updateMine(payload, cvFile, photoFile)
       setProfile(data)
       navigate('/perfil-trabajador')
     } catch (requestError) {
@@ -110,6 +112,7 @@ export function PerfilTrabajador({ editing = false }) {
             <label className="publish-field"><span>Años de experiencia</span><input min="0" name="experiencia" onChange={updateField} required type="number" value={form.experiencia} /></label>
             <label className="publish-field publish-field-full"><span>Descripción profesional</span><textarea maxLength={2000} name="descripcion" onChange={updateField} rows={5} value={form.descripcion} /></label>
                         <label className="publish-field publish-field-full"><span>Hoja de vida (PDF, DOC o DOCX, máximo 10 MB)</span><input accept=".pdf,.doc,.docx" onChange={(event) => setCvFile(event.target.files?.[0] || null)} type="file" />{profile.cvUrl && <small>Ya tienes un CV cargado. Solo se reemplaza si seleccionas otro archivo.</small>}</label>
+            <label className="publish-field publish-field-full"><span>Foto de perfil (opcional, JPG o PNG, máximo 5 MB)</span><input accept=".jpg,.jpeg,.png,image/jpeg,image/png" onChange={(event) => setPhotoFile(event.target.files?.[0] || null)} type="file" /></label>
             <label className="publish-field publish-field-full boolean-field-row">
               <input checked={form.disponible} name="disponible" onChange={updateField} type="checkbox" />
               <span>Estoy disponible para recibir proyectos</span>
@@ -124,10 +127,10 @@ export function PerfilTrabajador({ editing = false }) {
         {profile && !editing && (
           <div className="client-profile-page-grid">
             <section className="client-profile identity-profile">
-              <span className="client-avatar profile-large-avatar">{(profile.nombre || profile.username).slice(0, 1).toUpperCase()}</span>
+              <ProfileAvatar className="client-avatar profile-large-avatar" name={profile.nombre || profile.username} photoAvailable={profile.fotoDisponible} profileId={profile.username} />
               <p className="client-eyebrow">Trabajador</p>
               <h2>{`${profile.nombre} ${profile.apellido}`.trim() || profile.username}</h2>
-              <span className={`profile-verification ${profile.verificado ? 'is-verified' : ''}`}><span className="material-symbols-outlined" aria-hidden="true">{profile.verificado ? 'verified' : 'pending'}</span>{profile.verificado ? 'Perfil verificado' : 'Pendiente de verificación'}</span>
+              <span className={`profile-verification ${profile.verificado ? 'is-verified' : ''}`}><span className="material-symbols-outlined" aria-hidden="true">{profile.verificado ? 'verified' : 'pending'}</span>{profile.verificado ? 'Perfil verificado' : 'Insignia pendiente'}</span>
             </section>
 
             <section className="client-profile profile-details">

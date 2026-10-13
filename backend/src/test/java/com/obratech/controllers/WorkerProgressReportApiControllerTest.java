@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 
 import java.util.List;
@@ -100,6 +101,7 @@ class WorkerProgressReportApiControllerTest {
         ReporteAvanceTrabajador report = new ReporteAvanceTrabajador();
         report.setId("report-1");
         report.setEquipoId("team-1");
+        report.setProyectoId("project-1");
         report.setTrabajadorId("worker-1");
         report.setCreado(LocalDateTime.now().minusMinutes(5));
         report.setContenido("Texto anterior del avance.");
@@ -107,6 +109,7 @@ class WorkerProgressReportApiControllerTest {
         when(perfilRepository.findByUsernameIgnoreCase("worker@example.test")).thenReturn(Optional.of(worker));
         when(reporteRepository.findByIdAndEquipoIdAndTrabajadorId("report-1", "team-1", "worker-1"))
                 .thenReturn(Optional.of(report));
+        when(proyectoRepository.findById("project-1")).thenReturn(Optional.of(new Proyecto()));
         when(reporteRepository.save(any(ReporteAvanceTrabajador.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         ResponseEntity<?> response = controller.updateOwnReport(
@@ -127,12 +130,14 @@ class WorkerProgressReportApiControllerTest {
         ReporteAvanceTrabajador report = new ReporteAvanceTrabajador();
         report.setId("report-1");
         report.setEquipoId("team-1");
+        report.setProyectoId("project-1");
         report.setTrabajadorId("worker-1");
         report.setCreado(LocalDateTime.now().minusMinutes(31));
         when(authentication.getName()).thenReturn("worker@example.test");
         when(perfilRepository.findByUsernameIgnoreCase("worker@example.test")).thenReturn(Optional.of(worker));
         when(reporteRepository.findByIdAndEquipoIdAndTrabajadorId("report-1", "team-1", "worker-1"))
                 .thenReturn(Optional.of(report));
+        when(proyectoRepository.findById("project-1")).thenReturn(Optional.of(new Proyecto()));
 
         ResponseEntity<?> response = controller.updateOwnReport(
                 "team-1", "report-1",
@@ -143,8 +148,34 @@ class WorkerProgressReportApiControllerTest {
         verifyNoInteractions(gridFsTemplate);
     }
 
+        @Test
+        void rejectsEditingProgressReportAfterProjectWasDeleted() {
+                Perfil worker = new Perfil();
+                worker.setId("worker-1");
+                worker.setVerificado(true);
+                ReporteAvanceTrabajador report = new ReporteAvanceTrabajador();
+                report.setId("report-1");
+                report.setEquipoId("team-1");
+                report.setProyectoId("project-1");
+                report.setTrabajadorId("worker-1");
+                report.setCreado(LocalDateTime.now().minusMinutes(5));
+                when(authentication.getName()).thenReturn("worker@example.test");
+                when(perfilRepository.findByUsernameIgnoreCase("worker@example.test")).thenReturn(Optional.of(worker));
+                when(reporteRepository.findByIdAndEquipoIdAndTrabajadorId("report-1", "team-1", "worker-1"))
+                                .thenReturn(Optional.of(report));
+                when(proyectoRepository.findById("project-1")).thenReturn(Optional.empty());
+
+                ResponseEntity<?> response = controller.updateOwnReport(
+                                "team-1", "report-1",
+                                new WorkerProgressReportApiController.ReportUpdateRequest("Texto corregido del avance."),
+                                authentication);
+
+                assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+                verify(reporteRepository, org.mockito.Mockito.never()).save(any(ReporteAvanceTrabajador.class));
+        }
+
     @Test
-    void unverifiedWorkerCannotSendProgressReport() {
+        void unverifiedWorkerCanSendProgressReport() {
         Perfil worker = new Perfil();
         worker.setId("worker-1");
         worker.setVerificado(false);
@@ -157,6 +188,11 @@ class WorkerProgressReportApiControllerTest {
         when(authentication.getName()).thenReturn("worker@example.test");
         when(perfilRepository.findByUsernameIgnoreCase("worker@example.test")).thenReturn(Optional.of(worker));
         when(equipoTrabajoRepository.findById("team-1")).thenReturn(Optional.of(team));
+        when(proyectoRepository.findById("project-1")).thenReturn(Optional.of(project));
+        when(gridFsTemplate.store(any(java.io.InputStream.class), anyString(), anyString()))
+                .thenReturn(new org.bson.types.ObjectId());
+        when(reporteRepository.save(any(ReporteAvanceTrabajador.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
 
         ResponseEntity<?> response = controller.createReport(
                 "team-1",
@@ -164,7 +200,8 @@ class WorkerProgressReportApiControllerTest {
                 List.of(new MockMultipartFile("evidencias", "avance.jpg", "image/jpeg", new byte[] { 1 })),
                 authentication);
 
-        assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
-        verifyNoInteractions(gridFsTemplate, reporteRepository);
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        verify(gridFsTemplate).store(any(java.io.InputStream.class), anyString(), anyString());
+        verify(reporteRepository).save(any(ReporteAvanceTrabajador.class));
     }
 }

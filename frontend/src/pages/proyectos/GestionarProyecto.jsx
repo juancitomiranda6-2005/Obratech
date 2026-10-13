@@ -12,33 +12,43 @@ function ProjectWorkspace({ id, editing }) {
   const [form, setForm] = useState(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [advancingPhase, setAdvancingPhase] = useState(false)
   const [error, setError] = useState('')
   const [documentPreviewUrl, setDocumentPreviewUrl] = useState('')
+  const [phaseStatus, setPhaseStatus] = useState(null)
 
   useEffect(() => {
     document.title = editing ? 'Editar Proyecto | ObraTech' : 'Detalles del Proyecto | ObraTech'
     let active = true
-    clientProjectsService.getWorkspace(id)
-      .then(({ data }) => {
+    const loadProject = async () => {
+      try {
+        const workspaceResponse = await clientProjectsService.getWorkspace(id)
         if (!active) return
-        setProject(data)
+        const projectData = workspaceResponse.data
+        setProject(projectData)
         setForm({
-          titulo: data.titulo || '',
-          descripcion: data.descripcion || '',
-          ubicacion: data.ubicacion || '',
-          tipoProyecto: data.tipoProyecto || '',
-          presupuesto: data.presupuesto ?? '',
-          fechaInicio: data.fechaInicio || '',
-          fechaEntrega: data.fechaEntrega || '',
-          plazoEstimado: data.plazoEstimado ?? '',
-          areaTotal: data.areaTotal ?? '',
-          observaciones: data.observaciones || '',
+          titulo: projectData.titulo || '',
+          descripcion: projectData.descripcion || '',
+          ubicacion: projectData.ubicacion || '',
+          tipoProyecto: projectData.tipoProyecto || '',
+          presupuesto: projectData.presupuesto ?? '',
+          fechaInicio: projectData.fechaInicio || '',
+          fechaEntrega: projectData.fechaEntrega || '',
+          plazoEstimado: projectData.plazoEstimado ?? '',
+          areaTotal: projectData.areaTotal ?? '',
+          observaciones: projectData.observaciones || '',
         })
-      })
-      .catch((requestError) => {
+
+        const phaseResponse = await clientProjectsService.getPhaseStatus(id)
+        if (active) setPhaseStatus(phaseResponse.data)
+      } catch (requestError) {
         if (active) setError(requestError.response?.data?.error || 'No se pudo cargar el proyecto solicitado.')
-      })
-      .finally(() => { if (active) setLoading(false) })
+      } finally {
+        if (active) setLoading(false)
+      }
+    }
+
+    loadProject()
     return () => { active = false }
   }, [id, editing])
 
@@ -94,6 +104,21 @@ function ProjectWorkspace({ id, editing }) {
     setDocumentPreviewUrl('')
   }
 
+  const advancePhase = async () => {
+    if (!id) return
+    setAdvancingPhase(true)
+    setError('')
+    try {
+      const { data } = await clientProjectsService.advancePhase(id)
+      setPhaseStatus(data)
+      setProject((current) => current ? { ...current, faseActual: data.faseActual, estadoFaseActual: data.estadoFaseActual } : current)
+    } catch (requestError) {
+      setError(requestError.response?.data?.error || 'No se pudo avanzar la fase de la obra.')
+    } finally {
+      setAdvancingPhase(false)
+    }
+  }
+
   if (loading) {
     return <div className="project-page-shell"><p className="admin-loading" role="status">Cargando proyecto…</p></div>
   }
@@ -147,6 +172,55 @@ function ProjectWorkspace({ id, editing }) {
               <ProjectSpec label="Área total" value={project.areaTotal ? `${project.areaTotal} m²` : 'Sin definir'} icon="square_foot" />
             </section>
             {project.observaciones && <section className="project-detail-section"><h3>Observaciones</h3><p>{project.observaciones}</p></section>}
+
+            <section className="project-detail-section">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+                <div>
+                  <p className="client-eyebrow">Fase de obra</p>
+                  <h3>{phaseStatus ? formatPhaseLabel(phaseStatus.faseActual) : formatPhaseLabel(project.faseActual || 'PLANEACION')}</h3>
+                </div>
+                <span className={`client-project-state state-${(phaseStatus?.estadoFaseActual || project.estadoFaseActual || 'BLOQUEADA').toLowerCase()}`}>
+                  {formatPhaseState(phaseStatus?.estadoFaseActual || project.estadoFaseActual || 'BLOQUEADA')}
+                </span>
+              </div>
+
+              {phaseStatus && (
+                <div style={{ marginTop: '1rem', display: 'grid', gap: '0.75rem' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem' }}>
+                    <div className="project-spec"><span className="material-symbols-outlined" aria-hidden="true">paid</span><div><small>Fase 1</small><strong>{new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(phaseStatus.planPagos.montoFase1 || 0)}</strong></div></div>
+                    <div className="project-spec"><span className="material-symbols-outlined" aria-hidden="true">payments</span><div><small>Fase 2</small><strong>{new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(phaseStatus.planPagos.montoFase2 || 0)}</strong></div></div>
+                    <div className="project-spec"><span className="material-symbols-outlined" aria-hidden="true">receipt_long</span><div><small>Fase 3</small><strong>{new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(phaseStatus.planPagos.montoFase3 || 0)}</strong></div></div>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem' }}>
+                    <div className="project-spec"><span className="material-symbols-outlined" aria-hidden="true">calendar_month</span><div><small>Cuota semanal F1</small><strong>{new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(phaseStatus.planPagos.cuotaSemanalFase1 || 0)}</strong></div></div>
+                    <div className="project-spec"><span className="material-symbols-outlined" aria-hidden="true">calendar_today</span><div><small>Cuota semanal F2</small><strong>{new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(phaseStatus.planPagos.cuotaSemanalFase2 || 0)}</strong></div></div>
+                    <div className="project-spec"><span className="material-symbols-outlined" aria-hidden="true">check_circle</span><div><small>Pagos</small><strong>{phaseStatus.cuotasSemanaPagadas ?? 0}/{phaseStatus.cuotasTotalesEsperadas ?? 0}</strong></div></div>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem' }}>
+                    <div className="project-spec"><span className="material-symbols-outlined" aria-hidden="true">photo_library</span><div><small>Evidencia fotográfica</small><strong>{phaseStatus.totalEvidencias ?? project.evidenciasFotograficas?.length ?? 0} fotos</strong></div></div>
+                    <div className="project-spec"><span className="material-symbols-outlined" aria-hidden="true">task_alt</span><div><small>Tareas completadas</small><strong>{project.tareasFaseCompletadas ? 'Sí' : 'No'}</strong></div></div>
+                    <div className="project-spec"><span className="material-symbols-outlined" aria-hidden="true">verified_user</span><div><small>Validación cliente</small><strong>{project.aprobacionClienteFase ? 'Aprobada' : 'Pendiente'}</strong></div></div>
+                    <div className="project-spec"><span className="material-symbols-outlined" aria-hidden="true">cleaning_services</span><div><small>Limpieza profunda</small><strong>{project.limpiezaProfundaCompletada ? 'Completada' : 'Pendiente'}</strong></div></div>
+                  </div>
+
+                  {!phaseStatus.puedeDesbloquear && (
+                    <p className="admin-alert admin-alert-warning" role="status">Falta alguna validación: evidencias, aprobación del cliente, tareas de la fase o pagos según el plan establecido.</p>
+                  )}
+
+                  {project.propietario && (
+                    <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                      <button className="button button-primary" disabled={advancingPhase || !phaseStatus.puedeDesbloquear} onClick={advancePhase} type="button">
+                        <span className="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
+                        {advancingPhase ? 'Avanzando…' : 'Avanzar a la siguiente fase'}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </section>
+
             <section className="project-detail-section project-progress-section">
               <div><h3>Avance real</h3><strong>{Math.round(project.progresoProyecto)}%</strong></div>
               <progress aria-label="Avance real del proyecto" max="100" value={Math.min(100, Math.max(0, project.progresoProyecto))} />
@@ -183,6 +257,23 @@ function ProjectWorkspace({ id, editing }) {
     </div>
   )
 }
+
+const phaseLabels = {
+  PLANEACION: 'Planeación',
+  DESARROLLO: 'Desarrollo',
+  DETALLE_Y_ENTREGA_FINAL: 'Detalle y entrega final',
+}
+
+const phaseStateLabels = {
+  BLOQUEADA: 'Bloqueada',
+  EN_EJECUCION: 'En ejecución',
+  EN_VALIDACION: 'En validación',
+  APROBADA: 'Aprobada',
+  EN_DISPUTA: 'En disputa',
+}
+
+const formatPhaseLabel = (value) => phaseLabels[value] || 'Planeación'
+const formatPhaseState = (value) => phaseStateLabels[value] || 'Bloqueada'
 
 function ProjectSpec({ label, value, icon }) {
   return <div className="project-spec"><span className="material-symbols-outlined" aria-hidden="true">{icon}</span><div><small>{label}</small><strong>{value || '—'}</strong></div></div>

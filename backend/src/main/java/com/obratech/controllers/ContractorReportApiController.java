@@ -30,6 +30,7 @@ import com.obratech.entity.Perfil;
 import com.obratech.entity.Proyecto;
 import com.obratech.entity.ReporteAvanceTrabajador;
 import com.obratech.entity.ReporteProyecto;
+import com.obratech.entity.enums.EstadoAsignacion;
 import com.obratech.entity.EvidenciaAdjunta;
 import com.obratech.repository.PerfilRepository;
 import com.obratech.repository.ProyectoRepository;
@@ -68,9 +69,6 @@ public class ContractorReportApiController {
         if (contratista == null || contratista.getId() == null) {
             return ResponseEntity.ok(List.of());
         }
-        if (!Boolean.TRUE.equals(contratista.getVerificado())) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Tu cuenta debe estar verificada para consultar informes."));
-        }
         return ResponseEntity.ok(reporteRepository.findByContratistaIdOrderByCreadoDesc(contratista.getId())
                 .stream().map(this::toResponse).toList());
     }
@@ -89,13 +87,10 @@ public class ContractorReportApiController {
         Proyecto proyecto = proyectoRepository.findById(request.proyectoId()).orElse(null);
         if (contratista == null || contratista.getId() == null || proyecto == null
                 || proyecto.getContratistaAsignado() == null
-                || !contratista.getId().equals(proyecto.getContratistaAsignado().getId())) {
+            || !contratista.getId().equals(proyecto.getContratistaAsignado().getId())
+            || EstadoAsignacion.SELECCIONADO_PENDIENTE_CONTRATACION.equals(proyecto.getEstadoAsignacion())) {
             return ResponseEntity.notFound().build();
         }
-        if (!Boolean.TRUE.equals(contratista.getVerificado())) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Tu cuenta debe estar verificada para enviar informes."));
-        }
-
         List<String> avanceIds = request.reportesTrabajadorIds() == null ? List.of() : request.reportesTrabajadorIds();
         List<ReporteAvanceTrabajador> avances = avanceIds.isEmpty()
                 ? List.of()
@@ -136,11 +131,9 @@ public class ContractorReportApiController {
         Proyecto proyecto = reporte == null ? null : proyectoRepository.findById(reporte.getProyectoId()).orElse(null);
         if (contratista == null || reporte == null || proyecto == null || proyecto.getContratistaAsignado() == null
                 || !contratista.getId().equals(proyecto.getContratistaAsignado().getId())
-                || !contratista.getId().equals(reporte.getContratistaId())) {
+            || !contratista.getId().equals(reporte.getContratistaId())
+            || EstadoAsignacion.SELECCIONADO_PENDIENTE_CONTRATACION.equals(proyecto.getEstadoAsignacion())) {
             return ResponseEntity.notFound().build();
-        }
-        if (!Boolean.TRUE.equals(contratista.getVerificado())) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Tu cuenta debe estar verificada para editar informes."));
         }
         reporte.setContenido(contenido);
         return ResponseEntity.ok(toResponse(reporteRepository.save(reporte)));
@@ -154,7 +147,7 @@ public class ContractorReportApiController {
         ReporteProyecto reporte = reporteRepository.findById(reportId).orElse(null);
         Proyecto proyecto = reporte == null ? null : proyectoRepository.findById(reporte.getProyectoId()).orElse(null);
         Perfil viewer = perfilRepository.findByUsernameIgnoreCase(authentication.getName()).orElse(null);
-        if (proyecto == null || viewer == null || !Boolean.TRUE.equals(viewer.getVerificado())
+        if (proyecto == null || viewer == null
             || !canAccess(proyecto, authentication.getName())) {
             return ResponseEntity.notFound().build();
         }
@@ -192,6 +185,7 @@ public class ContractorReportApiController {
     private ReportResponse toResponse(ReporteProyecto reporte) {
         return new ReportResponse(reporte.getId(), reporte.getProyectoId(), reporte.getProyectoTitulo(),
             reporte.getContenido(), reporte.getCreado(),
+            proyectoRepository.existsById(reporte.getProyectoId()),
             reporte.getAvancesTrabajador().stream().map(this::toProgressResponse).toList(),
             reporte.getEvidencias().stream().map(file -> toEvidenceResponse(reporte, file)).toList());
     }
@@ -226,6 +220,7 @@ public class ContractorReportApiController {
             String proyecto,
             String contenido,
             LocalDateTime creado,
+            boolean proyectoDisponible,
             List<WorkerProgressResponse> avancesTrabajador,
             List<EvidenceResponse> evidencias) {}
 

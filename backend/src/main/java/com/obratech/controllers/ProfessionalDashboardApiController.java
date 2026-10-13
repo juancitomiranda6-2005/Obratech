@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,11 +23,13 @@ import com.obratech.entity.Perfil;
 import com.obratech.entity.Proyecto;
 import com.obratech.entity.Usuario;
 import com.obratech.entity.enums.EstadoEjecucion;
+import com.obratech.entity.enums.EstadoAsignacion;
 import com.obratech.repository.InvitacionTrabajoRepository;
 import com.obratech.repository.PerfilRepository;
 import com.obratech.repository.ProyectoRepository;
 import com.obratech.repository.UsuarioRepository;
 import com.obratech.service.PerfilVerificationService;
+import com.obratech.service.InvitacionTrabajoService;
 import com.obratech.util.PerfilDisplayName;
 
 @RestController
@@ -38,18 +41,21 @@ public class ProfessionalDashboardApiController {
     private final ProyectoRepository proyectoRepository;
     private final InvitacionTrabajoRepository invitacionTrabajoRepository;
     private final PerfilVerificationService perfilVerificationService;
+    private final InvitacionTrabajoService invitacionService;
 
     public ProfessionalDashboardApiController(
             UsuarioRepository usuarioRepository,
             PerfilRepository perfilRepository,
             ProyectoRepository proyectoRepository,
             InvitacionTrabajoRepository invitacionTrabajoRepository,
-            PerfilVerificationService perfilVerificationService) {
+            PerfilVerificationService perfilVerificationService,
+            InvitacionTrabajoService invitacionService) {
         this.usuarioRepository = usuarioRepository;
         this.perfilRepository = perfilRepository;
         this.proyectoRepository = proyectoRepository;
         this.invitacionTrabajoRepository = invitacionTrabajoRepository;
         this.perfilVerificationService = perfilVerificationService;
+        this.invitacionService = invitacionService;
     }
 
     @GetMapping("/contratista")
@@ -63,7 +69,10 @@ public class ProfessionalDashboardApiController {
         List<Proyecto> proyectosActivos = perfil == null || perfil.getId() == null
                 ? List.of()
                 : proyectoRepository.findByContratistaAsignadoIdAndEstadoEjecucionNot(
-                        perfil.getId(), EstadoEjecucion.COMPLETADO);
+                    perfil.getId(), EstadoEjecucion.COMPLETADO).stream()
+                    .filter(project -> !EstadoAsignacion.SELECCIONADO_PENDIENTE_CONTRATACION
+                        .equals(project.getEstadoAsignacion()))
+                    .toList();
         List<Proyecto> proyectosCompletados = perfil == null || perfil.getId() == null
                 ? List.of()
                 : proyectoRepository.findByContratistaAsignadoIdAndEstadoEjecucion(
@@ -135,10 +144,14 @@ public class ProfessionalDashboardApiController {
             return nuevo;
         });
 
-        List<InvitacionCard> invitaciones = perfil.getId() == null
-                ? List.of()
-                : invitacionTrabajoRepository.findByTrabajadorIdAndEstado(perfil.getId(), "PENDIENTE")
-                        .stream().map(this::toInvitationCard).toList();
+        List<InvitacionTrabajo> pendingInvitations = perfil.getId() == null
+            ? List.of()
+            : invitacionTrabajoRepository.findByTrabajadorIdAndEstado(perfil.getId(), "PENDIENTE");
+        LocalDateTime now = LocalDateTime.now();
+        pendingInvitations.forEach(invitation -> invitacionService.expireIfNeeded(invitation, now));
+        List<InvitacionCard> invitaciones = pendingInvitations.stream()
+            .filter(invitation -> "PENDIENTE".equals(invitation.getEstado()))
+            .map(this::toInvitationCard).toList();
         List<Proyecto> proyectos = perfil.getId() == null
                 ? List.of()
                 : proyectoRepository.findByEquipoTrabajoContaining(perfil);
@@ -178,12 +191,32 @@ public class ProfessionalDashboardApiController {
         if (!"PENDIENTE".equals(invitacion.getEstado())) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse("La invitación ya fue respondida."));
         }
+        if (invitacionService.expireIfNeeded(invitacion, LocalDateTime.now())) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse("La invitación expiró después de 24 horas."));
+        }
+
+        Proyecto proyecto = null;
+        if ("ACEPTADA".equals(request.estado())) {
+            String projectId = invitacion.getProyectoId();
+            proyecto = projectId == null ? null : proyectoRepository.findById(projectId).orElse(null);
+            if (proyecto == null) {
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                        .body(new ErrorResponse("El proyecto ya no está disponible; no puedes aceptar esta invitación."));
+            }
+            if (invitacion.getPagoOfrecido() == null || invitacion.getPagoOfrecido() <= 0) {
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                        .body(new ErrorResponse("La invitación no indica cuánto te pagarán. Recházala y pide una nueva oferta."));
+            }
+            if (!Boolean.TRUE.equals(trabajador.getDisponibilidad()) || invitacionService.hasActiveProject(trabajador)) {
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                        .body(new ErrorResponse("Ya estás ocupado en otro proyecto y no puedes aceptar esta invitación."));
+            }
+        }
 
         invitacion.setEstado(request.estado());
         invitacionTrabajoRepository.save(invitacion);
 
-        if ("ACEPTADA".equals(request.estado()) && invitacion.getProyecto() != null) {
-            Proyecto proyecto = invitacion.getProyecto();
+        if ("ACEPTADA".equals(request.estado())) {
             if (proyecto.getEquipoTrabajo() == null) {
                 proyecto.setEquipoTrabajo(new ArrayList<>());
             }
@@ -223,13 +256,22 @@ public class ProfessionalDashboardApiController {
     }
 
     private InvitacionCard toInvitationCard(InvitacionTrabajo invitacion) {
-        Proyecto proyecto = invitacion.getProyecto();
+        String projectId = invitacion.getProyectoId();
+        Proyecto proyecto = projectId == null ? null : proyectoRepository.findById(projectId).orElse(null);
         Perfil contratista = invitacion.getContratista();
         return new InvitacionCard(
                 invitacion.getId(),
-                proyecto == null ? "Proyecto" : proyecto.getTitulo(),
-                proyecto == null ? null : proyecto.getUbicacion(),
-                contratista == null ? "Contratista" : PerfilDisplayName.of(contratista));
+            projectId,
+            proyecto == null ? invitacion.getProyectoTitulo() : proyecto.getTitulo(),
+            proyecto == null ? invitacion.getProyectoUbicacion() : proyecto.getUbicacion(),
+                proyecto == null ? invitacion.getProyectoDescripcion() : proyecto.getDescripcion(),
+            contratista == null ? "Contratista" : PerfilDisplayName.of(contratista),
+            invitacion.getPagoOfrecido(),
+                invitacion.getContratistaPerfilId(),
+                invitacion.getFechaExpiracion() == null && invitacion.getFechaCreacion() != null
+                    ? invitacion.getFechaCreacion().plusHours(InvitacionTrabajoService.EXPIRATION_HOURS)
+                    : invitacion.getFechaExpiracion(),
+            proyecto != null);
     }
 
     public record ContractorDashboardResponse(
@@ -277,7 +319,17 @@ public class ProfessionalDashboardApiController {
             LocalDate fechaEntrega,
             String cliente) {}
 
-    public record InvitacionCard(String id, String proyecto, String ubicacion, String contratista) {}
+        public record InvitacionCard(
+            String id,
+            String proyectoId,
+            String proyecto,
+            String ubicacion,
+            String descripcion,
+            String contratista,
+            Double pagoOfrecido,
+            String contratistaPerfilId,
+            LocalDateTime fechaExpiracion,
+            boolean proyectoDisponible) {}
 
     public record InvitationRequest(String estado) {}
 

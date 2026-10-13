@@ -14,6 +14,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.security.core.Authentication;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
 
 import com.mongodb.client.gridfs.model.GridFSFile;
 import com.obratech.entity.Perfil;
@@ -48,6 +51,8 @@ public class TrabajadorControllers {
     private EquipoTrabajoRepository equipoTrabajoRepository;
     @Autowired
     private ProyectoRepository proyectoRepository;
+    @Autowired
+    private com.obratech.service.InvitacionTrabajoService invitacionTrabajoService;
 
     @GetMapping("/crear")
     public String mostrarFormularioCrear(HttpSession session, Model model) {
@@ -242,7 +247,8 @@ public class TrabajadorControllers {
 
     @GetMapping("/cv/{fileId}")
     public org.springframework.http.ResponseEntity<org.springframework.core.io.Resource> descargarCv(
-            @PathVariable String fileId) {
+            @PathVariable String fileId, Authentication authentication) {
+        if (!ownsWorkerCv(fileId, authentication)) return ResponseEntity.notFound().build();
         try {
             GridFSFile gridFSFile = gridFsTemplate.findOne(
                     new Query(Criteria.where("_id").is(new org.bson.types.ObjectId(fileId))));
@@ -257,6 +263,7 @@ public class TrabajadorControllers {
                     contentType = org.springframework.http.MediaType.APPLICATION_OCTET_STREAM_VALUE;
                 }
                 return org.springframework.http.ResponseEntity.ok()
+                    .header(HttpHeaders.CACHE_CONTROL, "private, no-store")
                         .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION,
                                 "inline; filename=\"" + gridFSFile.getFilename() + "\"")
                         .contentType(org.springframework.http.MediaType.parseMediaType(contentType))
@@ -270,7 +277,8 @@ public class TrabajadorControllers {
 
     @GetMapping("/cv/{fileId}/download")
     public org.springframework.http.ResponseEntity<org.springframework.core.io.Resource> descargarCvComoArchivo(
-            @PathVariable String fileId) {
+            @PathVariable String fileId, Authentication authentication) {
+        if (!ownsWorkerCv(fileId, authentication)) return ResponseEntity.notFound().build();
         try {
             GridFSFile gridFSFile = gridFsTemplate.findOne(
                     new Query(Criteria.where("_id").is(new org.bson.types.ObjectId(fileId))));
@@ -278,6 +286,7 @@ public class TrabajadorControllers {
                 org.springframework.data.mongodb.gridfs.GridFsResource resource = gridFsTemplate
                         .getResource(gridFSFile);
                 return org.springframework.http.ResponseEntity.ok()
+                    .header(HttpHeaders.CACHE_CONTROL, "private, no-store")
                         .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION,
                                 "attachment; filename=\"" + gridFSFile.getFilename() + "\"")
                         .contentType(org.springframework.http.MediaType.parseMediaType(resource.getContentType()))
@@ -287,6 +296,17 @@ public class TrabajadorControllers {
             System.err.println("Error descargando CV: " + e.getMessage());
         }
         return org.springframework.http.ResponseEntity.notFound().build();
+    }
+
+    private boolean ownsWorkerCv(String fileId, Authentication authentication) {
+        if (authentication == null || authentication.getAuthorities().stream()
+                .noneMatch(authority -> "ROLE_WORKER".equals(authority.getAuthority()))) {
+            return false;
+        }
+        return perfilRepository.findByUsernameIgnoreCase(authentication.getName())
+                .filter(perfil -> perfil.getRoles() != null && perfil.getRoles().contains("ROLE_WORKER"))
+                .map(perfil -> fileId.equals(perfil.getCvUrl()))
+                .orElse(false);
     }
 
     @PostMapping("/invitaciones/{id}/aceptar")
@@ -305,11 +325,21 @@ public class TrabajadorControllers {
         if (!invitacion.getTrabajador().getId().equals(trabajador.getId())) {
             return "redirect:/desboard-trabajador";
         }
+        if (invitacionTrabajoService.expireIfNeeded(invitacion, java.time.LocalDateTime.now())) {
+            return "redirect:/desboard-trabajador?invitacion_expirada=true";
+        }
+        if (!"PENDIENTE".equals(invitacion.getEstado()) || !Boolean.TRUE.equals(trabajador.getDisponibilidad())
+                || invitacionTrabajoService.hasActiveProject(trabajador)) {
+            return "redirect:/desboard-trabajador?trabajador_ocupado=true";
+        }
 
+        Proyecto proyecto = invitacion.getProyecto();
+        if (proyecto == null || !invitacionTrabajoService.isActiveProject(proyecto)) {
+            return "redirect:/desboard-trabajador?proyecto_no_disponible=true";
+        }
         invitacion.setEstado("ACEPTADA");
         invitacionTrabajoRepository.save(invitacion);
 
-        Proyecto proyecto = invitacion.getProyecto();
         if (proyecto != null) {
             if (proyecto.getEquipoTrabajo() == null) {
                 proyecto.setEquipoTrabajo(new java.util.ArrayList<>());
@@ -396,6 +426,14 @@ public class TrabajadorControllers {
 
         if (todosCompletos) {
             proyecto.setEstadoEjecucion(EstadoEjecucion.COMPLETADO);
+            if (proyecto.getEquipoTrabajo() != null) {
+                for (Perfil integrante : proyecto.getEquipoTrabajo()) {
+                    if (integrante != null && !invitacionTrabajoService.hasOtherActiveProject(integrante, proyecto.getId())) {
+                        integrante.setDisponibilidad(true);
+                        perfilRepository.save(integrante);
+                    }
+                }
+            }
         } else if (hayAvance) {
             proyecto.setEstadoEjecucion(EstadoEjecucion.EN_PROGRESO);
         } else {

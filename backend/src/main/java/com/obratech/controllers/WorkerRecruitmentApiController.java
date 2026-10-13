@@ -21,6 +21,7 @@ import com.obratech.entity.enums.EstadoEjecucion;
 import com.obratech.repository.InvitacionTrabajoRepository;
 import com.obratech.repository.PerfilRepository;
 import com.obratech.repository.ProyectoRepository;
+import com.obratech.service.InvitacionTrabajoService;
 import com.obratech.util.PerfilDisplayName;
 
 @RestController
@@ -30,14 +31,17 @@ public class WorkerRecruitmentApiController {
     private final PerfilRepository perfilRepository;
     private final ProyectoRepository proyectoRepository;
     private final InvitacionTrabajoRepository invitacionTrabajoRepository;
+    private final InvitacionTrabajoService invitacionService;
 
     public WorkerRecruitmentApiController(
             PerfilRepository perfilRepository,
             ProyectoRepository proyectoRepository,
-            InvitacionTrabajoRepository invitacionTrabajoRepository) {
+            InvitacionTrabajoRepository invitacionTrabajoRepository,
+            InvitacionTrabajoService invitacionService) {
         this.perfilRepository = perfilRepository;
         this.proyectoRepository = proyectoRepository;
         this.invitacionTrabajoRepository = invitacionTrabajoRepository;
+        this.invitacionService = invitacionService;
     }
 
     @GetMapping("/available")
@@ -46,13 +50,20 @@ public class WorkerRecruitmentApiController {
             Authentication authentication) {
         Perfil contratista = perfilRepository.findByUsernameIgnoreCase(authentication.getName()).orElse(null);
 
-        // Listar todos los trabajadores activos
-        List<Perfil> allWorkers = perfilRepository.findByRolesAndActivoTrue("ROLE_WORKER");
-
-        // Invitaciones pendientes
         List<InvitacionTrabajo> pendingInvitations = contratista != null && contratista.getId() != null
                 ? invitacionTrabajoRepository.findByContratistaIdAndEstado(contratista.getId(), "PENDIENTE")
                 : List.of();
+        LocalDateTime now = LocalDateTime.now();
+        pendingInvitations.forEach(invitation -> invitacionService.expireIfNeeded(invitation, now));
+        pendingInvitations = pendingInvitations.stream()
+            .filter(invitation -> "PENDIENTE".equals(invitation.getEstado()))
+            .toList();
+
+        java.util.Set<String> occupiedWorkerIds = invitacionService.getWorkersWithActiveProjects();
+        List<Perfil> allWorkers = perfilRepository.findByRolesAndActivoTrue("ROLE_WORKER").stream()
+            .filter(perfil -> Boolean.TRUE.equals(perfil.getDisponibilidad()))
+            .filter(perfil -> perfil.getId() == null || !occupiedWorkerIds.contains(perfil.getId()))
+            .toList();
 
         // Proyecto seleccionado
         Proyecto proyectoSeleccionado = (projectId != null && !projectId.isBlank())
@@ -110,8 +121,9 @@ public class WorkerRecruitmentApiController {
             @PathVariable String workerId,
             @RequestBody InvitationCreateRequest request,
             Authentication authentication) {
-        if (request == null || request.proyectoId() == null || request.proyectoId().isBlank()) {
-            return ResponseEntity.badRequest().body(new ErrorResponse("Selecciona un proyecto."));
+        if (request == null || request.proyectoId() == null || request.proyectoId().isBlank()
+                || request.pagoOfrecido() == null || request.pagoOfrecido() <= 0) {
+            return ResponseEntity.badRequest().body(new ErrorResponse("Selecciona un proyecto e indica un pago ofrecido mayor que cero."));
         }
 
         Perfil contratista = perfilRepository.findByUsernameIgnoreCase(authentication.getName()).orElse(null);
@@ -127,9 +139,13 @@ public class WorkerRecruitmentApiController {
             return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
                     .body(new ErrorResponse("El trabajador no está activo en la plataforma."));
         }
-        if (proyecto.getEstadoEjecucion() == EstadoEjecucion.COMPLETADO) {
+        if (!Boolean.TRUE.equals(trabajador.getDisponibilidad()) || invitacionService.hasActiveProject(trabajador)) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(new ErrorResponse("El trabajador ya está ocupado o no está disponible."));
+        }
+        if (!invitacionService.isActiveProject(proyecto)) {
             return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
-                    .body(new ErrorResponse("No se pueden enviar invitaciones a un proyecto completado."));
+                .body(new ErrorResponse("No se pueden enviar invitaciones a un proyecto completado o cancelado."));
         }
 
         boolean alreadyOnProject = proyecto.getEquipoTrabajo() != null && proyecto.getEquipoTrabajo().stream()
@@ -139,9 +155,13 @@ public class WorkerRecruitmentApiController {
                     .body(new ErrorResponse("El trabajador ya pertenece a este proyecto (ya está contratado)."));
         }
 
-        boolean invitationExists = invitacionTrabajoRepository.findByTrabajadorIdAndEstado(workerId, "PENDIENTE")
-                .stream().anyMatch(invitation -> invitation.getProyecto() != null
-                        && request.proyectoId().equals(invitation.getProyecto().getId()));
+        List<InvitacionTrabajo> workerPendingInvitations = invitacionTrabajoRepository
+            .findByTrabajadorIdAndEstado(workerId, "PENDIENTE");
+        LocalDateTime now = LocalDateTime.now();
+        workerPendingInvitations.forEach(invitation -> invitacionService.expireIfNeeded(invitation, now));
+        boolean invitationExists = workerPendingInvitations.stream()
+            .filter(invitation -> "PENDIENTE".equals(invitation.getEstado()))
+            .anyMatch(invitation -> request.proyectoId().equals(invitation.getProyectoId()));
         if (invitationExists) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
                     .body(new ErrorResponse("Ya hay una invitación pendiente para este proyecto."));
@@ -151,11 +171,22 @@ public class WorkerRecruitmentApiController {
         invitation.setTrabajador(trabajador);
         invitation.setContratista(contratista);
         invitation.setProyecto(proyecto);
+        invitation.setProyectoId(proyecto.getId());
+        invitation.setProyectoTitulo(proyecto.getTitulo());
+        invitation.setProyectoUbicacion(proyecto.getUbicacion());
+        invitation.setProyectoDescripcion(proyecto.getDescripcion());
+        invitation.setContratistaPerfilId(contratista.getId());
+        Perfil cliente = proyecto.getCliente() == null ? null
+            : perfilRepository.findByUsernameIgnoreCase(proyecto.getCliente().getUsername()).orElse(null);
+        invitation.setClientePerfilId(cliente == null ? null : cliente.getId());
+        invitation.setPagoOfrecido(request.pagoOfrecido());
         invitation.setEstado("PENDIENTE");
-        invitation.setFechaCreacion(LocalDateTime.now());
+        invitation.setFechaCreacion(now);
+        invitation.setFechaExpiracion(now.plusHours(InvitacionTrabajoService.EXPIRATION_HOURS));
         InvitacionTrabajo saved = invitacionTrabajoRepository.save(invitation);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new InvitationResponse(saved.getId(), saved.getEstado(), proyecto.getTitulo()));
+            .body(new InvitationResponse(saved.getId(), saved.getEstado(), proyecto.getTitulo(),
+                proyecto.getDescripcion(), saved.getPagoOfrecido(), saved.getFechaExpiracion()));
     }
 
     public record WorkerCard(
@@ -170,9 +201,11 @@ public class WorkerRecruitmentApiController {
             boolean invitado,
             boolean contratado) {}
 
-    public record InvitationCreateRequest(String proyectoId) {}
+    public record InvitationCreateRequest(String proyectoId, Double pagoOfrecido) {}
 
-    public record InvitationResponse(String id, String estado, String proyecto) {}
+        public record InvitationResponse(
+            String id, String estado, String proyecto, String descripcion, Double pagoOfrecido,
+            LocalDateTime fechaExpiracion) {}
 
     public record ErrorResponse(String error) {}
 }
