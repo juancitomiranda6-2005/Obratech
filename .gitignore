@@ -49,6 +49,3 @@ build/
 # Local data & uploads
 uploads/
 .env
-
-# Archivos generados por el build del frontend
-backend/src/main/resources/static/assets/
