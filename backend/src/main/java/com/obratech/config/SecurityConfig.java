@@ -95,10 +95,9 @@ public class SecurityConfig {
                                 "/proyectos/documento/**", "/trabajadores/cv/**", "/uploads/**", "/actuator/**")
                         .authenticated()
 
-<<<<<<< HEAD
                         .requestMatchers(org.springframework.http.HttpMethod.POST,
                                 "/perfil-cliente/**", "/mis-proyectos/**")
-                        .hasAuthority("RLE_CLIENT")
+                        .hasAuthority("ROLE_CLIENT")
 
                         .requestMatchers(org.springframework.http.HttpMethod.POST,
                                 "/desboard-contratista", "/perfil-contratista/**", "/contratista-proyectos/**")
@@ -111,8 +110,6 @@ public class SecurityConfig {
                         .requestMatchers(org.springframework.http.HttpMethod.POST, "/admin/**")
                         .hasAuthority("ROLE_ADMIN")
 
-=======
->>>>>>> 5da54fe103ccf1dc97d4e9ac0c1404cbccc00c74
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/**").permitAll()
 
                         .anyRequest().authenticated()
