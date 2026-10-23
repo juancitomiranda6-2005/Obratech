@@ -1,4 +1,3 @@
-// SecurityConfig
 package com.obratech.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -98,7 +97,7 @@ public class SecurityConfig {
 
                         .requestMatchers(org.springframework.http.HttpMethod.POST,
                                 "/perfil-cliente/**", "/mis-proyectos/**")
-                        .hasAuthority("ROLE_CLIENT")
+                        .hasAuthority("RLE_CLIENT")
 
                         .requestMatchers(org.springframework.http.HttpMethod.POST,
                                 "/desboard-contratista", "/perfil-contratista/**", "/contratista-proyectos/**")
