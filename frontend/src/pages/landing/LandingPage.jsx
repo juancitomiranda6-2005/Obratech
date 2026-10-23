@@ -63,10 +63,10 @@ export function LandingPage() {
               </div>
             </div>
           </div>
-          <div className="landing-hero-actions">
-            <Link className="landing-hero-login" to="/login">Iniciar sesión</Link>
-            <Link className="landing-hero-register" to="/registro">Registrar</Link>
-          </div>
+            <div className="landing-hero-actions">
+              <Link className="landing-hero-login" to="/login">Iniciar sesión</Link>
+              <Link className="landing-hero-register" to="/registro">Registrar</Link>
+            </div>
         </section>
 
         <section className="landing-section landing-how" id="how-it-works">

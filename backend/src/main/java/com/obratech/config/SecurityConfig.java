@@ -96,21 +96,6 @@ public class SecurityConfig {
                                 "/proyectos/documento/**", "/trabajadores/cv/**", "/uploads/**", "/actuator/**")
                         .authenticated()
 
-                        .requestMatchers(org.springframework.http.HttpMethod.POST,
-                                "/perfil-cliente/**", "/mis-proyectos/**")
-                        .hasAuthority("ROLE_CLIENT")
-
-                        .requestMatchers(org.springframework.http.HttpMethod.POST,
-                                "/desboard-contratista", "/perfil-contratista/**", "/contratista-proyectos/**")
-                        .hasAuthority("ROLE_CONTRACTOR")
-
-                        .requestMatchers(org.springframework.http.HttpMethod.POST,
-                                "/desboard-trabajador", "/perfil-laboral/**")
-                        .hasAuthority("ROLE_WORKER")
-
-                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/admin/**")
-                        .hasAuthority("ROLE_ADMIN")
-
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/**").permitAll()
 
                         .anyRequest().authenticated()
