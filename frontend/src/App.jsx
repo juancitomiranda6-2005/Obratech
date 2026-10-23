@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
-import { BrowserRouter, Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
-import { authService } from './services/authService.js'
+import { BrowserRouter, Link, Route, Routes, useLocation, useNavigate, useParams } from 'react-router-dom'
+import { authService, establishSession } from './services/authService.js'
 import { AuthProvider, useAuth } from './context/AuthContext.jsx'
+import { LoginPage } from './pages/auth/LoginPage.jsx'
 import { DashboardAdmin } from './pages/dashboard/DashboardAdmin.jsx'
 import { DashboardCliente } from './pages/dashboard/DashboardCliente.jsx'
 import { DashboardContratista } from './pages/dashboard/DashboardContratista.jsx'
@@ -31,31 +32,6 @@ import { PerfilCliente } from './pages/perfil/PerfilCliente.jsx'
 import { PerfilContratista } from './pages/perfil/PerfilContratista.jsx'
 import { PerfilTrabajador } from './pages/perfil/PerfilTrabajador.jsx'
 import { RecuperarContrasenaPage } from './pages/auth/RecuperarContrasena.jsx'
-
-function rolesFromToken(token) {
-  try {
-    const payload = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')
-    const claims = JSON.parse(atob(payload))
-    return Array.isArray(claims.roles) ? claims.roles : []
-  } catch {
-    return []
-  }
-}
-
-function establishSession(data, username, rememberMe, login, navigate) {
-  const roles = Array.isArray(data.roles) ? data.roles : rolesFromToken(data.token)
-  const profileRoles = roles.filter((role) => ['ROLE_CLIENT', 'ROLE_CONTRACTOR', 'ROLE_WORKER'].includes(role))
-  const role = roles.includes('ROLE_ADMIN')
-    ? 'ROLE_ADMIN'
-    : profileRoles.length === 1
-      ? profileRoles[0]
-      : profileRoles.length > 1
-        ? null
-        : roles[0] || 'ROLE_USER'
-
-  login({ name: username, email: username, roles, role }, data.token, rememberMe)
-  navigate(profileRoles.length > 1 && role !== 'ROLE_ADMIN' ? '/seleccionar-perfil' : '/', { replace: true })
-}
 
 const roleOptions = {
   ROLE_CLIENT: { label: 'Cliente', description: 'Publicar proyectos y buscar talento', icon: 'person' },
@@ -91,33 +67,127 @@ function RoleSelectionPage({ roles, onSelect, onLogout }) {
   )
 }
 
-function LoginApp() {
+function AdminPerfilDetalleRoute({ onLogout }) {
+  const { id } = useParams()
+  return <AdminPerfilDetalle id={id} onLogout={onLogout} />
+}
+
+function PostulantesProyectoRoute() {
+  const { projectId } = useParams()
+  return <PostulantesProyecto projectId={projectId} />
+}
+
+function DetalleProyectoRoute() {
+  const { id } = useParams()
+  return <DetalleProyecto id={id} />
+}
+
+function EditarProyectoRoute() {
+  const { id } = useParams()
+  return <EditarProyecto id={id} />
+}
+
+function PerfilPublicoRoute({ onLogout, viewerRole }) {
+  const { id } = useParams()
+  return <PerfilPublico id={id} onLogout={onLogout} viewerRole={viewerRole} />
+}
+
+function DirectorioContratistasEspecialidadRoute({ onLogout }) {
+  const { specialty } = useParams()
+  return <DirectorioPerfiles kind="contractors" specialty={specialty ? decodeURIComponent(specialty) : ''} onLogout={onLogout} />
+}
+
+function CalificarContratistaRoute({ onLogout }) {
+  const { projectId, contractorId, ratingId } = useParams()
+  return <CalificarContratista onLogout={onLogout} projectId={projectId} contractorId={contractorId} ratingId={ratingId} />
+}
+
+function MercadoTrabajadoresRoute({ onLogout }) {
+  const { workerId } = useParams()
+  return <MercadoTrabajadores onLogout={onLogout} workerId={workerId} />
+}
+
+function EquiposPageRoute({ onLogout, role }) {
+  const { projectId } = useParams()
+  return <EquiposPage onLogout={onLogout} role={role} projectId={projectId} />
+}
+
+function ProyectosDisponiblesRoute({ onLogout, role }) {
+  const { projectId } = useParams()
+  return <ProyectosDisponibles onLogout={onLogout} role={role} projectId={projectId} />
+}
+
+function DetallePostulacionRoute({ onLogout, role }) {
+  const { id } = useParams()
+  return <DetallePostulacion id={id} onLogout={onLogout} role={role} />
+}
+
+function OAuthCallbackRoute({ onComplete }) {
+  const [oauthLoading, setOauthLoading] = useState(true)
+  const [oauthError, setOauthError] = useState('')
+
+  useEffect(() => {
+    let active = true
+    authService.exchangeOAuthSession()
+      .then(({ data }) => {
+        if (!active) return
+        onComplete(data)
+      })
+      .catch((requestError) => {
+        if (active) setOauthError(requestError.response?.data?.error || 'No se pudo recuperar la sesión de Google.')
+      })
+      .finally(() => { if (active) setOauthLoading(false) })
+    return () => { active = false }
+  }, [onComplete])
+
+  return (
+    <main className="auth-page">
+      <section className="auth-shell">
+        <p className="eyebrow">Google</p>
+        <h1>{oauthError ? 'No se pudo iniciar sesión' : 'Conectando tu cuenta…'}</h1>
+        {oauthError ? (
+          <div className="form-alert" role="alert">{oauthError}</div>
+        ) : (
+          <p role="status">{oauthLoading ? 'Validando sesión segura.' : 'Redirigiendo…'}</p>
+        )}
+        {oauthError && <Link className="button button-primary" to="/login">Volver al inicio de sesión</Link>}
+      </section>
+    </main>
+  )
+}
+
+function ErrorRoute({ isAuthenticated }) {
+  return (
+    <main className="auth-page">
+      <section className="auth-shell auth-result">
+        <span className="material-symbols-outlined error-page-icon" aria-hidden="true">error</span>
+        <p className="eyebrow">ObraTech</p>
+        <h1>No se pudo completar la solicitud</h1>
+        <p className="auth-copy">El recurso puede haber cambiado o no estar disponible. Vuelve al inicio y continúa desde allí.</p>
+        <Link className="button button-primary" to={isAuthenticated ? '/' : '/login'}>Volver</Link>
+      </section>
+    </main>
+  )
+}
+
+function NotFoundRoute({ isAuthenticated }) {
+  return (
+    <main className="auth-page">
+      <section className="auth-shell auth-result">
+        <span className="material-symbols-outlined error-page-icon" aria-hidden="true">search_off</span>
+        <p className="eyebrow">404</p>
+        <h1>Página no encontrada</h1>
+        <p className="auth-copy">La página que buscas no existe o ha sido movida.</p>
+        <Link className="button button-primary" to={isAuthenticated ? '/' : '/login'}>Ir al inicio</Link>
+      </section>
+    </main>
+  )
+}
+
+function AppRoutes() {
   const location = useLocation()
   const navigate = useNavigate()
   const { user, isAuthenticated, login, logout, selectRole } = useAuth()
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [rememberMe, setRememberMe] = useState(false)
-  const [showPassword, setShowPassword] = useState(false)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState('')
-  const [oauthLoading, setOauthLoading] = useState(false)
-  const [oauthError, setOauthError] = useState('')
-  const query = new URLSearchParams(location.search)
-  const registered = query.get('registered') === 'true'
-  const authStatus = query.has('blocked')
-    ? { message: 'Tu cuenta está bloqueada temporalmente. Intenta de nuevo en 15 minutos.', tone: 'error' }
-    : query.get('error') === 'google'
-      ? { message: 'No se pudo iniciar sesión con Google. Verifica tu cuenta e inténtalo de nuevo.', tone: 'error' }
-      : query.has('error')
-        ? { message: 'Usuario o contraseña incorrectos. Verifica tus datos.', tone: 'error' }
-        : query.has('expired')
-          ? { message: 'Tu sesión expiró. Inicia sesión para continuar.', tone: 'error' }
-          : query.has('unauthorized')
-            ? { message: 'Debes iniciar sesión para acceder a esa sección.', tone: 'error' }
-            : query.has('logout')
-              ? { message: 'Sesión cerrada correctamente.', tone: 'success' }
-              : null
 
   useEffect(() => {
     if (isAuthenticated) return
@@ -132,220 +202,154 @@ function LoginApp() {
     document.title = titles[location.pathname] || 'ObraTech'
   }, [isAuthenticated, location.pathname])
 
-  useEffect(() => {
-    if (location.pathname !== '/oauth/callback' || isAuthenticated) return undefined
-    let active = true
-    setOauthLoading(true)
-    authService.exchangeOAuthSession()
-      .then(({ data }) => {
-        if (!active) return
-        establishSession(data, data.username, true, login, navigate)
-      })
-      .catch((requestError) => {
-        if (active) setOauthError(requestError.response?.data?.error || 'No se pudo recuperar la sesión de Google.')
-      })
-      .finally(() => { if (active) setOauthLoading(false) })
-    return () => { active = false }
-  }, [isAuthenticated, location.pathname, login, navigate])
-
-  if (location.pathname === '/recuperar-contrasena') {
-    return <RecuperarContrasenaPage onComplete={logout} />
-  }
-  if (location.pathname === '/restablecer-contrasena') {
-    return <RecuperarContrasenaPage onComplete={logout} resetting />
-  }
-  if (location.pathname === '/error') {
-    return <main className="auth-page"><section className="auth-shell auth-result"><span className="material-symbols-outlined error-page-icon" aria-hidden="true">error</span><p className="eyebrow">ObraTech</p><h1>No se pudo completar la solicitud</h1><p className="auth-copy">El recurso puede haber cambiado o no estar disponible. Vuelve al inicio y continúa desde allí.</p><Link className="button button-primary" to={isAuthenticated ? '/' : '/login'}>Volver</Link></section></main>
-  }
-
   const completeOAuthRegistration = (data) => {
     establishSession(data, data.username, true, login, navigate)
   }
 
-  const handleSubmit = async (event) => {
-    event.preventDefault()
-    setError('')
-    setIsSubmitting(true)
-
-    try {
-      const { data } = await authService.login({ username: email.trim(), password })
-      establishSession(data, data.username, rememberMe, login, navigate)
-      setPassword('')
-    } catch (requestError) {
-      setError(requestError.response?.data?.error || 'No se pudo conectar con el servidor. Intenta de nuevo.')
-    } finally {
-      setIsSubmitting(false)
-    }
+  // Si está autenticado pero necesita seleccionar rol o está en /seleccionar-perfil
+  if (isAuthenticated && (location.pathname === '/seleccionar-perfil' || !user?.role)) {
+    return (
+      <RoleSelectionPage
+        roles={user?.roles || []}
+        onSelect={(role) => {
+          selectRole(role)
+          navigate('/', { replace: true })
+        }}
+        onLogout={logout}
+      />
+    )
   }
 
+  // Rutas para usuarios autenticados según rol
   if (isAuthenticated) {
-    const canonicalPath = location.pathname.replace(/\/+$/, '') || '/'
-    if (canonicalPath !== location.pathname) {
-      return <Navigate replace to={`${canonicalPath}${location.search}${location.hash}`} />
-    }
-    if (location.pathname === '/seleccionar-perfil' || !user?.role) {
-      return <RoleSelectionPage roles={user?.roles || []} onSelect={(role) => { selectRole(role); navigate('/', { replace: true }) }} onLogout={logout} />
-    }
     if (user?.role === 'ROLE_ADMIN') {
-      if (location.pathname === '/admin/usuarios') return <Usuarios onLogout={logout} />
-      if (location.pathname === '/trabajadores/crear') return <Usuarios createWorkerInitially onLogout={logout} />
-      if (location.pathname === '/trabajadores') return <Usuarios onLogout={logout} />
-      const adminWorkerRoute = location.pathname.match(/^\/trabajadores\/([^/]+)$/)
-      if (adminWorkerRoute) return <AdminPerfilDetalle id={decodeURIComponent(adminWorkerRoute[1])} onLogout={logout} />
-      if (location.pathname === '/clientes' || location.pathname === '/contratistas') {
-        return <DirectorioPerfiles kind={location.pathname === '/clientes' ? 'clients' : 'contractors'} onLogout={logout} />
-      }
-      const adminApplicantsRoute = location.pathname.match(/^\/(?:proyectos|postulaciones)\/([^/]+)\/postulantes$/)
-      if (adminApplicantsRoute) return <PostulantesProyecto projectId={decodeURIComponent(adminApplicantsRoute[1])} />
-      const adminProjectRoute = location.pathname.match(/^\/proyectos\/([^/]+)$/)
-      if (adminProjectRoute) return <DetalleProyecto id={decodeURIComponent(adminProjectRoute[1])} />
-      const adminProfileRoute = location.pathname.match(/^\/admin\/(?:perfiles|clientes|contratistas)\/([^/]+)$/)
-      if (adminProfileRoute) return <AdminPerfilDetalle id={decodeURIComponent(adminProfileRoute[1])} onLogout={logout} />
-      return <DashboardAdmin onLogout={logout} />
-    }
-    if (user?.role === 'ROLE_CLIENT') {
-      if (location.pathname === '/trabajadores' || location.pathname === '/trabajadores/disponibles') {
-        return <DirectorioPerfiles availableOnly={location.pathname.endsWith('/disponibles')} kind="workers" onLogout={logout} />
-      }
-      if (location.pathname === '/contratistas' || location.pathname.startsWith('/contratistas/buscar/')) {
-        const specialty = location.pathname.startsWith('/contratistas/buscar/')
-          ? decodeURIComponent(location.pathname.slice('/contratistas/buscar/'.length))
-          : ''
-        return <DirectorioPerfiles kind="contractors" specialty={specialty} onLogout={logout} />
-      }
-      if (location.pathname === '/perfil-cliente/editar') {
-        return <PerfilCliente editing />
-      }
-      if (location.pathname === '/perfil-cliente') {
-        return <PerfilCliente />
-      }
-      if (location.pathname === '/perfil-cliente/editar') return <PerfilCliente editing />
-      if (location.pathname === '/proyectos/publicar') {
-        return <PublicarProyecto />
-      }
-      if (location.pathname === '/clientes/proyectos-en-proceso') return <MisProyectos onLogout={logout} inProgressOnly />
-      if (location.pathname === '/mis-proyectos' || location.pathname === '/proyectos/mis-proyectos') {
-        return <MisProyectos onLogout={logout} />
-      }
-      if (location.pathname === '/clientes/reportes') {
-        return <ReportesPage onLogout={logout} />
-      }
-      if (location.pathname === '/clientes/mis-contratistas') {
-        return <MisContratistasPage onLogout={logout} />
-      }
-      if (location.pathname === '/clientes/mis-postulaciones') {
-        return <PostulacionesRecibidas onLogout={logout} />
-      }
-      if (location.pathname === '/postulaciones/mis-postulaciones') return <PostulacionesRecibidas onLogout={logout} />
-      if (location.pathname === '/calificaciones/contratistas'
-          || location.pathname.startsWith('/contratistas/para-calificar/')
-          || location.pathname.startsWith('/calificaciones/calificar-por-contratista/')) {
-        const projectId = location.pathname.match(/^\/contratistas\/para-calificar\/([^/]+)$/)?.[1]
-        return projectId
-          ? <CalificarContratista onLogout={logout} projectId={decodeURIComponent(projectId)} />
-          : <MisContratistasPage onLogout={logout} />
-      }
-      const publicWorkerRoute = location.pathname.match(/^\/trabajadores\/([^/]+)$/)
-      if (publicWorkerRoute) return <PerfilPublico id={decodeURIComponent(publicWorkerRoute[1])} onLogout={logout} viewerRole={user.role} />
-      const contractorUsernameRoute = location.pathname.match(/^\/contratistas\/por-username\/([^/]+)$/)
-      if (contractorUsernameRoute) return <PerfilPublico id={decodeURIComponent(contractorUsernameRoute[1])} onLogout={logout} viewerRole={user.role} />
-      const publicContractorRoute = location.pathname.match(/^\/contratistas\/([^/]+)$/)
-      if (publicContractorRoute) return <PerfilPublico id={decodeURIComponent(publicContractorRoute[1])} onLogout={logout} viewerRole={user.role} />
-      const ratingRoute = location.pathname.match(/^\/calificaciones\/(?:crear|calificar)\/([^/]+)\/([^/]+)$/)
-      if (ratingRoute) {
-        return <CalificarContratista onLogout={logout} projectId={decodeURIComponent(ratingRoute[1])} contractorId={decodeURIComponent(ratingRoute[2])} />
-      }
-      const projectRatingRoute = location.pathname.match(/^\/calificaciones\/calificar\/([^/]+)$/)
-      if (projectRatingRoute) return <CalificarContratista onLogout={logout} projectId={decodeURIComponent(projectRatingRoute[1])} />
-      const ratingEditRoute = location.pathname.match(/^\/calificaciones\/([^/]+)\/editar$/)
-      if (ratingEditRoute) return <CalificarContratista onLogout={logout} ratingId={decodeURIComponent(ratingEditRoute[1])} />
-      const applicationsRoute = location.pathname.match(/^\/proyectos\/([^/]+)\/postulantes$/)
-      if (applicationsRoute) {
-        return <PostulantesProyecto projectId={decodeURIComponent(applicationsRoute[1])} />
-      }
-      const legacyApplicationsRoute = location.pathname.match(/^\/postulaciones\/([^/]+)\/postulantes$/)
-      if (legacyApplicationsRoute) return <PostulantesProyecto projectId={decodeURIComponent(legacyApplicationsRoute[1])} />
-      const projectRoute = location.pathname.match(/^\/proyectos\/([^/]+)(?:\/(editar))?$/)
-      if (projectRoute) {
-        const projectId = decodeURIComponent(projectRoute[1])
-        return projectRoute[2]
-          ? <EditarProyecto id={projectId} />
-          : <DetalleProyecto id={projectId} />
-      }
-      return <DashboardCliente onLogout={logout} />
-    }
-    if (user?.role === 'ROLE_CONTRACTOR') {
-      const publicClientRoute = location.pathname.match(/^\/clientes\/perfil\/([^/]+)$/)
-      if (publicClientRoute) return <PerfilPublico id={decodeURIComponent(publicClientRoute[1])} onLogout={logout} viewerRole={user.role} />
-      if (location.pathname === '/clientes') return <DirectorioPerfiles kind="clients" onLogout={logout} />
-      if (location.pathname === '/contratistas' || location.pathname.startsWith('/contratistas/buscar/')) {
-        const specialty = location.pathname.startsWith('/contratistas/buscar/')
-          ? decodeURIComponent(location.pathname.slice('/contratistas/buscar/'.length))
-          : ''
-        return <DirectorioPerfiles kind="contractors" specialty={specialty} onLogout={logout} />
-      }
-      const hireWorkerRoute = location.pathname.match(/^\/contratistas\/contratar\/([^/]+)$/)
-      if (hireWorkerRoute) return <MercadoTrabajadores onLogout={logout} workerId={decodeURIComponent(hireWorkerRoute[1])} />
-      const teamProjectRoute = location.pathname.match(/^\/contratistas\/proyectos\/([^/]+)\/equipos\/crear$/)
-      if (teamProjectRoute) return <EquiposPage onLogout={logout} role={user.role} projectId={decodeURIComponent(teamProjectRoute[1])} />
-      if (location.pathname === '/trabajadores' || location.pathname === '/trabajadores/disponibles') return <MercadoTrabajadores onLogout={logout} />
-      if (location.pathname === '/proyectos/postular') return <ProyectosDisponibles onLogout={logout} role={user.role} />
-      const legacyAvailableProject = location.pathname.match(/^\/proyectos\/postular\/([^/]+)$/)
-      if (legacyAvailableProject) return <ProyectosDisponibles onLogout={logout} role={user.role} projectId={decodeURIComponent(legacyAvailableProject[1])} />
-      const publicWorkerRoute = location.pathname.match(/^\/trabajadores\/([^/]+)$/)
-      if (publicWorkerRoute) return <PerfilPublico id={decodeURIComponent(publicWorkerRoute[1])} onLogout={logout} viewerRole={user.role} />
-      if (location.pathname === '/contratistas/mi-equipo') return <EquiposPage onLogout={logout} role={user.role} />
-      if (location.pathname === '/contratistas/historial') return <HistorialContratista onLogout={logout} />
-      if (location.pathname === '/contratistas/proyectos-asignados') return <DashboardContratista onLogout={logout} />
-      if (location.pathname === '/perfil-contratista/editar' || location.pathname === '/contratistas/editar') return <PerfilContratista editing />
-      if (location.pathname === '/perfil-contratista') return <PerfilContratista />
-      if (location.pathname === '/postulaciones') return <ProyectosDisponibles onLogout={logout} role={user.role} />
-      const availableProjectRoute = location.pathname.match(/^\/postulaciones\/(?:ver\/)?([^/]+)$/)
-      if (availableProjectRoute && !['mis-postulaciones', 'mis-postulaciones-contratista'].includes(availableProjectRoute[1])) {
-        return <ProyectosDisponibles onLogout={logout} role={user.role} projectId={decodeURIComponent(availableProjectRoute[1])} />
-      }
-      if (location.pathname === '/mis-postulaciones' || location.pathname === '/postulaciones/mis-postulaciones' || location.pathname === '/postulaciones/mis-postulaciones-contratista') {
-        return <MisPostulaciones onLogout={logout} role={user.role} />
-      }
-      const contractorApplicationRoute = location.pathname.match(/^\/mis-postulaciones\/([^/]+)$/)
-      if (contractorApplicationRoute) return <DetallePostulacion id={decodeURIComponent(contractorApplicationRoute[1])} onLogout={logout} role={user.role} />
-      return <DashboardContratista onLogout={logout} />
-    }
-    if (user?.role === 'ROLE_WORKER') {
-      const publicClientRoute = location.pathname.match(/^\/clientes\/perfil\/([^/]+)$/)
-      if (publicClientRoute) return <PerfilPublico id={decodeURIComponent(publicClientRoute[1])} onLogout={logout} viewerRole={user.role} />
-      if (location.pathname === '/trabajadores/perfil' || location.pathname === '/perfil-laboral') return <PerfilTrabajador editing />
-      if (location.pathname === '/trabajadores/mi-equipo') return <EquiposPage onLogout={logout} role={user.role} />
-      if (location.pathname === '/trabajadores/disponibles') return <ProyectosDisponibles onLogout={logout} role={user.role} />
-      if (location.pathname === '/proyectos/postular') return <ProyectosDisponibles onLogout={logout} role={user.role} />
-      const legacyAvailableProject = location.pathname.match(/^\/proyectos\/postular\/([^/]+)$/)
-      if (legacyAvailableProject) return <ProyectosDisponibles onLogout={logout} role={user.role} projectId={decodeURIComponent(legacyAvailableProject[1])} />
-      if (location.pathname === '/contratistas' || location.pathname.startsWith('/contratistas/buscar/')) {
-        const specialty = location.pathname.startsWith('/contratistas/buscar/')
-          ? decodeURIComponent(location.pathname.slice('/contratistas/buscar/'.length))
-          : ''
-        return <DirectorioPerfiles kind="contractors" specialty={specialty} onLogout={logout} />
-      }
-      const contractorUsernameRoute = location.pathname.match(/^\/contratistas\/por-username\/([^/]+)$/)
-      if (contractorUsernameRoute) return <PerfilPublico id={decodeURIComponent(contractorUsernameRoute[1])} onLogout={logout} viewerRole={user.role} />
-      const publicContractorRoute = location.pathname.match(/^\/contratistas\/([^/]+)$/)
-      if (publicContractorRoute) return <PerfilPublico id={decodeURIComponent(publicContractorRoute[1])} onLogout={logout} viewerRole={user.role} />
-      if (location.pathname === '/trabajadores/mi-equipo') return <EquiposPage onLogout={logout} role={user.role} />
-      if (location.pathname === '/perfil-trabajador/editar') return <PerfilTrabajador editing />
-      if (location.pathname === '/perfil-trabajador') return <PerfilTrabajador />
-      if (location.pathname === '/postulaciones') return <ProyectosDisponibles onLogout={logout} role={user.role} />
-      const availableProjectRoute = location.pathname.match(/^\/postulaciones\/(?:ver\/)?([^/]+)$/)
-      if (availableProjectRoute && !['mis-postulaciones', 'mis-postulaciones-contratista'].includes(availableProjectRoute[1])) {
-        return <ProyectosDisponibles onLogout={logout} role={user.role} projectId={decodeURIComponent(availableProjectRoute[1])} />
-      }
-      if (location.pathname === '/mis-postulaciones' || location.pathname === '/trabajadores/mis-postulaciones' || location.pathname === '/postulaciones/mis-postulaciones-contratista') {
-        return <MisPostulaciones onLogout={logout} role={user.role} />
-      }
-      const workerApplicationRoute = location.pathname.match(/^\/mis-postulaciones\/([^/]+)$/)
-      if (workerApplicationRoute) return <DetallePostulacion id={decodeURIComponent(workerApplicationRoute[1])} onLogout={logout} role={user.role} />
-      return <DashboardTrabajador onLogout={logout} />
+      return (
+        <Routes>
+          <Route path="/admin/usuarios" element={<Usuarios onLogout={logout} />} />
+          <Route path="/trabajadores/crear" element={<Usuarios createWorkerInitially onLogout={logout} />} />
+          <Route path="/trabajadores" element={<Usuarios onLogout={logout} />} />
+          <Route path="/trabajadores/:id" element={<AdminPerfilDetalleRoute onLogout={logout} />} />
+          <Route path="/clientes" element={<DirectorioPerfiles kind="clients" onLogout={logout} />} />
+          <Route path="/contratistas" element={<DirectorioPerfiles kind="contractors" onLogout={logout} />} />
+          <Route path="/proyectos/:projectId/postulantes" element={<PostulantesProyectoRoute />} />
+          <Route path="/postulaciones/:projectId/postulantes" element={<PostulantesProyectoRoute />} />
+          <Route path="/proyectos/:id" element={<DetalleProyectoRoute />} />
+          <Route path="/admin/perfiles/:id" element={<AdminPerfilDetalleRoute onLogout={logout} />} />
+          <Route path="/admin/clientes/:id" element={<AdminPerfilDetalleRoute onLogout={logout} />} />
+          <Route path="/admin/contratistas/:id" element={<AdminPerfilDetalleRoute onLogout={logout} />} />
+          <Route path="/error" element={<ErrorRoute isAuthenticated={true} />} />
+          <Route path="/" element={<DashboardAdmin onLogout={logout} />} />
+          <Route path="/dashboard" element={<DashboardAdmin onLogout={logout} />} />
+          <Route path="*" element={<DashboardAdmin onLogout={logout} />} />
+        </Routes>
+      )
     }
 
+    if (user?.role === 'ROLE_CLIENT') {
+      return (
+        <Routes>
+          <Route path="/trabajadores" element={<DirectorioPerfiles kind="workers" onLogout={logout} />} />
+          <Route path="/trabajadores/disponibles" element={<DirectorioPerfiles availableOnly kind="workers" onLogout={logout} />} />
+          <Route path="/contratistas" element={<DirectorioPerfiles kind="contractors" onLogout={logout} />} />
+          <Route path="/contratistas/buscar/:specialty" element={<DirectorioContratistasEspecialidadRoute onLogout={logout} />} />
+          <Route path="/perfil-cliente/editar" element={<PerfilCliente editing />} />
+          <Route path="/perfil-cliente" element={<PerfilCliente />} />
+          <Route path="/proyectos/publicar" element={<PublicarProyecto />} />
+          <Route path="/clientes/proyectos-en-proceso" element={<MisProyectos onLogout={logout} inProgressOnly />} />
+          <Route path="/mis-proyectos" element={<MisProyectos onLogout={logout} />} />
+          <Route path="/proyectos/mis-proyectos" element={<MisProyectos onLogout={logout} />} />
+          <Route path="/clientes/reportes" element={<ReportesPage onLogout={logout} />} />
+          <Route path="/clientes/mis-contratistas" element={<MisContratistasPage onLogout={logout} />} />
+          <Route path="/clientes/mis-postulaciones" element={<PostulacionesRecibidas onLogout={logout} />} />
+          <Route path="/postulaciones/mis-postulaciones" element={<PostulacionesRecibidas onLogout={logout} />} />
+          <Route path="/calificaciones/contratistas" element={<MisContratistasPage onLogout={logout} />} />
+          <Route path="/contratistas/para-calificar/:projectId" element={<CalificarContratistaRoute onLogout={logout} />} />
+          <Route path="/trabajadores/:id" element={<PerfilPublicoRoute onLogout={logout} viewerRole={user.role} />} />
+          <Route path="/contratistas/por-username/:id" element={<PerfilPublicoRoute onLogout={logout} viewerRole={user.role} />} />
+          <Route path="/contratistas/:id" element={<PerfilPublicoRoute onLogout={logout} viewerRole={user.role} />} />
+          <Route path="/calificaciones/crear/:projectId/:contractorId" element={<CalificarContratistaRoute onLogout={logout} />} />
+          <Route path="/calificaciones/calificar/:projectId/:contractorId" element={<CalificarContratistaRoute onLogout={logout} />} />
+          <Route path="/calificaciones/calificar/:projectId" element={<CalificarContratistaRoute onLogout={logout} />} />
+          <Route path="/calificaciones/:ratingId/editar" element={<CalificarContratistaRoute onLogout={logout} />} />
+          <Route path="/proyectos/:projectId/postulantes" element={<PostulantesProyectoRoute />} />
+          <Route path="/postulaciones/:projectId/postulantes" element={<PostulantesProyectoRoute />} />
+          <Route path="/proyectos/:id/editar" element={<EditarProyectoRoute />} />
+          <Route path="/proyectos/:id" element={<DetalleProyectoRoute />} />
+          <Route path="/error" element={<ErrorRoute isAuthenticated={true} />} />
+          <Route path="/" element={<DashboardCliente onLogout={logout} />} />
+          <Route path="/dashboard" element={<DashboardCliente onLogout={logout} />} />
+          <Route path="*" element={<DashboardCliente onLogout={logout} />} />
+        </Routes>
+      )
+    }
+
+    if (user?.role === 'ROLE_CONTRACTOR') {
+      return (
+        <Routes>
+          <Route path="/clientes/perfil/:id" element={<PerfilPublicoRoute onLogout={logout} viewerRole={user.role} />} />
+          <Route path="/clientes" element={<DirectorioPerfiles kind="clients" onLogout={logout} />} />
+          <Route path="/contratistas" element={<DirectorioPerfiles kind="contractors" onLogout={logout} />} />
+          <Route path="/contratistas/buscar/:specialty" element={<DirectorioContratistasEspecialidadRoute onLogout={logout} />} />
+          <Route path="/contratistas/contratar/:workerId" element={<MercadoTrabajadoresRoute onLogout={logout} />} />
+          <Route path="/contratistas/proyectos/:projectId/equipos/crear" element={<EquiposPageRoute onLogout={logout} role={user.role} />} />
+          <Route path="/trabajadores" element={<MercadoTrabajadores onLogout={logout} />} />
+          <Route path="/trabajadores/disponibles" element={<MercadoTrabajadores onLogout={logout} />} />
+          <Route path="/proyectos/postular" element={<ProyectosDisponibles onLogout={logout} role={user.role} />} />
+          <Route path="/proyectos/postular/:projectId" element={<ProyectosDisponiblesRoute onLogout={logout} role={user.role} />} />
+          <Route path="/trabajadores/:id" element={<PerfilPublicoRoute onLogout={logout} viewerRole={user.role} />} />
+          <Route path="/contratistas/mi-equipo" element={<EquiposPage onLogout={logout} role={user.role} />} />
+          <Route path="/contratistas/historial" element={<HistorialContratista onLogout={logout} />} />
+          <Route path="/contratistas/proyectos-asignados" element={<DashboardContratista onLogout={logout} />} />
+          <Route path="/perfil-contratista/editar" element={<PerfilContratista editing />} />
+          <Route path="/contratistas/editar" element={<PerfilContratista editing />} />
+          <Route path="/perfil-contratista" element={<PerfilContratista />} />
+          <Route path="/postulaciones" element={<ProyectosDisponibles onLogout={logout} role={user.role} />} />
+          <Route path="/postulaciones/ver/:projectId" element={<ProyectosDisponiblesRoute onLogout={logout} role={user.role} />} />
+          <Route path="/postulaciones/:projectId" element={<ProyectosDisponiblesRoute onLogout={logout} role={user.role} />} />
+          <Route path="/mis-postulaciones" element={<MisPostulaciones onLogout={logout} role={user.role} />} />
+          <Route path="/postulaciones/mis-postulaciones" element={<MisPostulaciones onLogout={logout} role={user.role} />} />
+          <Route path="/postulaciones/mis-postulaciones-contratista" element={<MisPostulaciones onLogout={logout} role={user.role} />} />
+          <Route path="/mis-postulaciones/:id" element={<DetallePostulacionRoute onLogout={logout} role={user.role} />} />
+          <Route path="/error" element={<ErrorRoute isAuthenticated={true} />} />
+          <Route path="/" element={<DashboardContratista onLogout={logout} />} />
+          <Route path="/dashboard" element={<DashboardContratista onLogout={logout} />} />
+          <Route path="*" element={<DashboardContratista onLogout={logout} />} />
+        </Routes>
+      )
+    }
+
+    if (user?.role === 'ROLE_WORKER') {
+      return (
+        <Routes>
+          <Route path="/clientes/perfil/:id" element={<PerfilPublicoRoute onLogout={logout} viewerRole={user.role} />} />
+          <Route path="/trabajadores/perfil" element={<PerfilTrabajador editing />} />
+          <Route path="/perfil-laboral" element={<PerfilTrabajador editing />} />
+          <Route path="/trabajadores/mi-equipo" element={<EquiposPage onLogout={logout} role={user.role} />} />
+          <Route path="/trabajadores/disponibles" element={<ProyectosDisponibles onLogout={logout} role={user.role} />} />
+          <Route path="/proyectos/postular" element={<ProyectosDisponibles onLogout={logout} role={user.role} />} />
+          <Route path="/proyectos/postular/:projectId" element={<ProyectosDisponiblesRoute onLogout={logout} role={user.role} />} />
+          <Route path="/contratistas" element={<DirectorioPerfiles kind="contractors" onLogout={logout} />} />
+          <Route path="/contratistas/buscar/:specialty" element={<DirectorioContratistasEspecialidadRoute onLogout={logout} />} />
+          <Route path="/contratistas/por-username/:id" element={<PerfilPublicoRoute onLogout={logout} viewerRole={user.role} />} />
+          <Route path="/contratistas/:id" element={<PerfilPublicoRoute onLogout={logout} viewerRole={user.role} />} />
+          <Route path="/perfil-trabajador/editar" element={<PerfilTrabajador editing />} />
+          <Route path="/perfil-trabajador" element={<PerfilTrabajador />} />
+          <Route path="/postulaciones" element={<ProyectosDisponibles onLogout={logout} role={user.role} />} />
+          <Route path="/postulaciones/ver/:projectId" element={<ProyectosDisponiblesRoute onLogout={logout} role={user.role} />} />
+          <Route path="/postulaciones/:projectId" element={<ProyectosDisponiblesRoute onLogout={logout} role={user.role} />} />
+          <Route path="/mis-postulaciones" element={<MisPostulaciones onLogout={logout} role={user.role} />} />
+          <Route path="/trabajadores/mis-postulaciones" element={<MisPostulaciones onLogout={logout} role={user.role} />} />
+          <Route path="/postulaciones/mis-postulaciones-contratista" element={<MisPostulaciones onLogout={logout} role={user.role} />} />
+          <Route path="/mis-postulaciones/:id" element={<DetallePostulacionRoute onLogout={logout} role={user.role} />} />
+          <Route path="/error" element={<ErrorRoute isAuthenticated={true} />} />
+          <Route path="/" element={<DashboardTrabajador onLogout={logout} />} />
+          <Route path="/dashboard" element={<DashboardTrabajador onLogout={logout} />} />
+          <Route path="*" element={<DashboardTrabajador onLogout={logout} />} />
+        </Routes>
+      )
+    }
+
+    // Usuario autenticado pero sin rol de negocio válido
     return (
       <main className="auth-page">
         <section className="auth-shell auth-result">
@@ -366,112 +370,20 @@ function LoginApp() {
     )
   }
 
-  if (location.pathname === '/registro') {
-    return <RegistroPage />
-  }
-
-  if (location.pathname === '/completar-registro-oauth2') {
-    return <CompletarRegistroPage onComplete={completeOAuthRegistration} />
-  }
-
-  if (location.pathname === '/oauth/callback') {
-    return <main className="auth-page"><section className="auth-shell"><p className="eyebrow">Google</p><h1>{oauthError ? 'No se pudo iniciar sesión' : 'Conectando tu cuenta…'}</h1>{oauthError ? <div className="form-alert" role="alert">{oauthError}</div> : <p role="status">{oauthLoading ? 'Validando sesión segura.' : 'Redirigiendo…'}</p>}{oauthError && <Link className="button button-primary" to="/login">Volver al inicio de sesión</Link>}</section></main>
-  }
-
-  if (location.pathname === '/' || location.pathname === '/index') {
-    return <LandingPage />
-  }
-
+  // Rutas públicas (no autenticado)
   return (
-    <main className="auth-page">
-      <section className="auth-shell">
-        <a className="brand-mark" href="/" aria-label="ObraTech">
-          <span className="material-symbols-outlined" aria-hidden="true">construction</span>
-        </a>
-
-        <header className="auth-heading">
-          <h1>Bienvenido a ObraTech</h1>
-          <p>Ingresa tus credenciales para continuar</p>
-        </header>
-
-        {error && <div className="form-alert" role="alert">{error}</div>}
-        {!error && authStatus && <div className={`form-alert ${authStatus.tone === 'success' ? 'form-alert-success' : ''}`} role={authStatus.tone === 'success' ? 'status' : 'alert'}>{authStatus.message}</div>}
-        {registered && <div className="form-alert form-alert-success" role="status">Cuenta creada exitosamente. Ya puedes iniciar sesión.</div>}
-
-        <form className="auth-card" onSubmit={handleSubmit}>
-          <label className="field-label" htmlFor="username">Correo electrónico</label>
-          <div className="input-wrap">
-            <span className="material-symbols-outlined" aria-hidden="true">mail</span>
-            <input
-              autoComplete="email"
-              id="username"
-              name="username"
-              onChange={(event) => setEmail(event.target.value)}
-              placeholder="ejemplo@email.com"
-              required
-              type="email"
-              value={email}
-            />
-          </div>
-
-          <div className="password-label-row">
-            <label className="field-label" htmlFor="password">Contraseña</label>
-            <Link className="forgot-link" to="/recuperar-contrasena">¿Olvidaste tu contraseña?</Link>
-          </div>
-          <div className="input-wrap">
-            <span className="material-symbols-outlined" aria-hidden="true">lock</span>
-            <input
-              autoComplete="current-password"
-              id="password"
-              name="password"
-              onChange={(event) => setPassword(event.target.value)}
-              placeholder="Tu contraseña"
-              required
-              type={showPassword ? 'text' : 'password'}
-              value={password}
-            />
-            <button
-              aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-              className="visibility-button"
-              onClick={() => setShowPassword((visible) => !visible)}
-              type="button"
-            >
-              <span className="material-symbols-outlined" aria-hidden="true">
-                {showPassword ? 'visibility_off' : 'visibility'}
-              </span>
-            </button>
-          </div>
-
-          <label className="remember-row">
-            <input checked={rememberMe} onChange={(event) => setRememberMe(event.target.checked)} type="checkbox" />
-            <span>Recordarme en este dispositivo</span>
-          </label>
-
-          <div className="form-actions">
-            <button className="button button-primary" disabled={isSubmitting} type="submit">
-              {isSubmitting ? 'Verificando…' : 'Iniciar sesión'}
-            </button>
-            <Link className="button button-secondary" to="/">Cancelar</Link>
-          </div>
-        </form>
-
-        <p className="register-prompt">
-          ¿No tienes una cuenta? <Link to="/registro">Crea una aquí</Link>
-        </p>
-
-        <div className="divider"><span>o continuar con</span></div>
-        <a className="google-button" href="/oauth2/authorization/google">
-          <span className="google-mark" aria-hidden="true">G</span>
-          Continuar con Google
-        </a>
-
-        <p className="legal-links">
-          <a href="#terminos">Términos y Condiciones</a>
-          <span aria-hidden="true">·</span>
-          <a href="#privacidad">Política de Privacidad</a>
-        </p>
-      </section>
-    </main>
+    <Routes>
+      <Route path="/" element={<LandingPage />} />
+      <Route path="/index" element={<LandingPage />} />
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/registro" element={<RegistroPage />} />
+      <Route path="/recuperar-contrasena" element={<RecuperarContrasenaPage onComplete={logout} />} />
+      <Route path="/restablecer-contrasena" element={<RecuperarContrasenaPage onComplete={logout} resetting />} />
+      <Route path="/completar-registro-oauth2" element={<CompletarRegistroPage onComplete={completeOAuthRegistration} />} />
+      <Route path="/oauth/callback" element={<OAuthCallbackRoute onComplete={completeOAuthRegistration} />} />
+      <Route path="/error" element={<ErrorRoute isAuthenticated={false} />} />
+      <Route path="*" element={<NotFoundRoute isAuthenticated={false} />} />
+    </Routes>
   )
 }
 
@@ -479,7 +391,7 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <LoginApp />
+        <AppRoutes />
       </AuthProvider>
     </BrowserRouter>
   )

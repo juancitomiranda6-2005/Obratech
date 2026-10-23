@@ -1,11 +1,15 @@
 package com.obratech.runners;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import com.obratech.entity.Perfil;
+import com.obratech.entity.Usuario;
 import com.obratech.repository.PerfilRepository;
 import com.obratech.repository.UsuarioRepository;
 import com.obratech.service.PerfilVerificationService;
@@ -29,8 +33,16 @@ public class ProfileVerificationRunner implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
+        Map<String, Usuario> usuariosMap = new HashMap<>();
+        for (Usuario u : usuarioRepository.findAll()) {
+            if (u.getUsername() != null) {
+                usuariosMap.put(u.getUsername().trim().toLowerCase(), u);
+            }
+        }
+
         for (Perfil perfil : perfilRepository.findAll()) {
-            var usuario = usuarioRepository.findByUsernameIgnoreCase(perfil.getUsername()).orElse(null);
+            if (perfil.getUsername() == null) continue;
+            Usuario usuario = usuariosMap.get(perfil.getUsername().trim().toLowerCase());
             boolean wasVerified = Boolean.TRUE.equals(perfil.getVerificado());
             boolean userWasVerified = usuario != null && usuario.isVerificado();
             boolean verified = verificationService.synchronizeVerification(perfil, usuario);
