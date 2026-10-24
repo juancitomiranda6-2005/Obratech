@@ -53,10 +53,19 @@ export function LoginPage() {
   }
 
   return (
-    <main className="auth-page">
+    <main className="auth-page auth-page-login">
+      <aside className="auth-visual auth-visual-login">
+        <img alt="Equipo de construcción trabajando en una obra" className="auth-visual-image" src="/images/obra-equipo.jpg" />
+        <div className="auth-visual-content">
+          <span className="auth-visual-kicker">Construimos en equipo</span>
+          <h2>Tu próximo proyecto empieza con una buena conexión.</h2>
+          <p>Encuentra personas, oportunidades y herramientas para llevar cada obra adelante.</p>
+          <span className="auth-visual-note"><span className="material-symbols-outlined" aria-hidden="true">verified</span> Personas y proyectos en un solo lugar</span>
+        </div>
+      </aside>
       <section className="auth-shell">
         <Link className="brand-mark" to="/" aria-label="ObraTech">
-          <span className="material-symbols-outlined" aria-hidden="true">construction</span>
+          <img alt="ObraTech" src="/images/obratech-logo.png" />
         </Link>
 
         <header className="auth-heading">

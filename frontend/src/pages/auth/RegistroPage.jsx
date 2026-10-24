@@ -58,10 +58,19 @@ export function RegistroPage() {
   }
 
   return (
-    <main className="auth-page">
+    <main className="auth-page auth-page-register">
+      <aside className="auth-visual auth-visual-register">
+        <img alt="Vista de una obra de construcción en Colombia" className="auth-visual-image" src="/images/obra-hero.jpg" />
+        <div className="auth-visual-content">
+          <span className="auth-visual-kicker">Tu talento mueve obras</span>
+          <h2>Conecta con oportunidades para construir tu futuro.</h2>
+          <p>Crea tu perfil y encuentra personas y proyectos que impulsan tu trabajo.</p>
+          <span className="auth-visual-note"><span className="material-symbols-outlined" aria-hidden="true">handshake</span> Un espacio para cada perfil de obra</span>
+        </div>
+      </aside>
       <section className="auth-shell register-shell">
         <Link className="brand-mark" to="/" aria-label="ObraTech">
-          <span className="material-symbols-outlined" aria-hidden="true">construction</span>
+          <img alt="ObraTech" src="/images/obratech-logo.png" />
         </Link>
         <header className="auth-heading">
           <h1>Crea tu cuenta</h1>

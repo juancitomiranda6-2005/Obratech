@@ -11,6 +11,10 @@ export function ThemeProvider({ children }) {
   useEffect(() => {
     document.documentElement.dataset.theme = theme
     window.localStorage.setItem('obratech_theme', theme)
+    document.querySelector('meta[name="theme-color"]')?.setAttribute(
+      'content',
+      theme === 'dark' ? '#08111d' : '#f5f7fa',
+    )
   }, [theme])
 
   const toggleTheme = () => {
