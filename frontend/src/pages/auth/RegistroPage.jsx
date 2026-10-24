@@ -60,7 +60,7 @@ export function RegistroPage() {
   return (
     <main className="auth-page auth-page-register">
       <aside className="auth-visual auth-visual-register">
-        <img alt="Vista de una obra de construcción en Colombia" className="auth-visual-image" src="/images/obra-hero.jpg" />
+        <img alt="Grúas y edificios en construcción al anochecer" className="auth-visual-image" src="/images/registro-construccion.jpg" />
         <div className="auth-visual-content">
           <span className="auth-visual-kicker">Tu talento mueve obras</span>
           <h2>Conecta con oportunidades para construir tu futuro.</h2>

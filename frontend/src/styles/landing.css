@@ -764,37 +764,109 @@
 .landing-step-grid {
   width: min(100%, 1050px);
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 22px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 18px;
   margin: 48px auto 0;
 }
 
 .landing-step {
-  min-height: 195px;
-  padding: 25px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(14px, 2vw, 24px);
+}
+
+.landing-problem-card,
+.landing-solution-card {
+  min-width: 0;
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(22px, 3vw, 32px);
   border: 1px solid var(--landing-border);
-  border-radius: 13px;
+  border-radius: 16px;
+}
+
+.landing-problem-card {
   background: rgba(16, 28, 43, .78);
 }
 
-.landing-step-number {
-  color: #ff9a3d;
-  font-size: 12px;
+.landing-solution-card {
+  border-color: rgba(255, 138, 28, .56);
+  background: linear-gradient(135deg, rgba(255, 138, 28, .12), rgba(255, 138, 28, .035) 60%, rgba(16, 28, 43, .78));
+}
+
+.landing-solution-label {
+  color: var(--landing-muted);
+  font-size: 10px;
   font-weight: 700;
-  letter-spacing: .12em;
+  letter-spacing: .14em;
+}
+
+.landing-problem-stat {
+  margin-top: 14px;
+  color: #ff8a1c;
+  font-size: clamp(40px, 5vw, 56px);
+  font-weight: 800;
+  letter-spacing: -.05em;
+  line-height: 1;
 }
 
 .landing-step h3 {
-  margin: 20px 0 8px;
+  margin: 18px 0 8px;
   color: var(--landing-text);
-  font-size: 16px;
+  font-size: clamp(17px, 2vw, 21px);
 }
 
-.landing-step p {
+.landing-problem-card p,
+.landing-solution-card p {
   margin: 0;
   color: var(--landing-muted);
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.7;
+}
+
+.landing-problem-source {
+  align-self: flex-start;
+  margin-top: 16px;
+  color: var(--landing-muted);
+  font-size: 10px;
+  line-height: 1.5;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.landing-problem-source:hover {
+  color: #ff9a3d;
+}
+
+.landing-step-connector {
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: #101c2b;
+  background: #ff8a1c;
+  box-shadow: 0 8px 24px rgba(255, 138, 28, .2);
+}
+
+.landing-step-connector .material-symbols-outlined {
+  font-size: 24px;
+}
+
+.landing-solution-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.landing-solution-heading .material-symbols-outlined {
+  color: #ff9a3d;
+  font-size: 23px;
 }
 
 .landing-cta {
@@ -1010,8 +1082,22 @@ html[data-theme='light'] .landing-how {
     #edf1f5;
 }
 
-html[data-theme='light'] .landing-step {
-  background: rgba(255, 255, 255, .82);
+html[data-theme='light'] .landing-problem-card {
+  background: rgba(255, 255, 255, .9);
+}
+
+html[data-theme='light'] .landing-solution-card {
+  border-color: rgba(205, 112, 27, .48);
+  background: linear-gradient(135deg, rgba(255, 169, 92, .2), rgba(255, 241, 226, .78) 58%, rgba(255, 255, 255, .94));
+}
+
+html[data-theme='light'] .landing-solution-card h3 {
+  color: #243246;
+}
+
+html[data-theme='light'] .landing-solution-label,
+html[data-theme='light'] .landing-problem-source {
+  color: #68778a;
 }
 
 html[data-theme='light'] .landing-how-accent {
@@ -1101,8 +1187,9 @@ html[data-theme='light'] .landing-footer-bottom {
   .landing-overview-image { min-height: 340px; }
   .landing-overview-image .landing-overview-main-photo { min-height: 340px; }
   .landing-how { padding: 72px 20px; }
-  .landing-step-grid { max-width: 620px; grid-template-columns: 1fr; gap: 12px; margin-top: 32px; }
-  .landing-step { min-height: 0; padding: 20px; }
+  .landing-step-grid { max-width: 620px; gap: 12px; margin-top: 32px; }
+  .landing-step { min-height: 0; }
+  .landing-problem-card, .landing-solution-card { min-height: 0; padding: 20px; }
   .landing-step h3 { margin-top: 12px; }
   .landing-cta {
     width: min(calc(100% - 32px), 620px);
@@ -1113,6 +1200,25 @@ html[data-theme='light'] .landing-footer-bottom {
   }
   .landing-footer-grid { grid-template-columns: 1fr 1fr; gap: 28px; }
   .landing-footer-about { grid-column: 1 / -1; }
+}
+
+@media (max-width: 860px) {
+  .landing-step-grid { max-width: 680px; }
+  .landing-step {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: stretch;
+    gap: 12px;
+  }
+  .landing-step-connector {
+    width: 40px;
+    height: 40px;
+    justify-self: center;
+    transform: rotate(90deg);
+  }
+  .landing-problem-card,
+  .landing-solution-card {
+    min-height: 0;
+  }
 }
 
 @media (max-width: 480px) {

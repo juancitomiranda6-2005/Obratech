@@ -55,7 +55,7 @@ export function LoginPage() {
   return (
     <main className="auth-page auth-page-login">
       <aside className="auth-visual auth-visual-login">
-        <img alt="Equipo de construcción trabajando en una obra" className="auth-visual-image" src="/images/obra-equipo.jpg" />
+        <img alt="Grúa de construcción frente al cielo al atardecer" className="auth-visual-image" src="/images/login-construccion.jpg" />
         <div className="auth-visual-content">
           <span className="auth-visual-kicker">Construimos en equipo</span>
           <h2>Tu próximo proyecto empieza con una buena conexión.</h2>

@@ -69,24 +69,24 @@ export function LandingPage() {
       <header className="landing-nav">
         <div className="landing-nav-inner">
           <Link aria-label="ObraTech inicio" className="landing-brand" onClick={closeMenu} to="/">
-            <img alt="ObraTech" src="/images/obratech-logo.png" />
+            <img alt="ObraTech" src="/images/obratech-logo.png" style={{ width: 127, height: 36 }} />
           </Link>
           <button
             aria-controls="landing-menu"
             aria-expanded={menuOpen}
-            aria-label={menuOpen ? 'Cerrar menu' : 'Abrir menu'}
+            aria-label={menuOpen ? 'Cerrar menú' : 'Abrir menú'}
             className="landing-menu-button"
             onClick={() => setMenuOpen((open) => !open)}
             type="button"
           >
             <span className="material-symbols-outlined" aria-hidden="true">{menuOpen ? 'close' : 'menu'}</span>
           </button>
-          <nav aria-label="Navegacion principal" className={`landing-nav-actions ${menuOpen ? 'is-open' : ''}`} id="landing-menu">
+          <nav aria-label="Navegación principal" className={`landing-nav-actions ${menuOpen ? 'is-open' : ''}`} id="landing-menu">
             <a href="#inicio" onClick={closeMenu}>Inicio</a>
             <a href="#beneficios" onClick={closeMenu}>Beneficios</a>
-            <a href="#como-funciona" onClick={closeMenu}>Como funciona</a>
+            <a href="#como-funciona" onClick={closeMenu}>Cómo funciona</a>
             <a href="#contacto" onClick={closeMenu}>Contacto</a>
-            <Link className="landing-nav-login" onClick={closeMenu} to="/login">Iniciar sesion</Link>
+            <Link className="landing-nav-login" onClick={closeMenu} to="/login">Iniciar sesión</Link>
             <Link className="landing-nav-register" onClick={closeMenu} to="/registro">Comenzar gratis</Link>
           </nav>
         </div>
@@ -195,15 +195,25 @@ export function LandingPage() {
           <div className="landing-step-grid">
             {problemSolutions.map((item) => (
               <article className="landing-step" key={item.dato}>
-                <span className="landing-step-number">{item.dato}</span>
-                <p>{item.texto}</p>
-                <small>
-                  <a href={item.url} rel="noreferrer" target="_blank" style={{ color: 'var(--text-muted)', fontSize: '10px' }}>
+                <div className="landing-problem-card">
+                  <span className="landing-solution-label">EL PROBLEMA</span>
+                  <strong className="landing-problem-stat">{item.dato}</strong>
+                  <p>{item.texto}</p>
+                  <a className="landing-problem-source" href={item.url} rel="noreferrer" target="_blank">
                     {item.fuente}
                   </a>
-                </small>
-                <h3>{item.solucionTitulo}</h3>
-                <p>{item.solucionTexto}</p>
+                </div>
+                <div aria-hidden="true" className="landing-step-connector">
+                  <span className="material-symbols-outlined">arrow_forward</span>
+                </div>
+                <div className="landing-solution-card">
+                  <div className="landing-solution-heading">
+                    <span className="landing-solution-label">CON OBRATECH</span>
+                    <span className="material-symbols-outlined" aria-hidden="true">check_circle</span>
+                  </div>
+                  <h3>{item.solucionTitulo}</h3>
+                  <p>{item.solucionTexto}</p>
+                </div>
               </article>
             ))}
           </div>
@@ -227,14 +237,14 @@ export function LandingPage() {
         <div className="landing-footer-grid">
           <section className="landing-footer-about">
             <Link aria-label="ObraTech inicio" className="landing-brand" to="/">
-              <img alt="ObraTech" src="/images/obratech-logo.png" />
+              <img alt="ObraTech" src="/images/obratech-logo.png" style={{ width: 127, height: 36 }} />
             </Link>
             <p>La plataforma que conecta personas, proyectos y oportunidades en la industria de la construcción.</p>
           </section>
           <section>
             <h2>Explora</h2>
             <a href="#beneficios">Beneficios</a>
-            <a href="#como-funciona">Como funciona</a>
+            <a href="#como-funciona">Cómo funciona</a>
             <Link to="/registro">Crear una cuenta</Link>
           </section>
           <section>
