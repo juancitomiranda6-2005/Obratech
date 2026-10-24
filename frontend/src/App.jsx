@@ -1,37 +1,41 @@
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { BrowserRouter, Link, Route, Routes, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { authService, establishSession } from './services/authService.js'
 import { AuthProvider, useAuth } from './context/AuthContext.jsx'
-import { LoginPage } from './pages/auth/LoginPage.jsx'
-import { DashboardAdmin } from './pages/dashboard/DashboardAdmin.jsx'
-import { DashboardCliente } from './pages/dashboard/DashboardCliente.jsx'
-import { DashboardContratista } from './pages/dashboard/DashboardContratista.jsx'
-import { DashboardTrabajador } from './pages/dashboard/DashboardTrabajador.jsx'
-import { Usuarios } from './pages/admin/Usuarios.jsx'
-import { AdminPerfilDetalle } from './pages/admin/AdminPerfilDetalle.jsx'
-import { DetallePostulacion } from './pages/proyectos/DetallePostulacion.jsx'
-import { PerfilPublico } from './pages/perfil/PerfilPublico.jsx'
-import { DirectorioPerfiles } from './pages/perfil/DirectorioPerfiles.jsx'
-import { ReportesPage } from './pages/reportes/ReportesPage.jsx'
-import { EquiposPage } from './pages/equipos/EquiposPage.jsx'
-import { HistorialContratista } from './pages/proyectos/HistorialContratista.jsx'
-import { MisContratistasPage } from './pages/perfil/MisContratistasPage.jsx'
-import { CalificarContratista } from './pages/perfil/CalificarContratista.jsx'
-import { MercadoTrabajadores } from './pages/perfil/MercadoTrabajadores.jsx'
-import { LandingPage } from './pages/landing/LandingPage.jsx'
-import { CompletarRegistroPage } from './pages/auth/CompletarRegistroPage.jsx'
-import { RegistroPage } from './pages/auth/RegistroPage.jsx'
-import { PublicarProyecto } from './pages/proyectos/PublicarProyecto.jsx'
-import { MisProyectos } from './pages/proyectos/MisProyectos.jsx'
-import { DetalleProyecto, EditarProyecto } from './pages/proyectos/GestionarProyecto.jsx'
-import { PostulantesProyecto } from './pages/proyectos/PostulantesProyecto.jsx'
-import { ProyectosDisponibles } from './pages/proyectos/ProyectosDisponibles.jsx'
-import { MisPostulaciones } from './pages/proyectos/MisPostulaciones.jsx'
-import { PostulacionesRecibidas } from './pages/proyectos/PostulacionesRecibidas.jsx'
-import { PerfilCliente } from './pages/perfil/PerfilCliente.jsx'
-import { PerfilContratista } from './pages/perfil/PerfilContratista.jsx'
-import { PerfilTrabajador } from './pages/perfil/PerfilTrabajador.jsx'
-import { RecuperarContrasenaPage } from './pages/auth/RecuperarContrasena.jsx'
+
+const lazyNamed = (importer, name) => lazy(() => importer().then((module) => ({ default: module[name] })))
+const LoginPage = lazyNamed(() => import('./pages/auth/LoginPage.jsx'), 'LoginPage')
+const DashboardAdmin = lazyNamed(() => import('./pages/dashboard/DashboardAdmin.jsx'), 'DashboardAdmin')
+const DashboardCliente = lazyNamed(() => import('./pages/dashboard/DashboardCliente.jsx'), 'DashboardCliente')
+const DashboardContratista = lazyNamed(() => import('./pages/dashboard/DashboardContratista.jsx'), 'DashboardContratista')
+const DashboardTrabajador = lazyNamed(() => import('./pages/dashboard/DashboardTrabajador.jsx'), 'DashboardTrabajador')
+const Usuarios = lazyNamed(() => import('./pages/admin/Usuarios.jsx'), 'Usuarios')
+const AdminPerfilDetalle = lazyNamed(() => import('./pages/admin/AdminPerfilDetalle.jsx'), 'AdminPerfilDetalle')
+const DetallePostulacion = lazyNamed(() => import('./pages/proyectos/DetallePostulacion.jsx'), 'DetallePostulacion')
+const PerfilPublico = lazyNamed(() => import('./pages/perfil/PerfilPublico.jsx'), 'PerfilPublico')
+const DirectorioPerfiles = lazyNamed(() => import('./pages/perfil/DirectorioPerfiles.jsx'), 'DirectorioPerfiles')
+const ReportesPage = lazyNamed(() => import('./pages/reportes/ReportesPage.jsx'), 'ReportesPage')
+const EquiposPage = lazyNamed(() => import('./pages/equipos/EquiposPage.jsx'), 'EquiposPage')
+const HistorialContratista = lazyNamed(() => import('./pages/proyectos/HistorialContratista.jsx'), 'HistorialContratista')
+const MisContratistasPage = lazyNamed(() => import('./pages/perfil/MisContratistasPage.jsx'), 'MisContratistasPage')
+const CalificarContratista = lazyNamed(() => import('./pages/perfil/CalificarContratista.jsx'), 'CalificarContratista')
+const MercadoTrabajadores = lazyNamed(() => import('./pages/perfil/MercadoTrabajadores.jsx'), 'MercadoTrabajadores')
+const LandingPage = lazyNamed(() => import('./pages/landing/LandingPage.jsx'), 'LandingPage')
+const CompletarRegistroPage = lazyNamed(() => import('./pages/auth/CompletarRegistroPage.jsx'), 'CompletarRegistroPage')
+const RegistroPage = lazyNamed(() => import('./pages/auth/RegistroPage.jsx'), 'RegistroPage')
+const PublicarProyecto = lazyNamed(() => import('./pages/proyectos/PublicarProyecto.jsx'), 'PublicarProyecto')
+const MisProyectos = lazyNamed(() => import('./pages/proyectos/MisProyectos.jsx'), 'MisProyectos')
+const projectManagement = () => import('./pages/proyectos/GestionarProyecto.jsx')
+const DetalleProyecto = lazyNamed(projectManagement, 'DetalleProyecto')
+const EditarProyecto = lazyNamed(projectManagement, 'EditarProyecto')
+const PostulantesProyecto = lazyNamed(() => import('./pages/proyectos/PostulantesProyecto.jsx'), 'PostulantesProyecto')
+const ProyectosDisponibles = lazyNamed(() => import('./pages/proyectos/ProyectosDisponibles.jsx'), 'ProyectosDisponibles')
+const MisPostulaciones = lazyNamed(() => import('./pages/proyectos/MisPostulaciones.jsx'), 'MisPostulaciones')
+const PostulacionesRecibidas = lazyNamed(() => import('./pages/proyectos/PostulacionesRecibidas.jsx'), 'PostulacionesRecibidas')
+const PerfilCliente = lazyNamed(() => import('./pages/perfil/PerfilCliente.jsx'), 'PerfilCliente')
+const PerfilContratista = lazyNamed(() => import('./pages/perfil/PerfilContratista.jsx'), 'PerfilContratista')
+const PerfilTrabajador = lazyNamed(() => import('./pages/perfil/PerfilTrabajador.jsx'), 'PerfilTrabajador')
+const RecuperarContrasenaPage = lazyNamed(() => import('./pages/auth/RecuperarContrasena.jsx'), 'RecuperarContrasenaPage')
 
 const roleOptions = {
   ROLE_CLIENT: { label: 'Cliente', description: 'Publicar proyectos y buscar talento', icon: 'person' },
@@ -391,7 +395,13 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <AppRoutes />
+        <Suspense fallback={(
+          <main className="auth-page" role="status">
+            <section className="auth-shell"><p>Cargando ObraTech...</p></section>
+          </main>
+        )}>
+          <AppRoutes />
+        </Suspense>
       </AuthProvider>
     </BrowserRouter>
   )

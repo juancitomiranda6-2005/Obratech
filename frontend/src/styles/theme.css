@@ -1,0 +1,112 @@
+:root[data-theme='light'] body {
+  color: #1f2937;
+}
+
+:root[data-theme='light'] :is(
+  .client-layout,
+  .contractor-layout,
+  .worker-layout,
+  .admin-layout,
+  .auth-page,
+  .publish-layout
+) {
+  color: #1f2937;
+  background-color: #f5f7fa;
+}
+
+:root[data-theme='light'] :is(
+  .client-sidebar,
+  .contractor-sidebar,
+  .worker-sidebar,
+  .admin-sidebar,
+  .client-header,
+  .admin-header,
+  .auth-shell,
+  .auth-card,
+  .register-card
+) {
+  border-color: var(--border-color);
+  color: #1f2937;
+  background-color: #fff;
+}
+
+:root[data-theme='light'] [class*='-card'],
+:root[data-theme='light'] [class*='-panel'],
+:root[data-theme='light'] [class*='-shell'],
+:root[data-theme='light'] [class*='-modal'],
+:root[data-theme='light'] [class*='-dialog'] {
+  border-color: var(--border-color);
+  color: #1f2937;
+  background-color: #fff;
+}
+
+:root[data-theme='light'] [class*='-header'],
+:root[data-theme='light'] [class*='-toolbar'],
+:root[data-theme='light'] [class*='-nav'] {
+  border-color: var(--border-color);
+  color: #344054;
+}
+
+:root[data-theme='light'] :is(
+  .client-main,
+  .admin-main,
+  .publish-main,
+  .dashboard-content,
+  .admin-content,
+  .project-page,
+  .profile-page
+) {
+  color: #1f2937;
+  background-color: transparent;
+}
+
+:root[data-theme='light'] :is(h1, h2, h3, h4, label, th) {
+  color: #1f2937;
+}
+
+:root[data-theme='light'] :is(p, small, td, .admin-muted, .client-user small) {
+  color: #667085;
+}
+
+:root[data-theme='light'] .landing-page :is(p, small) {
+  color: var(--landing-muted);
+}
+
+:root[data-theme='light'] .landing-page .landing-eyebrow {
+  color: #ff9a3d;
+}
+
+:root[data-theme='light'] :is(
+  .client-nav a,
+  .admin-nav a,
+  .contractor-nav a,
+  .worker-nav a,
+  .sidebar-nav a
+) {
+  color: #475467;
+}
+
+:root[data-theme='light'] :is(input, select, textarea) {
+  border-color: #cbd5e1;
+  color: #1f2937;
+  background-color: #fff;
+}
+
+:root[data-theme='light'] :is(input, select, textarea)::placeholder {
+  color: #98a2b3;
+}
+
+:root[data-theme='light'] .button-secondary {
+  border-color: #d0d5dd;
+  color: #344054;
+  background-color: #fff;
+}
+
+:root[data-theme='light'] .session-warning-toast {
+  color: #713f12;
+  background: #fef3c7;
+}
+
+:root[data-theme='light'] .session-warning-toast p {
+  color: #854d0e;
+}

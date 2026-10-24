@@ -1,16 +1,26 @@
 package com.obratech.service;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.data.mongodb.core.BulkOperations;
+import org.springframework.data.mongodb.core.BulkOperations.BulkMode;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 
 import com.obratech.entity.Perfil;
 
 @Service
 public class CleanerService implements ApplicationRunner {
+
+    private static final String[] CLEANABLE_FIELDS = {
+            "nombre", "apellido", "email", "telefono", "especialidad", "oficio"
+    };
 
     private final MongoTemplate mongoTemplate;
 
@@ -26,32 +36,46 @@ public class CleanerService implements ApplicationRunner {
     }
 
     private void cleanPerfiles() {
-        List<Perfil> list = mongoTemplate.findAll(Perfil.class);
+        Criteria[] invalidFields = Arrays.stream(CLEANABLE_FIELDS)
+                .map(field -> Criteria.where(field).regex("^(?:\\s*|null|undefined)$", "i"))
+                .toArray(Criteria[]::new);
+        Query query = Query.query(new Criteria().orOperator(invalidFields));
+        List<Perfil> list = mongoTemplate.find(query, Perfil.class);
+        BulkOperations updates = mongoTemplate.bulkOps(BulkMode.UNORDERED, Perfil.class);
         int updated = 0;
 
         for (Perfil p : list) {
-            boolean changed = false;
-
-            if (isInvalid(p.getNombre()))     { p.setNombre(null);     changed = true; }
-            if (isInvalid(p.getApellido()))   { p.setApellido(null);   changed = true; }
-            if (isInvalid(p.getEmail()))      { p.setEmail(null);      changed = true; }
-            if (isInvalid(p.getTelefono()))   { p.setTelefono(null);   changed = true; }
-            if (isInvalid(p.getEspecialidad())) { p.setEspecialidad(null); changed = true; }
-            if (isInvalid(p.getOficio()))     { p.setOficio(null);     changed = true; }
+            Update update = new Update();
+            boolean changed = setNullIfInvalid(update, "nombre", p.getNombre());
+            changed |= setNullIfInvalid(update, "apellido", p.getApellido());
+            changed |= setNullIfInvalid(update, "email", p.getEmail());
+            changed |= setNullIfInvalid(update, "telefono", p.getTelefono());
+            changed |= setNullIfInvalid(update, "especialidad", p.getEspecialidad());
+            changed |= setNullIfInvalid(update, "oficio", p.getOficio());
 
             if (changed) {
-                mongoTemplate.save(p);
+                updates.updateOne(
+                        Query.query(Criteria.where("id").is(p.getId())),
+                        update);
                 updated++;
             }
+        }
+
+        if (updated > 0) {
+            updates.execute();
         }
 
         System.out.println("[Cleaner] Perfiles actualizados: " + updated);
     }
 
-    private boolean isInvalid(String value) {
-        return value == null ||
-               value.trim().isEmpty() ||
-               value.equalsIgnoreCase("null") ||
-               value.equalsIgnoreCase("undefined");
+    private boolean setNullIfInvalid(Update update, String field, String value) {
+        if (value == null || (!value.trim().isEmpty()
+                && !value.equalsIgnoreCase("null")
+                && !value.equalsIgnoreCase("undefined"))) {
+            return false;
+        }
+
+        update.set(field, null);
+        return true;
     }
 }

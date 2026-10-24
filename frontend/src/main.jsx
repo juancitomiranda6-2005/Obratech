@@ -7,10 +7,14 @@ import './styles/dashboard.css'
 import './styles/projects.css'
 import './styles/profiles.css'
 import './styles/admin.css'
+import './styles/theme.css'
 import App from './App.jsx'
+import { ThemeProvider } from './context/ThemeContext.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <App />
+    <ThemeProvider>
+      <App />
+    </ThemeProvider>
   </StrictMode>,
 )

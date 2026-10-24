@@ -15,8 +15,23 @@
   --surface: #1a1a1a;
   --surface-raised: #242424;
   --text-muted: #a0a0a0;
+  --page-background: #121212;
+  --border-color: rgba(255, 255, 255, .1);
   scrollbar-color: #303030 #080808;
   scrollbar-width: thin;
+  color-scheme: dark;
+}
+
+:root[data-theme='light'] {
+  color: #1f2937;
+  background: #f5f7fa;
+  --surface: #fff;
+  --surface-raised: #eef2f6;
+  --text-muted: #667085;
+  --page-background: #f5f7fa;
+  --border-color: #d9e0e8;
+  scrollbar-color: #cbd3dd #f5f7fa;
+  color-scheme: light;
 }
 
 * {
@@ -38,6 +53,15 @@
   background: #303030;
 }
 
+:root[data-theme='light'] *::-webkit-scrollbar-track {
+  background: #f5f7fa;
+}
+
+:root[data-theme='light'] *::-webkit-scrollbar-thumb {
+  border-color: #f5f7fa;
+  background: #cbd3dd;
+}
+
 *::-webkit-scrollbar-thumb:hover {
   background: #4a4a4a;
 }
@@ -46,10 +70,15 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  background-color: #121212;
+  color: inherit;
+  background-color: var(--page-background);
   background-image: linear-gradient(rgba(255, 153, 0, 0.025) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255, 153, 0, 0.025) 1px, transparent 1px);
   background-size: 42px 42px;
+}
+
+:root[data-theme='light'] body {
+  background-image: none;
 }
 
 button,
@@ -202,6 +231,67 @@ a {
   color: #fbbf24;
   background: transparent;
   cursor: pointer;
+}
+
+.theme-toggle {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 1000;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 14px;
+  border: 1px solid rgba(255, 153, 0, .42);
+  border-radius: 999px;
+  color: #f4f4f4;
+  background: #202020;
+  box-shadow: 0 8px 26px rgba(0, 0, 0, .22);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 150ms ease, transform 150ms ease;
+}
+
+.theme-toggle:hover {
+  background: #303030;
+  transform: translateY(-2px);
+}
+
+.theme-toggle .material-symbols-outlined {
+  color: var(--accent);
+  font-size: 18px;
+}
+
+:root[data-theme='light'] .theme-toggle {
+  border-color: rgba(200, 108, 0, .32);
+  color: #263244;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(27, 39, 53, .16);
+}
+
+:root[data-theme='light'] .theme-toggle:hover {
+  background: #fff5e8;
+}
+
+@media (max-width: 520px) {
+  .theme-toggle {
+    right: 14px;
+    bottom: 14px;
+    width: 44px;
+    padding: 0;
+  }
+
+  .theme-toggle > span:last-child {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+  }
 }
 
 @media (max-width: 520px) {
