@@ -6,6 +6,12 @@ export const clientProjectsService = {
   getWorkspace: (id) => api.get(`/projects/${id}/workspace`),
   getPhaseStatus: (id) => api.get(`/projects/${id}/phase-status`),
   advancePhase: (id) => api.post(`/projects/${id}/phase/advance`),
+  updatePhaseTasks: (id, completadas, limpiezaProfundaCompletada = false) => api.put(
+    `/projects/${id}/phase/tasks`,
+    { completadas, limpiezaProfundaCompletada },
+  ),
+  updatePhaseApproval: (id, aprobada) => api.put(`/projects/${id}/phase/approval`, { aprobada }),
+  registerPhaseInstallment: (id) => api.post(`/projects/${id}/phase/quotas`),
   getLegalDocument: (id, download = false) => api.get(`/projects/${id}/document`, {
     params: { download },
     responseType: 'blob',

@@ -1,5 +1,5 @@
 :root[data-theme='light'] body {
-  color: #1f2937;
+  color: var(--ot-text);
 }
 
 :root[data-theme='light'] :is(
@@ -10,8 +10,8 @@
   .auth-page,
   .publish-layout
 ) {
-  color: #1f2937;
-  background-color: #f5f7fa;
+  color: var(--ot-text);
+  background-color: var(--ot-bg);
 }
 
 :root[data-theme='light'] :is(
@@ -25,9 +25,9 @@
   .auth-card,
   .register-card
 ) {
-  border-color: var(--border-color);
-  color: #1f2937;
-  background-color: #fff;
+  border-color: var(--ot-line);
+  color: var(--ot-text);
+  background-color: var(--ot-panel);
 }
 
 :root[data-theme='light'] [class*='-card'],
@@ -35,16 +35,16 @@
 :root[data-theme='light'] [class*='-shell'],
 :root[data-theme='light'] [class*='-modal'],
 :root[data-theme='light'] [class*='-dialog'] {
-  border-color: var(--border-color);
-  color: #1f2937;
-  background-color: #fff;
+  border-color: var(--ot-line);
+  color: var(--ot-text);
+  background-color: var(--ot-panel);
 }
 
 :root[data-theme='light'] [class*='-header'],
 :root[data-theme='light'] [class*='-toolbar'],
 :root[data-theme='light'] [class*='-nav'] {
-  border-color: var(--border-color);
-  color: #344054;
+  border-color: var(--ot-line);
+  color: var(--ot-text);
 }
 
 :root[data-theme='light'] :is(
@@ -56,16 +56,16 @@
   .project-page,
   .profile-page
 ) {
-  color: #1f2937;
+  color: var(--ot-text);
   background-color: transparent;
 }
 
 :root[data-theme='light'] :is(h1, h2, h3, h4, label, th) {
-  color: #1f2937;
+  color: var(--ot-text);
 }
 
 :root[data-theme='light'] :is(p, small, td, .admin-muted, .client-user small) {
-  color: #667085;
+  color: var(--ot-muted);
 }
 
 :root[data-theme='light'] .landing-page :is(p, small) {
@@ -73,7 +73,7 @@
 }
 
 :root[data-theme='light'] .landing-page .landing-eyebrow {
-  color: #ff9a3d;
+  color: var(--ot-orange-text);
 }
 
 :root[data-theme='light'] :is(
@@ -83,23 +83,23 @@
   .worker-nav a,
   .sidebar-nav a
 ) {
-  color: #475467;
+  color: var(--ot-text);
 }
 
 :root[data-theme='light'] :is(input, select, textarea) {
-  border-color: #cbd5e1;
-  color: #1f2937;
-  background-color: #fff;
+  border-color: var(--ot-line);
+  color: var(--ot-text);
+  background-color: var(--ot-bg-2);
 }
 
 :root[data-theme='light'] :is(input, select, textarea)::placeholder {
-  color: #98a2b3;
+  color: var(--ot-muted);
 }
 
 :root[data-theme='light'] .button-secondary {
-  border-color: #d0d5dd;
-  color: #344054;
-  background-color: #fff;
+  border-color: var(--ot-line);
+  color: var(--ot-text);
+  background-color: var(--ot-panel);
 }
 
 :root[data-theme='light'] .session-warning-toast {
@@ -109,4 +109,172 @@
 
 :root[data-theme='light'] .session-warning-toast p {
   color: #854d0e;
+}
+
+:root :is(
+  [class$='-card'],
+  [class$='-panel'],
+  [class$='-stat'],
+  .client-project,
+  .project-list-item,
+  .directory-profile,
+  .worker-invitation,
+  .worker-submitted-report,
+  .contractor-worker-report,
+  .client-worker-advance,
+  .admin-detail-project-list article,
+  .market-project-detail,
+  .project-preview-dialog
+) {
+  border: 1px solid var(--ot-line);
+  border-radius: var(--ot-radius);
+  background: linear-gradient(180deg, var(--ot-panel-2), var(--ot-panel));
+  box-shadow: var(--ot-shadow);
+  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+
+:root :is(.client-stat, .admin-stat) {
+  border-color: var(--ot-line);
+}
+
+:root .client-stat {
+  border-top: 2px solid var(--tone);
+  border-right: 1px solid var(--ot-line);
+}
+
+:root .client-stat:last-child {
+  border-right: 0;
+}
+
+:root .admin-stat {
+  border-left: 3px solid var(--tone, #60a5fa);
+}
+
+:root :is(
+  .client-nav a,
+  .admin-nav a,
+  .contractor-nav a,
+  .worker-nav a
+) {
+  border-left: 2px solid transparent;
+}
+
+:root :is(
+  .client-nav a.is-current,
+  .client-nav a:first-child,
+  .admin-nav a.is-current,
+  .contractor-nav a.is-current,
+  .worker-nav a.is-current
+) {
+  border-left-color: var(--ot-orange);
+  color: var(--ot-orange-text);
+  background: color-mix(in srgb, var(--ot-orange) 12%, transparent);
+}
+
+:root :is(input, select, textarea) {
+  border-color: var(--ot-line);
+  border-radius: 10px;
+  color: var(--ot-text);
+  background: var(--ot-bg-2);
+}
+
+:root :is(input, select, textarea)::placeholder {
+  color: var(--ot-muted);
+}
+
+:root :is(input, select, textarea):focus-visible {
+  border-color: var(--ot-orange);
+  outline: 2px solid color-mix(in srgb, var(--ot-orange) 32%, transparent);
+  outline-offset: 1px;
+}
+
+:root .auth-page .input-wrap {
+  background: var(--auth-field-bg, var(--surface-raised));
+}
+
+:root .auth-page .input-wrap input,
+:root .auth-page .input-wrap input:focus {
+  background: transparent !important;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+:root .auth-page .input-wrap input:-webkit-autofill,
+:root .auth-page .input-wrap input:-webkit-autofill:hover,
+:root .auth-page .input-wrap input:-webkit-autofill:focus,
+:root .auth-page .input-wrap input:autofill,
+:root .auth-page .input-wrap input:autofill:hover,
+:root .auth-page .input-wrap input:autofill:focus {
+  background-color: var(--auth-field-bg, var(--surface-raised)) !important;
+  background-image: none !important;
+  background-clip: padding-box !important;
+  -webkit-box-shadow: 0 0 0 1000px var(--auth-field-bg, var(--surface-raised)) inset !important;
+  box-shadow: 0 0 0 1000px var(--auth-field-bg, var(--surface-raised)) inset !important;
+  -webkit-text-fill-color: inherit !important;
+  caret-color: var(--ot-text);
+  transition: background-color 9999s ease-out 0s;
+}
+
+:root .button-primary {
+  border-color: var(--ot-orange);
+  border-radius: 12px;
+  color: #fff;
+  background: var(--ot-orange-grad);
+}
+
+:root .button-primary:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+:root :is(.client-header h1, .admin-header h1) {
+  font-weight: 700;
+}
+
+:root :is(.client-eyebrow, .admin-eyebrow) {
+  color: var(--ot-orange-text);
+  font-size: 10px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  :root :is(
+    [class$='-card'],
+    [class$='-panel'],
+    [class$='-stat'],
+    .client-project,
+    .project-list-item,
+    .directory-profile,
+    .worker-invitation,
+    .worker-submitted-report,
+    .contractor-worker-report,
+    .client-worker-advance,
+    .admin-detail-project-list article,
+    .market-project-detail,
+    .project-preview-dialog
+  ):hover {
+    transform: translateY(-2px);
+    border-color: color-mix(in srgb, var(--ot-orange) 35%, var(--ot-line));
+    box-shadow: var(--ot-shadow), 0 8px 24px color-mix(in srgb, var(--ot-orange) 10%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root :is(
+    [class$='-card'],
+    [class$='-panel'],
+    [class$='-stat'],
+    .client-project,
+    .project-list-item,
+    .directory-profile,
+    .worker-invitation,
+    .worker-submitted-report,
+    .contractor-worker-report,
+    .client-worker-advance,
+    .admin-detail-project-list article,
+    .market-project-detail,
+    .project-preview-dialog
+  ) {
+    transition: none;
+  }
 }

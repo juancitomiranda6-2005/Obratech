@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { clientProjectsService } from '../../services/proyectoService.js'
+import { PhasePanel, PhaseRequirementActions } from '../../components/PhasePanel.jsx'
+import { ProjectRiskPanel } from '../../components/ProjectRiskPanel.jsx'
 
 const projectTypes = ['Residencial', 'Comercial', 'Industrial', 'Institucional', 'Infraestructura']
 const stateLabels = { PENDIENTE: 'Pendiente', EN_PROGRESO: 'En progreso', COMPLETADO: 'Completado', CANCELADO: 'Cancelado' }
@@ -13,6 +15,7 @@ function ProjectWorkspace({ id, editing }) {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [advancingPhase, setAdvancingPhase] = useState(false)
+  const [updatingPhaseRequirements, setUpdatingPhaseRequirements] = useState(false)
   const [error, setError] = useState('')
   const [documentPreviewUrl, setDocumentPreviewUrl] = useState('')
   const [phaseStatus, setPhaseStatus] = useState(null)
@@ -119,6 +122,32 @@ function ProjectWorkspace({ id, editing }) {
     }
   }
 
+  const updatePhaseApproval = async (aprobada) => {
+    setUpdatingPhaseRequirements(true)
+    setError('')
+    try {
+      const { data } = await clientProjectsService.updatePhaseApproval(id, aprobada)
+      setPhaseStatus(data)
+    } catch (requestError) {
+      setError(requestError.response?.data?.error || 'No se pudo actualizar la aprobación de la fase.')
+    } finally {
+      setUpdatingPhaseRequirements(false)
+    }
+  }
+
+  const registerPhaseInstallment = async () => {
+    setUpdatingPhaseRequirements(true)
+    setError('')
+    try {
+      const { data } = await clientProjectsService.registerPhaseInstallment(id)
+      setPhaseStatus(data)
+    } catch (requestError) {
+      setError(requestError.response?.data?.error || 'No se pudo registrar la cuota.')
+    } finally {
+      setUpdatingPhaseRequirements(false)
+    }
+  }
+
   if (loading) {
     return <div className="project-page-shell"><p className="admin-loading" role="status">Cargando proyecto…</p></div>
   }
@@ -173,53 +202,26 @@ function ProjectWorkspace({ id, editing }) {
             </section>
             {project.observaciones && <section className="project-detail-section"><h3>Observaciones</h3><p>{project.observaciones}</p></section>}
 
-            <section className="project-detail-section">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-                <div>
-                  <p className="client-eyebrow">Fase de obra</p>
-                  <h3>{phaseStatus ? formatPhaseLabel(phaseStatus.faseActual) : formatPhaseLabel(project.faseActual || 'PLANEACION')}</h3>
-                </div>
-                <span className={`client-project-state state-${(phaseStatus?.estadoFaseActual || project.estadoFaseActual || 'BLOQUEADA').toLowerCase()}`}>
-                  {formatPhaseState(phaseStatus?.estadoFaseActual || project.estadoFaseActual || 'BLOQUEADA')}
-                </span>
-              </div>
-
-              {phaseStatus && (
-                <div style={{ marginTop: '1rem', display: 'grid', gap: '0.75rem' }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem' }}>
-                    <div className="project-spec"><span className="material-symbols-outlined" aria-hidden="true">paid</span><div><small>Fase 1</small><strong>{new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(phaseStatus.planPagos.montoFase1 || 0)}</strong></div></div>
-                    <div className="project-spec"><span className="material-symbols-outlined" aria-hidden="true">payments</span><div><small>Fase 2</small><strong>{new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(phaseStatus.planPagos.montoFase2 || 0)}</strong></div></div>
-                    <div className="project-spec"><span className="material-symbols-outlined" aria-hidden="true">receipt_long</span><div><small>Fase 3</small><strong>{new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(phaseStatus.planPagos.montoFase3 || 0)}</strong></div></div>
-                  </div>
-
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem' }}>
-                    <div className="project-spec"><span className="material-symbols-outlined" aria-hidden="true">calendar_month</span><div><small>Cuota semanal F1</small><strong>{new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(phaseStatus.planPagos.cuotaSemanalFase1 || 0)}</strong></div></div>
-                    <div className="project-spec"><span className="material-symbols-outlined" aria-hidden="true">calendar_today</span><div><small>Cuota semanal F2</small><strong>{new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(phaseStatus.planPagos.cuotaSemanalFase2 || 0)}</strong></div></div>
-                    <div className="project-spec"><span className="material-symbols-outlined" aria-hidden="true">check_circle</span><div><small>Pagos</small><strong>{phaseStatus.cuotasSemanaPagadas ?? 0}/{phaseStatus.cuotasTotalesEsperadas ?? 0}</strong></div></div>
-                  </div>
-
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem' }}>
-                    <div className="project-spec"><span className="material-symbols-outlined" aria-hidden="true">photo_library</span><div><small>Evidencia fotográfica</small><strong>{phaseStatus.totalEvidencias ?? project.evidenciasFotograficas?.length ?? 0} fotos</strong></div></div>
-                    <div className="project-spec"><span className="material-symbols-outlined" aria-hidden="true">task_alt</span><div><small>Tareas completadas</small><strong>{project.tareasFaseCompletadas ? 'Sí' : 'No'}</strong></div></div>
-                    <div className="project-spec"><span className="material-symbols-outlined" aria-hidden="true">verified_user</span><div><small>Validación cliente</small><strong>{project.aprobacionClienteFase ? 'Aprobada' : 'Pendiente'}</strong></div></div>
-                    <div className="project-spec"><span className="material-symbols-outlined" aria-hidden="true">cleaning_services</span><div><small>Limpieza profunda</small><strong>{project.limpiezaProfundaCompletada ? 'Completada' : 'Pendiente'}</strong></div></div>
-                  </div>
-
-                  {!phaseStatus.puedeDesbloquear && (
-                    <p className="admin-alert admin-alert-warning" role="status">Falta alguna validación: evidencias, aprobación del cliente, tareas de la fase o pagos según el plan establecido.</p>
-                  )}
-
-                  {project.propietario && (
-                    <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                      <button className="button button-primary" disabled={advancingPhase || !phaseStatus.puedeDesbloquear} onClick={advancePhase} type="button">
-                        <span className="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
-                        {advancingPhase ? 'Avanzando…' : 'Avanzar a la siguiente fase'}
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
-            </section>
+            {phaseStatus && (
+              <>
+                <PhasePanel
+                  advancing={advancingPhase}
+                  canAdvance={Boolean(project.propietario || project.administrador)}
+                  onAdvance={advancePhase}
+                  phaseStatus={phaseStatus}
+                />
+                <PhaseRequirementActions
+                  canApprove={Boolean(project.propietario || project.administrador)}
+                  onApprove={updatePhaseApproval}
+                  onRegisterInstallment={registerPhaseInstallment}
+                  pending={updatingPhaseRequirements}
+                  phaseStatus={phaseStatus}
+                />
+              </>
+            )}
+            {project.indicadores && (
+              <ProjectRiskPanel fechaEntrega={project.fechaEntrega} indicators={project.indicadores} />
+            )}
 
             <section className="project-detail-section project-progress-section">
               <div><h3>Avance real</h3><strong>{Math.round(project.progresoProyecto)}%</strong></div>
@@ -257,23 +259,6 @@ function ProjectWorkspace({ id, editing }) {
     </div>
   )
 }
-
-const phaseLabels = {
-  PLANEACION: 'Planeación',
-  DESARROLLO: 'Desarrollo',
-  DETALLE_Y_ENTREGA_FINAL: 'Detalle y entrega final',
-}
-
-const phaseStateLabels = {
-  BLOQUEADA: 'Bloqueada',
-  EN_EJECUCION: 'En ejecución',
-  EN_VALIDACION: 'En validación',
-  APROBADA: 'Aprobada',
-  EN_DISPUTA: 'En disputa',
-}
-
-const formatPhaseLabel = (value) => phaseLabels[value] || 'Planeación'
-const formatPhaseState = (value) => phaseStateLabels[value] || 'Bloqueada'
 
 function ProjectSpec({ label, value, icon }) {
   return <div className="project-spec"><span className="material-symbols-outlined" aria-hidden="true">{icon}</span><div><small>{label}</small><strong>{value || '—'}</strong></div></div>

@@ -32,6 +32,7 @@ import com.obratech.repository.PerfilRepository;
 import com.obratech.repository.ProyectoRepository;
 import com.obratech.repository.UsuarioRepository;
 import com.obratech.service.ProyectoService;
+import com.obratech.service.ProyectoFaseService;
 import com.obratech.service.PerfilVerificationService;
 
 @RestController
@@ -49,6 +50,7 @@ public class ClientProjectsApiController {
     private final EquipoTrabajoRepository equipoTrabajoRepository;
     private final PostulacionRepository postulacionRepository;
     private final PerfilVerificationService verificationService;
+    private final ProyectoFaseService proyectoFaseService;
 
     public ClientProjectsApiController(
             UsuarioRepository usuarioRepository,
@@ -58,7 +60,8 @@ public class ClientProjectsApiController {
             GridFsTemplate gridFsTemplate,
             EquipoTrabajoRepository equipoTrabajoRepository,
             PostulacionRepository postulacionRepository,
-            PerfilVerificationService verificationService) {
+            PerfilVerificationService verificationService,
+            ProyectoFaseService proyectoFaseService) {
         this.usuarioRepository = usuarioRepository;
         this.perfilRepository = perfilRepository;
         this.proyectoRepository = proyectoRepository;
@@ -67,6 +70,7 @@ public class ClientProjectsApiController {
         this.equipoTrabajoRepository = equipoTrabajoRepository;
         this.postulacionRepository = postulacionRepository;
         this.verificationService = verificationService;
+        this.proyectoFaseService = proyectoFaseService;
     }
 
     @GetMapping
@@ -320,12 +324,7 @@ public class ClientProjectsApiController {
 
     private ProjectSummary toSummary(Proyecto project) {
         List<EquipoTrabajo> teams = equipoTrabajoRepository.findByProyectoId(project.getId());
-        double progress = teams.stream()
-            .map(EquipoTrabajo::getPorcentajeAvance)
-            .filter(java.util.Objects::nonNull)
-            .mapToDouble(Double::doubleValue)
-            .average()
-            .orElse(0.0);
+        double progress = proyectoFaseService.calcularAvanceObra(project);
         return new ProjectSummary(
                 project.getId(), project.getTitulo(), project.getDescripcion(), project.getTipoProyecto(),
                 project.getUbicacion(), project.getPresupuesto(),

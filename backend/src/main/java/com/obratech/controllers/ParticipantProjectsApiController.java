@@ -26,6 +26,9 @@ import com.obratech.repository.PostulacionRepository;
 import com.obratech.repository.ProyectoRepository;
 import com.obratech.repository.UsuarioRepository;
 import com.obratech.service.ContratistaProfileValidator;
+import com.obratech.service.ProyectoAccessService;
+import com.obratech.service.ProyectoFaseService;
+import com.obratech.service.ProjectPhaseStatusService;
 import com.obratech.util.PerfilDisplayName;
 
 @RestController
@@ -37,18 +40,41 @@ public class ParticipantProjectsApiController {
     private final UsuarioRepository usuarioRepository;
     private final PerfilRepository perfilRepository;
     private final ContratistaProfileValidator contratistaProfileValidator;
+    private final ProyectoAccessService proyectoAccessService;
+    private final ProyectoFaseService proyectoFaseService;
+    private final ProjectPhaseStatusService phaseStatusService;
 
     public ParticipantProjectsApiController(
             ProyectoRepository proyectoRepository,
             PostulacionRepository postulacionRepository,
             UsuarioRepository usuarioRepository,
             PerfilRepository perfilRepository,
-            ContratistaProfileValidator contratistaProfileValidator) {
+            ContratistaProfileValidator contratistaProfileValidator,
+            ProyectoAccessService proyectoAccessService,
+            ProyectoFaseService proyectoFaseService,
+            ProjectPhaseStatusService phaseStatusService) {
         this.proyectoRepository = proyectoRepository;
         this.postulacionRepository = postulacionRepository;
         this.usuarioRepository = usuarioRepository;
         this.perfilRepository = perfilRepository;
         this.contratistaProfileValidator = contratistaProfileValidator;
+        this.proyectoAccessService = proyectoAccessService;
+        this.proyectoFaseService = proyectoFaseService;
+        this.phaseStatusService = phaseStatusService;
+    }
+
+    @GetMapping("/{projectId}/phase-status")
+    public ResponseEntity<?> getPhaseStatus(@PathVariable String projectId, Authentication authentication) {
+        Proyecto proyecto = proyectoRepository.findById(projectId).orElse(null);
+        Usuario usuario = usuarioRepository.findByUsernameIgnoreCase(authentication.getName()).orElse(null);
+        if (proyecto == null || usuario == null) {
+            return ResponseEntity.notFound().build();
+        }
+        if (!proyectoAccessService.puedeVerFases(proyecto, usuario)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(new ApiError("No tienes acceso a las fases de este proyecto."));
+        }
+        return ResponseEntity.ok(phaseStatusService.crearEstado(proyecto, true));
     }
 
     @GetMapping

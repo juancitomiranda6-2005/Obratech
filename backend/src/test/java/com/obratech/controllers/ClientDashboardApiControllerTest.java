@@ -24,6 +24,7 @@ import com.obratech.repository.ProyectoRepository;
 import com.obratech.repository.ReporteProyectoRepository;
 import com.obratech.repository.UsuarioRepository;
 import com.obratech.service.PerfilVerificationService;
+import com.obratech.service.ProjectRiskService;
 
 @ExtendWith(MockitoExtension.class)
 class ClientDashboardApiControllerTest {
@@ -77,7 +78,8 @@ class ClientDashboardApiControllerTest {
                 proyectoRepository,
                 reporteRepository,
                 calificacionRepository,
-                perfilVerificationService);
+                perfilVerificationService,
+                org.mockito.Mockito.mock(ProjectRiskService.class));
 
         ResponseEntity<ClientDashboardApiController.ClientReportsResponse> response =
                 controller.getClientReports(authentication);
@@ -104,7 +106,8 @@ class ClientDashboardApiControllerTest {
                 proyectoRepository,
                 reporteRepository,
                 calificacionRepository,
-                perfilVerificationService);
+                perfilVerificationService,
+                org.mockito.Mockito.mock(ProjectRiskService.class));
 
         ResponseEntity<ClientDashboardApiController.ClientReportsResponse> response =
                 controller.getClientReports(authentication);

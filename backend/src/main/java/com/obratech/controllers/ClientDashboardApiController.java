@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -27,6 +28,7 @@ import com.obratech.repository.ProyectoRepository;
 import com.obratech.repository.ReporteProyectoRepository;
 import com.obratech.repository.UsuarioRepository;
 import com.obratech.service.PerfilVerificationService;
+import com.obratech.service.ProjectRiskService;
 import com.obratech.util.PerfilDisplayName;
 
 @RestController
@@ -39,6 +41,7 @@ public class ClientDashboardApiController {
         private final ReporteProyectoRepository reporteRepository;
         private final CalificacionRepository calificacionRepository;
     private final PerfilVerificationService perfilVerificationService;
+    private final ProjectRiskService projectRiskService;
 
     public ClientDashboardApiController(
             UsuarioRepository usuarioRepository,
@@ -46,13 +49,15 @@ public class ClientDashboardApiController {
             ProyectoRepository proyectoRepository,
             ReporteProyectoRepository reporteRepository,
             CalificacionRepository calificacionRepository,
-            PerfilVerificationService perfilVerificationService) {
+            PerfilVerificationService perfilVerificationService,
+            ProjectRiskService projectRiskService) {
         this.usuarioRepository = usuarioRepository;
         this.perfilRepository = perfilRepository;
         this.proyectoRepository = proyectoRepository;
         this.reporteRepository = reporteRepository;
                 this.calificacionRepository = calificacionRepository;
         this.perfilVerificationService = perfilVerificationService;
+        this.projectRiskService = projectRiskService;
     }
 
     @GetMapping("/cliente")
@@ -91,6 +96,7 @@ public class ClientDashboardApiController {
                 .sorted(Comparator.comparing(Proyecto::getFechaCreacion,
                         Comparator.nullsLast(Comparator.reverseOrder())))
                 .limit(6)
+                .parallel()
                 .map(this::toProjectCard)
                 .toList();
 
@@ -202,7 +208,9 @@ public class ClientDashboardApiController {
                 proyecto.getUbicacion(),
                 proyecto.getPresupuesto(),
                 proyecto.getEstadoEjecucion() == null ? "PENDIENTE" : proyecto.getEstadoEjecucion().name(),
-                proyecto.getEquipoTrabajo() == null ? 0 : proyecto.getEquipoTrabajo().size());
+                proyecto.getEquipoTrabajo() == null ? 0 : proyecto.getEquipoTrabajo().size(),
+                proyecto.getFechaEntrega(),
+                projectRiskService.calcularIndicadores(proyecto));
     }
 
     private ReportProjectCard toReportProjectCard(Proyecto proyecto) {
@@ -277,7 +285,9 @@ public class ClientDashboardApiController {
             String ubicacion,
             Double presupuesto,
             String estado,
-            int miembrosEquipo) {}
+            int miembrosEquipo,
+            LocalDate fechaEntrega,
+            ProjectRiskService.ProjectIndicators indicadores) {}
 
     public record ClientReportsResponse(
             String username,

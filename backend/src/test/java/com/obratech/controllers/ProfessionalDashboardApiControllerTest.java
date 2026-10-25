@@ -20,24 +20,28 @@ import com.obratech.entity.Perfil;
 import com.obratech.entity.Proyecto;
 import com.obratech.entity.enums.EstadoEjecucion;
 import com.obratech.repository.InvitacionTrabajoRepository;
+import com.obratech.repository.EquipoTrabajoRepository;
 import com.obratech.repository.PerfilRepository;
 import com.obratech.repository.ProyectoRepository;
 import com.obratech.repository.UsuarioRepository;
 import com.obratech.service.InvitacionTrabajoService;
 import com.obratech.service.PerfilVerificationService;
+import com.obratech.service.ProjectRiskService;
 
 class ProfessionalDashboardApiControllerTest {
 
     private final UsuarioRepository usuarioRepository = mock(UsuarioRepository.class);
     private final PerfilRepository perfilRepository = mock(PerfilRepository.class);
     private final ProyectoRepository proyectoRepository = mock(ProyectoRepository.class);
+    private final EquipoTrabajoRepository equipoTrabajoRepository = mock(EquipoTrabajoRepository.class);
     private final InvitacionTrabajoRepository invitationRepository = mock(InvitacionTrabajoRepository.class);
     private final PerfilVerificationService verificationService = mock(PerfilVerificationService.class);
     private final InvitacionTrabajoService invitationService = new InvitacionTrabajoService(
             invitationRepository, proyectoRepository);
+    private final ProjectRiskService projectRiskService = mock(ProjectRiskService.class);
     private final ProfessionalDashboardApiController controller = new ProfessionalDashboardApiController(
-            usuarioRepository, perfilRepository, proyectoRepository, invitationRepository,
-            verificationService, invitationService);
+            usuarioRepository, perfilRepository, proyectoRepository, equipoTrabajoRepository, invitationRepository,
+            verificationService, invitationService, projectRiskService);
     private final Authentication authentication = mock(Authentication.class);
 
     @Test

@@ -5,6 +5,15 @@ import { ProfileAvatar } from '../../components/shared/ProfileAvatar.jsx'
 import { teamService } from '../../services/teamService.js'
 
 const contractor = 'ROLE_CONTRACTOR'
+const phaseOptions = [
+  { value: 'PLANEACION', label: 'Fase 1 · Planeación' },
+  { value: 'DESARROLLO', label: 'Fase 2 · Desarrollo' },
+  { value: 'DETALLE_Y_ENTREGA_FINAL', label: 'Fase 3 · Detalles y entrega' },
+]
+
+function phaseName(phase) {
+  return phaseOptions.find((option) => option.value === phase)?.label || 'Fase no definida'
+}
 
 // Elige el nombre visible del integrante y usa el usuario como alternativa si falta.
 function displayName(member) {
@@ -30,6 +39,7 @@ function TeamCard({
   onDelete,
   onAddMember,
   onRemoveMember,
+  onUpdateTeam,
 }) {
   const isWorker = role !== contractor
   const isContractor = role === contractor
@@ -49,6 +59,12 @@ function TeamCard({
   const [editingReportId, setEditingReportId] = useState('')
   // Guarda el texto del informe mientras el trabajador hace cambios.
   const [editingReportContent, setEditingReportContent] = useState('')
+  const [editingTeam, setEditingTeam] = useState(false)
+  const [teamForm, setTeamForm] = useState({
+    nombre: team.nombre || '',
+    actividad: team.actividad || '',
+    fase: team.fase || 'PLANEACION',
+  })
 
   // Usa todos los IDs ya asignados en este proyecto para no ofrecer duplicados.
   const assignedIds = allAssignedInProject || []
@@ -86,6 +102,7 @@ function TeamCard({
           <p className="client-eyebrow">{team.proyecto}</p>
           <h2>{team.nombre || 'Equipo de trabajo'}</h2>
           <p>{team.actividad || 'Actividad no especificada'}</p>
+          <small>{phaseName(team.fase)}</small>
         </div>
         <span className="team-progress-value">{Math.round(team.porcentajeAvance)}%</span>
       </header>
@@ -291,11 +308,34 @@ function TeamCard({
             )}
           </form>
         )}
+
+        {isContractor && editingTeam && (
+          <form className="team-add-member-box" onSubmit={async (event) => {
+            event.preventDefault()
+            const saved = await onUpdateTeam(team, teamForm)
+            if (saved) setEditingTeam(false)
+          }}>
+            <label><span>Nombre del equipo</span><input maxLength={100} onChange={(event) => setTeamForm((current) => ({ ...current, nombre: event.target.value }))} required value={teamForm.nombre} /></label>
+            <label><span>Actividad</span><input maxLength={160} onChange={(event) => setTeamForm((current) => ({ ...current, actividad: event.target.value }))} required value={teamForm.actividad} /></label>
+            <label><span>Fase de obra</span><select onChange={(event) => setTeamForm((current) => ({ ...current, fase: event.target.value }))} required value={teamForm.fase}>{phaseOptions.map((phase) => <option key={phase.value} value={phase.value}>{phase.label}</option>)}</select></label>
+            <div className="team-add-member-actions">
+              <button className="button button-secondary" onClick={() => setEditingTeam(false)} type="button">Cancelar</button>
+              <button className="button button-primary" disabled={saving} type="submit">{saving ? 'Guardando…' : 'Guardar equipo'}</button>
+            </div>
+          </form>
+        )}
       </section>
 
       {isContractor && (
         /* Acciones para administrar los integrantes y la cuadrilla */
         <footer className="team-card-actions">
+          <button className="team-add-member-btn" disabled={saving} onClick={() => {
+            setTeamForm({ nombre: team.nombre || '', actividad: team.actividad || '', fase: team.fase || 'PLANEACION' })
+            setEditingTeam((current) => !current)
+          }} type="button">
+            <span className="material-symbols-outlined" aria-hidden="true">edit</span>
+            {editingTeam ? 'Cerrar edición' : 'Editar equipo'}
+          </button>
           {/* Boton que abre o cierra el selector para agregar */}
           <button
             className="team-add-member-btn"
@@ -359,6 +399,7 @@ export function EquiposPage({ role, onLogout, projectId: initialProjectId = '' }
   const [name, setName] = useState('')
   // Texto que describe la actividad que realizara la cuadrilla.
   const [activity, setActivity] = useState('')
+  const [teamPhase, setTeamPhase] = useState('PLANEACION')
   // IDs marcados en la lista de integrantes disponibles.
   const [memberIds, setMemberIds] = useState([])
   // Cambios de avance aun no guardados, indexados por ID de equipo.
@@ -387,9 +428,11 @@ export function EquiposPage({ role, onLogout, projectId: initialProjectId = '' }
         ])
         setTeams(teamResponse.data)
         setProjects(projectResponse.data)
-        setProjectId((current) => projectResponse.data.some((project) => project.id === current)
-          ? current
-          : projectResponse.data.find((project) => project.id === initialProjectId)?.id || projectResponse.data[0]?.id || '')
+        const selected = projectResponse.data.find((project) => project.id === projectId)
+          || projectResponse.data.find((project) => project.id === initialProjectId)
+          || projectResponse.data[0]
+        setProjectId(selected?.id || '')
+        setTeamPhase(selected?.faseActual || 'PLANEACION')
       } else {
         const { data } = await teamService.getWorkerTeams(initialProjectId || undefined)
         setTeams(data)
@@ -421,7 +464,10 @@ export function EquiposPage({ role, onLogout, projectId: initialProjectId = '' }
           if (active) {
             setTeams(teamResponse.data)
             setProjects(projectResponse.data)
-            setProjectId(projectResponse.data.find((project) => project.id === initialProjectId)?.id || projectResponse.data[0]?.id || '')
+            const selected = projectResponse.data.find((project) => project.id === initialProjectId)
+              || projectResponse.data[0]
+            setProjectId(selected?.id || '')
+            setTeamPhase(selected?.faseActual || 'PLANEACION')
           }
         } else {
           const { data } = await teamService.getWorkerTeams(initialProjectId || undefined)
@@ -471,7 +517,12 @@ export function EquiposPage({ role, onLogout, projectId: initialProjectId = '' }
     setError('')
     setNotice('')
     try {
-      await teamService.createContractorTeam(projectId, { nombre: name, actividad: activity, integrantesIds: memberIds })
+      await teamService.createContractorTeam(projectId, {
+        nombre: name,
+        actividad: activity,
+        integrantesIds: memberIds,
+        fase: teamPhase,
+      })
       setName('')
       setActivity('')
       setMemberIds([])
@@ -479,6 +530,23 @@ export function EquiposPage({ role, onLogout, projectId: initialProjectId = '' }
       await loadData(false)
     } catch (requestError) {
       setError(requestError.response?.data?.error || 'No se pudo crear el equipo.')
+    } finally {
+      setPending('')
+    }
+  }
+
+  const updateTeam = async (team, values) => {
+    setPending(team.id)
+    setError('')
+    setNotice('')
+    try {
+      const { data } = await teamService.updateContractorTeam(team.proyectoId, team.id, values)
+      setTeams((current) => current.map((item) => item.id === team.id ? data : item))
+      setNotice('Equipo actualizado.')
+      return true
+    } catch (requestError) {
+      setError(requestError.response?.data?.error || 'No se pudo actualizar el equipo.')
+      return false
     } finally {
       setPending('')
     }
@@ -641,9 +709,10 @@ export function EquiposPage({ role, onLogout, projectId: initialProjectId = '' }
           <form className="team-create-panel" onSubmit={createTeam}>
             <div><p className="client-eyebrow">Nueva cuadrilla</p><h2>Crear equipo</h2></div>
             <div className="team-create-fields">
-              <label><span>Proyecto</span><select onChange={(event) => { setProjectId(event.target.value); setMemberIds([]) }} required value={projectId}>{projects.filter((project) => project.integrantesDisponibles.length).map((project) => <option key={project.id} value={project.id}>{project.titulo || 'Proyecto sin título'}</option>)}</select></label>
+              <label><span>Proyecto</span><select onChange={(event) => { setProjectId(event.target.value); setMemberIds([]); setTeamPhase(projects.find((project) => project.id === event.target.value)?.faseActual || 'PLANEACION') }} required value={projectId}>{projects.filter((project) => project.integrantesDisponibles.length).map((project) => <option key={project.id} value={project.id}>{project.titulo || 'Proyecto sin título'}</option>)}</select></label>
               <label><span>Nombre del equipo</span><input maxLength={100} onChange={(event) => setName(event.target.value)} required value={name} /></label>
               <label><span>Actividad asignada</span><input maxLength={160} onChange={(event) => setActivity(event.target.value)} required value={activity} /></label>
+              <label><span>Fase de obra</span><select onChange={(event) => setTeamPhase(event.target.value)} required value={teamPhase}>{phaseOptions.map((phase) => <option key={phase.value} value={phase.value}>{phase.label}</option>)}</select></label>
             </div>
             <fieldset className="team-member-picker">
               <legend>Integrantes del proyecto</legend>
@@ -694,6 +763,7 @@ export function EquiposPage({ role, onLogout, projectId: initialProjectId = '' }
                 onSaveProgress={saveProgress}
                 onSubmitProgressReport={submitProgressReport}
                 onUpdateProgressReport={updateProgressReport}
+                onUpdateTeam={updateTeam}
                 workerReports={workerReportsByTeam[team.id] || []}
                 reportsAnchor={!isContractor && index === 0}
                 currentTime={currentTime}

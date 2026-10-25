@@ -1,1 +1,0 @@
-import{a as e}from"./index-B8o-bBGa.js";var t={listForClient:()=>e.get(`/client/applications`),listForProject:t=>e.get(`/client/projects/${t}/applications`),respond:(t,n,r)=>e.patch(`/client/projects/${t}/applications/${n}`,{estado:r}),remove:(t,n)=>e.delete(`/client/projects/${t}/applications/${n}`)};export{t};

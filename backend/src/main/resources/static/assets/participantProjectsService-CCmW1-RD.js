@@ -1,1 +1,0 @@
-import{a as e}from"./index-B8o-bBGa.js";var t={listAvailable:()=>e.get(`/participant/projects`),apply:(t,n=``)=>e.post(`/participant/projects/${t}/applications`,{mensaje:n}),listMyApplications:()=>e.get(`/participant/projects/applications`),decideOffer:(t,n)=>e.patch(`/contractor/applications/${t}/decision`,{estado:n})};export{t};

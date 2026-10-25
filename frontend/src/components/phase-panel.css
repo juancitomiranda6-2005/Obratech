@@ -1,0 +1,201 @@
+.phase-panel {
+  display: grid;
+  gap: 1rem;
+  padding: clamp(1rem, 2.5vw, 1.5rem);
+  border: 1px solid var(--border-color, #e6e8ec);
+  border-radius: 1.25rem;
+  background: var(--surface-color, #fff);
+  color: var(--text-color, #20242b);
+}
+
+.phase-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.phase-panel-header h2 {
+  margin: 0;
+}
+
+.phase-panel-header p:last-child {
+  margin: 0.35rem 0 0;
+  color: var(--muted-color, #68707c);
+}
+
+.phase-panel-overall {
+  color: #f07822;
+  font-size: clamp(2rem, 5vw, 3rem);
+}
+
+.phase-segment-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.phase-segment,
+.phase-panel-card {
+  padding: 1rem;
+  border: 1px solid var(--border-color, #e6e8ec);
+  border-radius: 0.9rem;
+  background: var(--surface-secondary, #f8f9fb);
+}
+
+.phase-segment-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.phase-segment-track {
+  height: 0.55rem;
+  margin: 0.7rem 0 0.4rem;
+  overflow: hidden;
+  border-radius: 99px;
+  background: #e7e9ed;
+}
+
+.phase-segment-track span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #f07822, #f8b04a);
+  transition: width 200ms ease;
+}
+
+.phase-segment small,
+.phase-payment-list small,
+.phase-installments small {
+  display: block;
+  margin-top: 0.3rem;
+  color: var(--muted-color, #68707c);
+}
+
+.phase-panel-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.phase-panel-card h3,
+.phase-requirement-actions h3 {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+}
+
+.phase-payment-list,
+.phase-requirement-list,
+.phase-installments ul {
+  display: grid;
+  gap: 0.7rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.phase-payment-list li {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.phase-payment-list li + li,
+.phase-installments li + li {
+  padding-top: 0.65rem;
+  border-top: 1px solid var(--border-color, #e6e8ec);
+}
+
+.phase-requirement {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  color: var(--muted-color, #68707c);
+}
+
+.phase-requirement .material-symbols-outlined {
+  font-size: 1.15rem;
+}
+
+.phase-requirement.is-complete {
+  color: #13834a;
+}
+
+.phase-evidence-hint,
+.phase-actions p {
+  margin: 0.75rem 0 0;
+  color: var(--muted-color, #68707c);
+  font-size: 0.875rem;
+}
+
+.phase-installments li {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.phase-panel-actions,
+.phase-action-group {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.phase-panel-actions p {
+  margin: 0 auto 0 0;
+}
+
+.phase-requirement-actions {
+  display: grid;
+  gap: 0.5rem;
+  padding: 1rem;
+  border: 1px dashed var(--border-color, #e6e8ec);
+  border-radius: 0.9rem;
+}
+
+.phase-requirement-actions p {
+  margin: 0;
+  color: var(--muted-color, #68707c);
+}
+
+.contractor-phase-selector {
+  grid-column: 1 / -1;
+}
+
+.contractor-phase-select {
+  display: grid;
+  gap: 0.4rem;
+  max-width: 32rem;
+  margin-bottom: 1rem;
+  color: var(--muted-color, #68707c);
+}
+
+.contractor-phase-select select {
+  min-height: 2.7rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border-color, #e6e8ec);
+  border-radius: 0.6rem;
+  background: var(--surface-color, #fff);
+  color: var(--text-color, #20242b);
+}
+
+.project-assigned-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+@media (max-width: 860px) {
+  .phase-segment-list,
+  .phase-panel-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .phase-panel-header {
+    align-items: flex-start;
+  }
+}

@@ -28,6 +28,7 @@ const MisProyectos = lazyNamed(() => import('./pages/proyectos/MisProyectos.jsx'
 const projectManagement = () => import('./pages/proyectos/GestionarProyecto.jsx')
 const DetalleProyecto = lazyNamed(projectManagement, 'DetalleProyecto')
 const EditarProyecto = lazyNamed(projectManagement, 'EditarProyecto')
+const ProyectoAsignado = lazyNamed(() => import('./pages/proyectos/ProyectoAsignado.jsx'), 'ProyectoAsignado')
 const PostulantesProyecto = lazyNamed(() => import('./pages/proyectos/PostulantesProyecto.jsx'), 'PostulantesProyecto')
 const ProyectosDisponibles = lazyNamed(() => import('./pages/proyectos/ProyectosDisponibles.jsx'), 'ProyectosDisponibles')
 const MisPostulaciones = lazyNamed(() => import('./pages/proyectos/MisPostulaciones.jsx'), 'MisPostulaciones')
@@ -89,6 +90,11 @@ function DetalleProyectoRoute() {
 function EditarProyectoRoute() {
   const { id } = useParams()
   return <EditarProyecto id={id} />
+}
+
+function ProyectoAsignadoRoute({ role }) {
+  const { id } = useParams()
+  return <ProyectoAsignado id={id} role={role} />
 }
 
 function PerfilPublicoRoute({ onLogout, viewerRole }) {
@@ -302,6 +308,7 @@ function AppRoutes() {
           <Route path="/proyectos/postular/:projectId" element={<ProyectosDisponiblesRoute onLogout={logout} role={user.role} />} />
           <Route path="/trabajadores/:id" element={<PerfilPublicoRoute onLogout={logout} viewerRole={user.role} />} />
           <Route path="/contratistas/mi-equipo" element={<EquiposPage onLogout={logout} role={user.role} />} />
+          <Route path="/proyectos/asignados/:id" element={<ProyectoAsignadoRoute role={user.role} />} />
           <Route path="/contratistas/historial" element={<HistorialContratista onLogout={logout} />} />
           <Route path="/contratistas/proyectos-asignados" element={<DashboardContratista onLogout={logout} />} />
           <Route path="/perfil-contratista/editar" element={<PerfilContratista editing />} />
@@ -329,6 +336,7 @@ function AppRoutes() {
           <Route path="/trabajadores/perfil" element={<PerfilTrabajador editing />} />
           <Route path="/perfil-laboral" element={<PerfilTrabajador editing />} />
           <Route path="/trabajadores/mi-equipo" element={<EquiposPage onLogout={logout} role={user.role} />} />
+          <Route path="/proyectos/asignados/:id" element={<ProyectoAsignadoRoute role={user.role} />} />
           <Route path="/trabajadores/disponibles" element={<ProyectosDisponibles onLogout={logout} role={user.role} />} />
           <Route path="/proyectos/postular" element={<ProyectosDisponibles onLogout={logout} role={user.role} />} />
           <Route path="/proyectos/postular/:projectId" element={<ProyectosDisponiblesRoute onLogout={logout} role={user.role} />} />

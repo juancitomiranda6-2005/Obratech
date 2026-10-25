@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { clientDashboardService } from '../../services/clientDashboardService.js'
 import { ProfileAvatar } from '../../components/shared/ProfileAvatar.jsx'
+import { ProjectRiskPanel } from '../../components/ProjectRiskPanel.jsx'
 
 const currencyFormatter = new Intl.NumberFormat('es-CO', {
   style: 'currency',
@@ -147,6 +148,8 @@ function ClientDashboard({ onLogout }) {
                           <span>{project.miembrosEquipo} miembros</span>
                           <strong>{project.presupuesto == null ? 'Sin presupuesto' : currencyFormatter.format(project.presupuesto)}</strong>
                         </div>
+                        <ProjectRiskPanel compact fechaEntrega={project.fechaEntrega} indicators={project.indicadores} />
+                        <Link className="profile-open-link" to={`/proyectos/${project.id}`}>Abrir proyecto y gestionar fases<span className="material-symbols-outlined" aria-hidden="true">arrow_forward</span></Link>
                       </article>
                     ))}
                   </div>

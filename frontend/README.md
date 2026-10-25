@@ -1,16 +1,30 @@
-# React + Vite
+# ObraTech: desarrollo del frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+## Para editar React y ver los cambios al guardar
 
-Currently, two official plugins are available:
+Desde la carpeta principal del repositorio, ejecuta `run.bat`. Este inicia el
+backend Spring Boot y Vite en dos ventanas y abre la aplicación en
+`http://localhost:5173`.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Edita archivos dentro de `frontend/src` y guárdalos. Vite usa HMR (Hot Module
+Replacement) para reflejar los cambios en el navegador sin crear un JAR ni
+reconstruir el frontend. Si el navegador no actualiza un cambio de estilos,
+recarga la página con `Ctrl+F5`.
 
-## React Compiler
+El frontend envía las solicitudes `/api` al backend en `http://localhost:9999`.
+MongoDB debe estar activo para las funciones de la aplicación que leen o guardan
+datos.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+`run.bat` necesita Node.js, las dependencias existentes en
+`frontend/node_modules` y Java/Maven Wrapper para el backend. Si las
+dependencias de Node todavía no están instaladas, abre una terminal en
+`frontend`, ejecuta `npm install` una vez y vuelve a iniciar `run.bat`. El
+script no instala paquetes automáticamente.
 
-## Expanding the Oxlint configuration
+## Versión empaquetada
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+`run-production.bat` ejecuta la aplicación servida por Spring Boot desde el
+JAR. Esa versión usa los recursos compilados: después de modificar el
+frontend, hay que generar el bundle con `npm run build` antes de empaquetar o
+ejecutar esa versión. Para aprender y trabajar con cambios inmediatos, usa
+`run.bat`.

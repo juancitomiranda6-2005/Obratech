@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { workerDashboardService } from '../../services/professionalDashboardService.js'
 import { ProfileAvatar } from '../../components/shared/ProfileAvatar.jsx'
+import { ProjectRiskPanel } from '../../components/ProjectRiskPanel.jsx'
 
 const money = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 })
 
@@ -132,6 +133,8 @@ function WorkerDashboard({ onLogout }) {
                       <div className="client-project-topline"><span className={`client-project-state state-${project.estado.toLowerCase()}`}>{project.estado.replaceAll('_', ' ')}</span></div>
                       <h3>{project.titulo || 'Proyecto sin título'}</h3><p>{project.descripcion || 'Sin descripción disponible.'}</p>
                       <div className="client-project-meta"><span><span className="material-symbols-outlined" aria-hidden="true">location_on</span>{project.ubicacion || 'Ubicación pendiente'}</span><span>Contratista: {project.contratista}</span></div>
+                      <ProjectRiskPanel compact fechaEntrega={project.fechaEntrega} indicators={project.indicadores} />
+                      <Link className="profile-open-link" to={`/proyectos/asignados/${project.id}`}>Ver fases del proyecto<span className="material-symbols-outlined" aria-hidden="true">arrow_forward</span></Link>
                     </article>
                   ))}
                 </div>

@@ -25,11 +25,13 @@ import com.obratech.entity.Usuario;
 import com.obratech.entity.enums.EstadoEjecucion;
 import com.obratech.entity.enums.EstadoAsignacion;
 import com.obratech.repository.InvitacionTrabajoRepository;
+import com.obratech.repository.EquipoTrabajoRepository;
 import com.obratech.repository.PerfilRepository;
 import com.obratech.repository.ProyectoRepository;
 import com.obratech.repository.UsuarioRepository;
 import com.obratech.service.PerfilVerificationService;
 import com.obratech.service.InvitacionTrabajoService;
+import com.obratech.service.ProjectRiskService;
 import com.obratech.util.PerfilDisplayName;
 
 @RestController
@@ -40,22 +42,28 @@ public class ProfessionalDashboardApiController {
     private final PerfilRepository perfilRepository;
     private final ProyectoRepository proyectoRepository;
     private final InvitacionTrabajoRepository invitacionTrabajoRepository;
+    private final EquipoTrabajoRepository equipoTrabajoRepository;
     private final PerfilVerificationService perfilVerificationService;
     private final InvitacionTrabajoService invitacionService;
+    private final ProjectRiskService projectRiskService;
 
     public ProfessionalDashboardApiController(
             UsuarioRepository usuarioRepository,
             PerfilRepository perfilRepository,
             ProyectoRepository proyectoRepository,
+            EquipoTrabajoRepository equipoTrabajoRepository,
             InvitacionTrabajoRepository invitacionTrabajoRepository,
             PerfilVerificationService perfilVerificationService,
-            InvitacionTrabajoService invitacionService) {
+            InvitacionTrabajoService invitacionService,
+            ProjectRiskService projectRiskService) {
         this.usuarioRepository = usuarioRepository;
         this.perfilRepository = perfilRepository;
         this.proyectoRepository = proyectoRepository;
+        this.equipoTrabajoRepository = equipoTrabajoRepository;
         this.invitacionTrabajoRepository = invitacionTrabajoRepository;
         this.perfilVerificationService = perfilVerificationService;
         this.invitacionService = invitacionService;
+        this.projectRiskService = projectRiskService;
     }
 
     @GetMapping("/contratista")
@@ -87,7 +95,7 @@ public class ProfessionalDashboardApiController {
                 .forEach(miembrosEquipo::add);
 
         List<String> requisitosFaltantes = perfilVerificationService.getMissingRequirements(perfil);
-        List<ProjectCard> proyectos = proyectosActivos.stream().map(this::toProjectCard).toList();
+        List<ProjectCard> proyectos = proyectosActivos.parallelStream().map(this::toProjectCard).toList();
 
         return ResponseEntity.ok(new ContractorDashboardResponse(
                 usuario.getUsername(),
@@ -152,9 +160,21 @@ public class ProfessionalDashboardApiController {
         List<InvitacionCard> invitaciones = pendingInvitations.stream()
             .filter(invitation -> "PENDIENTE".equals(invitation.getEstado()))
             .map(this::toInvitationCard).toList();
-        List<Proyecto> proyectos = perfil.getId() == null
-                ? List.of()
-                : proyectoRepository.findByEquipoTrabajoContaining(perfil);
+        Set<String> assignedProjectIds = new java.util.LinkedHashSet<>();
+        if (perfil.getId() != null) {
+            proyectoRepository.findByEquipoTrabajoContaining(perfil).stream()
+                    .map(Proyecto::getId)
+                    .filter(java.util.Objects::nonNull)
+                    .forEach(assignedProjectIds::add);
+            equipoTrabajoRepository.findByIntegrantesContaining(perfil).stream()
+                    .map(equipo -> equipo.getProyecto() == null ? null : equipo.getProyecto().getId())
+                    .filter(java.util.Objects::nonNull)
+                    .forEach(assignedProjectIds::add);
+        }
+        List<Proyecto> proyectos = assignedProjectIds.stream()
+                .map(projectId -> proyectoRepository.findById(projectId).orElse(null))
+                .filter(java.util.Objects::nonNull)
+                .toList();
         List<String> requisitosFaltantes = perfilVerificationService.getMissingRequirements(perfil);
 
         return ResponseEntity.ok(new WorkerDashboardResponse(
@@ -168,7 +188,7 @@ public class ProfessionalDashboardApiController {
                 perfil.getExperiencia() == null ? 0 : perfil.getExperiencia(),
                 perfil.getCvUrl() != null,
                 invitaciones,
-                proyectos.stream().map(this::toProjectCard).toList()));
+                proyectos.parallelStream().map(this::toProjectCard).toList()));
     }
 
     @PatchMapping("/trabajador/invitaciones/{id}")
@@ -240,7 +260,9 @@ public class ProfessionalDashboardApiController {
                 proyecto.getId(), proyecto.getTitulo(), proyecto.getDescripcion(), proyecto.getUbicacion(),
                 proyecto.getPresupuesto(),
                 proyecto.getEstadoEjecucion() == null ? "PENDIENTE" : proyecto.getEstadoEjecucion().name(),
-                contratistaNombre);
+                contratistaNombre,
+                proyecto.getFechaEntrega(),
+                projectRiskService.calcularIndicadores(proyecto));
     }
 
     private HistoryProjectCard toHistoryProjectCard(Proyecto proyecto) {
@@ -308,7 +330,9 @@ public class ProfessionalDashboardApiController {
             String ubicacion,
             Double presupuesto,
             String estado,
-            String contratista) {}
+            String contratista,
+            LocalDate fechaEntrega,
+            ProjectRiskService.ProjectIndicators indicadores) {}
 
     public record HistoryProjectCard(
             String id,

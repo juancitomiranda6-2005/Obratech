@@ -8,7 +8,7 @@
 .directory-profile {
   min-width: 0;
   padding: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.09);
+  border: 1px solid var(--ot-line);
   border-radius: 8px;
   background: var(--surface);
 }
@@ -27,7 +27,7 @@
 .directory-profile h2 {
   margin: 0;
   overflow-wrap: anywhere;
-  color: #f1f1f1;
+  color: var(--ot-text);
   font-size: 16px;
 }
 
@@ -69,7 +69,7 @@
   min-width: 0;
   margin: 0;
   overflow-wrap: anywhere;
-  color: #e0e0e0;
+  color: var(--ot-text);
   text-align: right;
 }
 
@@ -80,7 +80,7 @@
   gap: 5px;
   margin-top: 4px;
   border: 0;
-  color: #ffad33;
+  color: var(--ot-orange-text);
   background: transparent;
   font-size: 11px;
   cursor: pointer;
@@ -94,9 +94,9 @@
   max-width: 720px;
   margin: 24px auto 0;
   padding: 22px;
-  border: 1px solid rgba(255, 255, 255, .08);
+  border: 1px solid var(--ot-line);
   border-radius: 8px;
-  background: #1a1a1a;
+  background: var(--ot-panel);
 }
 
 .rating-subject {
@@ -104,7 +104,7 @@
   align-items: center;
   gap: 12px;
   padding-bottom: 18px;
-  border-bottom: 1px solid rgba(255, 255, 255, .07);
+  border-bottom: 1px solid var(--ot-line);
 }
 
 .rating-subject>.material-symbols-outlined {
@@ -113,8 +113,8 @@
   display: grid;
   place-items: center;
   border-radius: 8px;
-  color: #191919;
-  background: #ffad33;
+  color: var(--ot-panel);
+  background: var(--ot-orange);
   font-size: 22px;
 }
 
@@ -125,7 +125,7 @@
 
 .rating-subject p:last-child {
   margin: 4px 0 0;
-  color: #999;
+  color: var(--ot-muted);
   font-size: 10px;
 }
 
@@ -138,7 +138,7 @@
 .rating-form label {
   display: grid;
   gap: 7px;
-  color: #ccc;
+  color: var(--ot-muted);
   font-size: 11px;
 }
 
@@ -146,10 +146,10 @@
 .rating-form textarea {
   width: 100%;
   padding: 11px;
-  border: 1px solid rgba(255, 255, 255, .1);
+  border: 1px solid var(--ot-line);
   border-radius: 6px;
-  color: #eee;
-  background: #121212;
+  color: var(--ot-text);
+  background: var(--ot-bg-2);
   font-size: 12px;
 }
 
@@ -163,7 +163,7 @@
   justify-content: space-between;
   align-items: center;
   gap: 12px;
-  color: #777;
+  color: var(--ot-muted);
   font-size: 10px;
 }
 
@@ -199,8 +199,8 @@
   gap: 8px;
   margin-top: 16px;
   padding-top: 12px;
-  border-top: 1px solid rgba(255, 255, 255, .07);
-  color: #ffad33;
+  border-top: 1px solid var(--ot-line);
+  color: var(--ot-orange-text);
   font-size: 10px;
   font-weight: 700;
 }
@@ -259,11 +259,11 @@
   align-items: center;
   gap: 10px;
   padding: 11px 0;
-  border-top: 1px solid rgba(255, 255, 255, .06);
+  border-top: 1px solid var(--ot-line);
 }
 
 .profile-field-row>.material-symbols-outlined {
-  color: #ffad33;
+  color: var(--ot-orange-text);
   font-size: 18px;
 }
 
@@ -274,13 +274,13 @@
 }
 
 .profile-field-row small {
-  color: #888;
+  color: var(--ot-muted);
   font-size: 9px;
 }
 
 .profile-field-row strong {
   margin-top: 3px;
-  color: #eee;
+  color: var(--ot-text);
   font-size: 10px;
 }
 
@@ -291,7 +291,7 @@
 
 .profile-stats .client-stat {
   border-top-width: 0;
-  border-bottom: 1px solid rgba(255, 255, 255, .08);
+  border-bottom: 1px solid var(--ot-line);
 }
 
 .public-profile-hero {
@@ -300,7 +300,7 @@
   gap: 14px;
   margin-top: 22px;
   padding: 18px;
-  border-bottom: 1px solid rgba(255, 255, 255, .08);
+  border-bottom: 1px solid var(--ot-line);
 }
 
 .public-profile-avatar {
@@ -310,8 +310,8 @@
   display: grid;
   place-items: center;
   border-radius: 9px;
-  color: #171717;
-  background: linear-gradient(135deg, #ffb43b, #ff6b00);
+  color: var(--ot-panel);
+  background: var(--ot-orange-grad);
   font-size: 20px;
   font-weight: 800;
 }
@@ -324,7 +324,7 @@
 
 .public-profile-hero>div>p:last-child {
   margin: 5px 0 0;
-  color: #999;
+  color: var(--ot-muted);
   font-size: 11px;
 }
 
@@ -343,9 +343,9 @@
 .public-profile-panel {
   min-width: 0;
   padding: 18px;
-  border: 1px solid rgba(255, 255, 255, .07);
+  border: 1px solid var(--ot-line);
   border-radius: 8px;
-  background: #1a1a1a;
+  background: var(--ot-panel);
 }
 
 .public-profile-panel h2 {
@@ -358,17 +358,17 @@
   grid-template-columns: 110px minmax(0, 1fr);
   gap: 10px;
   padding: 9px 0;
-  border-top: 1px solid rgba(255, 255, 255, .05);
+  border-top: 1px solid var(--ot-line);
 }
 
 .public-profile-info span {
-  color: #888;
+  color: var(--ot-muted);
   font-size: 10px;
 }
 
 .public-profile-info strong {
   min-width: 0;
-  color: #ddd;
+  color: var(--ot-text);
   font-size: 10px;
   font-weight: 500;
   overflow-wrap: anywhere;
@@ -377,7 +377,7 @@
 .public-profile-description {
   margin-top: 10px;
   padding-top: 12px;
-  border-top: 1px solid rgba(255, 255, 255, .06);
+  border-top: 1px solid var(--ot-line);
 }
 
 .public-profile-description h3 {
@@ -387,7 +387,7 @@
 
 .public-profile-description p {
   margin: 7px 0 0;
-  color: #aaa;
+  color: var(--ot-muted);
   font-size: 11px;
   line-height: 1.6;
   white-space: pre-line;
@@ -408,7 +408,7 @@
   align-items: center;
   gap: 9px;
   padding: 9px 0;
-  border-top: 1px solid rgba(255, 255, 255, .05);
+  border-top: 1px solid var(--ot-line);
 }
 
 .public-profile-projects li div,
@@ -421,7 +421,7 @@
 .public-profile-projects strong,
 .public-review-list strong {
   overflow: hidden;
-  color: #eee;
+  color: var(--ot-text);
   font-size: 10px;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -429,7 +429,7 @@
 
 .public-profile-projects small,
 .public-review-list small {
-  color: #888;
+  color: var(--ot-muted);
   font-size: 9px;
 }
 
@@ -457,10 +457,10 @@
   gap: 10px;
   min-height: 42px;
   padding: 8px 10px;
-  border: 1px solid rgba(255, 255, 255, .08);
+  border: 1px solid var(--ot-line);
   border-radius: 7px;
   background: rgba(255, 255, 255, .02);
-  color: #ddd;
+  color: var(--ot-text);
   font-size: 11px;
 }
 
@@ -468,7 +468,7 @@
   width: 16px;
   height: 16px;
   margin: 0;
-  accent-color: #ffad33;
+  accent-color: var(--ot-orange);
 }
 
 .contractor-upload-grid {
@@ -510,16 +510,16 @@
   justify-content: center;
   gap: 7px;
   margin-top: 16px;
-  color: #ffc45c;
+  color: var(--ot-orange-text);
 }
 
 .contractor-profile-rating strong {
-  color: #f3f3f3;
+  color: var(--ot-text);
   font-size: 17px;
 }
 
 .contractor-profile-rating small {
-  color: #999;
+  color: var(--ot-muted);
   font-size: 11px;
 }
 
@@ -531,7 +531,7 @@
 
 .contractor-bio {
   margin: 0 0 12px;
-  color: #c4c4c4;
+  color: var(--ot-muted);
   font-size: 13px;
   line-height: 1.65;
   white-space: pre-line;
@@ -540,14 +540,14 @@
 .contractor-reviews {
   grid-column: 1 / -1;
   padding: 18px;
-  border: 1px solid rgba(255, 255, 255, .08);
+  border: 1px solid var(--ot-line);
   border-radius: 8px;
-  background: #191919;
+  background: var(--ot-panel);
 }
 
 .contractor-review {
   padding: 12px 0;
-  border-top: 1px solid rgba(255, 255, 255, .08);
+  border-top: 1px solid var(--ot-line);
 }
 
 .contractor-review > div {
@@ -561,20 +561,20 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  color: #ffc45c;
+  color: var(--ot-orange-text);
   white-space: nowrap;
 }
 
 .contractor-review p {
   margin: 8px 0;
-  color: #c4c4c4;
+  color: var(--ot-muted);
   font-size: 12px;
   line-height: 1.5;
 }
 
 .contractor-review small,
 .contractor-no-reviews {
-  color: #999;
+  color: var(--ot-muted);
   font-size: 12px;
 }
 
@@ -600,8 +600,8 @@
   padding: 6px 10px;
   border: 1px solid rgba(255, 173, 51, .28);
   border-radius: 6px;
-  color: #ffd08a;
-  background: #181818;
+  color: var(--ot-orange-text);
+  background: var(--ot-panel);
   font-size: 12px;
 }
 
@@ -617,28 +617,28 @@
   min-width: 0;
   min-height: 64px;
   padding: 10px 12px;
-  border: 1px solid #383838;
+  border: 1px solid var(--ot-panel-2);
   border-radius: 7px;
-  color: #f3f3f3;
-  background: #101010;
+  color: var(--ot-text);
+  background: var(--ot-bg-2);
   text-align: left;
   cursor: pointer;
   transition: border-color .18s ease, background .18s ease;
 }
 
 .contractor-document-button:hover:not(:disabled) {
-  border-color: #ffad33;
-  background: #191919;
+  border-color: var(--ot-orange);
+  background: var(--ot-panel);
 }
 
 .contractor-document-button:disabled {
-  color: #858585;
+  color: var(--ot-muted);
   cursor: not-allowed;
 }
 
 .contractor-document-button > .material-symbols-outlined {
   flex: 0 0 auto;
-  color: #ffad33;
+  color: var(--ot-orange-text);
   font-size: 20px;
 }
 
@@ -656,7 +656,7 @@
 }
 
 .contractor-document-copy small {
-  color: #aaa;
+  color: var(--ot-muted);
   font-size: 11px;
 }
 
@@ -670,7 +670,7 @@
 
 .market-refresh-status {
   margin: -12px 0 14px;
-  color: #aaa;
+  color: var(--ot-muted);
   font-size: 12px;
 }
 
@@ -685,10 +685,10 @@
   gap: 10px;
   min-height: 52px;
   padding: 10px 12px;
-  border: 1px solid rgba(255, 255, 255, .08);
+  border: 1px solid var(--ot-line);
   border-radius: 8px;
   background: rgba(255, 255, 255, .02);
-  color: #f2f2f2;
+  color: var(--ot-text);
   font-size: 11px;
   cursor: pointer;
   transition: border-color .2s ease, background .2s ease;
@@ -700,7 +700,7 @@
 }
 
 .contractor-file-field .material-symbols-outlined {
-  color: #ffad33;
+  color: var(--ot-orange-text);
   font-size: 18px;
 }
 
@@ -720,7 +720,7 @@
 
 .public-review-list article {
   padding: 11px 0;
-  border-top: 1px solid rgba(255, 255, 255, .05);
+  border-top: 1px solid var(--ot-line);
 }
 
 .public-review-list article>div {
@@ -731,7 +731,7 @@
 
 .public-review-list article p {
   margin: 7px 0;
-  color: #bbb;
+  color: var(--ot-muted);
   font-size: 10px;
   line-height: 1.5;
 }

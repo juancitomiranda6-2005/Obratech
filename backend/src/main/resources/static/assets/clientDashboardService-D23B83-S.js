@@ -1,1 +1,0 @@
-import{a as e}from"./index-CYXl3Sv0.js";var t={getDashboard:()=>e.get(`/dashboard/cliente`),getReports:()=>e.get(`/dashboard/cliente/reportes`),getContractors:()=>e.get(`/dashboard/cliente/contratistas`)};export{t};

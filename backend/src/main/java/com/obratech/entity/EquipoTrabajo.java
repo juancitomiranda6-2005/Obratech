@@ -2,10 +2,12 @@ package com.obratech.entity;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.time.LocalDateTime;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.DBRef;
+import com.obratech.entity.enums.FaseObra;
 
 @Document(collection = "equipos_trabajo")
 public class EquipoTrabajo {
@@ -18,6 +20,10 @@ public class EquipoTrabajo {
     private String actividad;
 
     private Double porcentajeAvance = 0.0; // 0.0 to 100.0
+
+    private FaseObra fase;
+
+    private LocalDateTime avanceActualizadoEn;
 
     @DBRef
     @Indexed
@@ -51,6 +57,22 @@ public class EquipoTrabajo {
 
     public void setActividad(String actividad) {
         this.actividad = actividad;
+    }
+
+    public FaseObra getFase() {
+        return fase;
+    }
+
+    public void setFase(FaseObra fase) {
+        this.fase = fase;
+    }
+
+    public LocalDateTime getAvanceActualizadoEn() {
+        return avanceActualizadoEn;
+    }
+
+    public void setAvanceActualizadoEn(LocalDateTime avanceActualizadoEn) {
+        this.avanceActualizadoEn = avanceActualizadoEn;
     }
 
     public Double getPorcentajeAvance() {

@@ -1,0 +1,124 @@
+{
+  "planHash": "2f46ccd78e8c3098e8bddd7f4d142acb0df7ff59a5bf7ec38e014078c292bb6c",
+  "phase": "standalone",
+  "recordedAtUtc": "2026-10-24T20:27:28.4345431Z",
+  "retryCount": 2,
+  "resetBaseline": false,
+  "complete": true,
+  "result": {
+    "setupSucceeded": true,
+    "setupDurationMs": 0,
+    "setupFailureOutput": null,
+    "assertions": [
+      {
+        "name": "production-build",
+        "kind": "process",
+        "verificationMethod": "exit-code",
+        "passed": false,
+        "timedOut": false,
+        "skipped": false,
+        "skippedReason": null,
+        "exitCode": 1,
+        "outputSample": "\r\n\u003E frontend@0.0.0 build\r\n\u003E vite build\r\n\r\n\u0022vite\u0022 no se reconoce como un comando interno o externo,\r\nprograma o archivo por lotes ejecutable.\r\n",
+        "durationMs": 21013
+      },
+      {
+        "name": "lint",
+        "kind": "process",
+        "verificationMethod": "exit-code",
+        "passed": false,
+        "timedOut": false,
+        "skipped": false,
+        "skippedReason": null,
+        "exitCode": 1,
+        "outputSample": "\r\n\u003E frontend@0.0.0 lint\r\n\u003E oxlint\r\n\r\n\u0022oxlint\u0022 no se reconoce como un comando interno o externo,\r\nprograma o archivo por lotes ejecutable.\r\n",
+        "durationMs": 34073
+      },
+      {
+        "name": "tests-pass",
+        "kind": "process",
+        "verificationMethod": "test-results",
+        "passed": false,
+        "timedOut": false,
+        "skipped": false,
+        "skippedReason": null,
+        "exitCode": 1,
+        "outputSample": "\r\n\u003E frontend@0.0.0 test\r\n\u003E vitest run\r\n\r\n\u0022vitest\u0022 no se reconoce como un comando interno o externo,\r\nprograma o archivo por lotes ejecutable.\r\n",
+        "durationMs": 60799,
+        "testResults": {
+          "testFramework": "vitest",
+          "runnerDetectedFrom": "package_json",
+          "testsTotal": 0,
+          "testsPassed": 0,
+          "testsFailed": 0,
+          "testsSkipped": 0,
+          "parseFailed": true
+        }
+      },
+      {
+        "name": "dev-server-serves-home",
+        "kind": "http-probe",
+        "verificationMethod": "http-status",
+        "passed": false,
+        "timedOut": false,
+        "skipped": false,
+        "skippedReason": null,
+        "exitCode": 1,
+        "outputSample": "server exited before responding (exit=1)\n--- server output ---\n\r\n\u003E frontend@0.0.0 dev\r\n\u003E vite --host 127.0.0.1\r\n\r\n\u0022vite\u0022 no se reconoce como un comando interno o externo,\r\nprograma o archivo por lotes ejecutable.\r\n",
+        "durationMs": 69286
+      }
+    ],
+    "executions": [
+      {
+        "source": "production-build",
+        "resolvedExecutable": "C:\\Program Files\\nodejs\\npm.CMD",
+        "args": [
+          "run",
+          "build"
+        ],
+        "cwd": "C:\\Users\\LENOVO\\Documents\\MI IMFORMACION\\PARTE A\\A\u00B004 - Desarrollo de software\\A4\u00B0001 - Mi proyecto de aula\\A4\u00B00001 - Obratech\\ObraTech-Mejorado\\frontend",
+        "env": {},
+        "prependPath": [],
+        "platform": "win32"
+      },
+      {
+        "source": "lint",
+        "resolvedExecutable": "C:\\Program Files\\nodejs\\npm.CMD",
+        "args": [
+          "run",
+          "lint"
+        ],
+        "cwd": "C:\\Users\\LENOVO\\Documents\\MI IMFORMACION\\PARTE A\\A\u00B004 - Desarrollo de software\\A4\u00B0001 - Mi proyecto de aula\\A4\u00B00001 - Obratech\\ObraTech-Mejorado\\frontend",
+        "env": {},
+        "prependPath": [],
+        "platform": "win32"
+      },
+      {
+        "source": "tests-pass",
+        "resolvedExecutable": "C:\\Program Files\\nodejs\\npm.CMD",
+        "args": [
+          "test"
+        ],
+        "cwd": "C:\\Users\\LENOVO\\Documents\\MI IMFORMACION\\PARTE A\\A\u00B004 - Desarrollo de software\\A4\u00B0001 - Mi proyecto de aula\\A4\u00B00001 - Obratech\\ObraTech-Mejorado\\frontend",
+        "env": {},
+        "prependPath": [],
+        "platform": "win32"
+      },
+      {
+        "source": "dev-server-serves-home",
+        "resolvedExecutable": "C:\\Program Files\\nodejs\\npm.CMD",
+        "args": [
+          "run",
+          "dev",
+          "--",
+          "--host",
+          "127.0.0.1"
+        ],
+        "cwd": "C:\\Users\\LENOVO\\Documents\\MI IMFORMACION\\PARTE A\\A\u00B004 - Desarrollo de software\\A4\u00B0001 - Mi proyecto de aula\\A4\u00B00001 - Obratech\\ObraTech-Mejorado\\frontend",
+        "env": {},
+        "prependPath": [],
+        "platform": "win32"
+      }
+    ]
+  }
+}

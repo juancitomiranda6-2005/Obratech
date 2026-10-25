@@ -24,6 +24,8 @@ import com.obratech.entity.Perfil;
 import com.obratech.entity.Proyecto;
 import com.obratech.entity.enums.EstadoAsignacion;
 import com.obratech.entity.enums.EstadoEjecucion;
+import com.obratech.entity.enums.EstadoFaseObra;
+import com.obratech.entity.enums.FaseObra;
 import com.obratech.repository.EquipoTrabajoRepository;
 import com.obratech.repository.PerfilRepository;
 import com.obratech.repository.ProyectoRepository;
@@ -87,6 +89,7 @@ public class TeamApiController {
                 .map(proyecto -> new ProjectTeamOption(
                         proyecto.getId(),
                         proyecto.getTitulo(),
+                        proyecto.getFaseActual() == null ? FaseObra.PLANEACION.name() : proyecto.getFaseActual().name(),
                         proyecto.getEquipoTrabajo() == null
                                 ? List.of()
                                 : proyecto.getEquipoTrabajo().stream().map(this::toMemberCard).toList()))
@@ -155,11 +158,42 @@ public class TeamApiController {
         equipo.setNombre(request.nombre().trim());
         equipo.setActividad(request.actividad().trim());
         equipo.setPorcentajeAvance(request.porcentajeAvance() == null ? 0.0 : request.porcentajeAvance());
+        FaseObra fase = parsePhase(request.fase());
+        if (!isBlank(request.fase()) && fase == null) {
+            return ResponseEntity.badRequest().body(new ErrorResponse("Selecciona una fase válida."));
+        }
+        equipo.setFase(fase == null ? proyecto.getFaseActual() : fase);
         equipo.setProyecto(proyecto);
         equipo.setIntegrantes(integrantes);
         EquipoTrabajo saved = equipoTrabajoRepository.save(equipo);
         updateProjectProgressState(proyecto);
         return ResponseEntity.status(HttpStatus.CREATED).body(toTeamCard(saved));
+    }
+
+    @PutMapping("/contractor/projects/{projectId}/teams/{teamId}")
+    public ResponseEntity<?> updateContractorTeam(
+            @PathVariable String projectId,
+            @PathVariable String teamId,
+            @RequestBody TeamUpdateRequest request,
+            Authentication authentication) {
+        if (request == null || isBlank(request.nombre()) || isBlank(request.actividad())) {
+            return ResponseEntity.badRequest().body(new ErrorResponse("El nombre y la actividad del equipo son obligatorios."));
+        }
+        FaseObra fase = parsePhase(request.fase());
+        if (fase == null) {
+            return ResponseEntity.badRequest().body(new ErrorResponse("Selecciona una fase válida."));
+        }
+        Perfil contratista = perfilRepository.findByUsernameIgnoreCase(authentication.getName()).orElse(null);
+        Proyecto proyecto = proyectoRepository.findById(projectId).orElse(null);
+        EquipoTrabajo equipo = equipoTrabajoRepository.findById(teamId).orElse(null);
+        if (!ownsProject(contratista, proyecto) || equipo == null || equipo.getProyecto() == null
+                || !projectId.equals(equipo.getProyecto().getId())) {
+            return ResponseEntity.notFound().build();
+        }
+        equipo.setNombre(request.nombre().trim());
+        equipo.setActividad(request.actividad().trim());
+        equipo.setFase(fase);
+        return ResponseEntity.ok(toTeamCard(equipoTrabajoRepository.save(equipo)));
     }
 
     @DeleteMapping("/contractor/projects/{projectId}/teams/{teamId}")
@@ -298,6 +332,7 @@ public class TeamApiController {
         }
 
         equipo.setPorcentajeAvance(request.porcentajeAvance());
+        equipo.setAvanceActualizadoEn(java.time.LocalDateTime.now());
         EquipoTrabajo saved = equipoTrabajoRepository.save(equipo);
         updateProjectProgressState(proyecto);
         return ResponseEntity.ok(toTeamCard(saved));
@@ -312,8 +347,8 @@ public class TeamApiController {
             return;
         }
 
-        boolean allComplete = equipos.stream()
-                .allMatch(equipo -> equipo.getPorcentajeAvance() != null && equipo.getPorcentajeAvance() >= 100.0);
+        boolean allComplete = proyecto.getFaseActual() == FaseObra.DETALLE_Y_ENTREGA_FINAL
+                && proyecto.getEstadoFaseActual() == EstadoFaseObra.APROBADA;
         boolean hasProgress = equipos.stream()
                 .anyMatch(equipo -> equipo.getPorcentajeAvance() != null && equipo.getPorcentajeAvance() > 0.0);
         proyecto.setEstadoEjecucion(allComplete
@@ -337,6 +372,17 @@ public class TeamApiController {
         return value == null || value.isBlank();
     }
 
+    private FaseObra parsePhase(String value) {
+        if (isBlank(value)) {
+            return null;
+        }
+        try {
+            return FaseObra.valueOf(value);
+        } catch (IllegalArgumentException exception) {
+            return null;
+        }
+    }
+
     private TeamCard toTeamCard(EquipoTrabajo equipo) {
         String projectId = equipo.getProyecto() == null ? null : equipo.getProyecto().getId();
         Proyecto proyecto = projectId == null ? null : proyectoRepository.findById(projectId).orElse(null);
@@ -347,6 +393,9 @@ public class TeamApiController {
                 equipo.getId(),
                 equipo.getNombre(),
                 equipo.getActividad(),
+                (equipo.getFase() == null
+                        ? proyecto == null || proyecto.getFaseActual() == null ? FaseObra.PLANEACION : proyecto.getFaseActual()
+                        : equipo.getFase()).name(),
                 equipo.getPorcentajeAvance() == null ? 0.0 : equipo.getPorcentajeAvance(),
                 projectId,
                 proyecto == null ? "Proyecto no disponible" : proyecto.getTitulo(),
@@ -369,14 +418,17 @@ public class TeamApiController {
 
     public record MemberAddRequest(String memberId) {}
 
-    public record TeamCreateRequest(String nombre, String actividad, Double porcentajeAvance, List<String> integrantesIds) {}
+    public record TeamCreateRequest(String nombre, String actividad, Double porcentajeAvance, List<String> integrantesIds, String fase) {}
 
-    public record ProjectTeamOption(String id, String titulo, List<MemberCard> integrantesDisponibles) {}
+    public record TeamUpdateRequest(String nombre, String actividad, String fase) {}
+
+    public record ProjectTeamOption(String id, String titulo, String faseActual, List<MemberCard> integrantesDisponibles) {}
 
     public record TeamCard(
             String id,
             String nombre,
             String actividad,
+            String fase,
             double porcentajeAvance,
             String proyectoId,
             String proyecto,

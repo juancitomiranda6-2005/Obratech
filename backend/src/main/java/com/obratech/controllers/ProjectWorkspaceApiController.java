@@ -29,6 +29,8 @@ import com.obratech.repository.PostulacionRepository;
 import com.obratech.repository.ProyectoRepository;
 import com.obratech.repository.UsuarioRepository;
 import com.obratech.util.PerfilDisplayName;
+import com.obratech.service.ProjectRiskService;
+import com.obratech.service.ProyectoFaseService;
 
 @RestController
 @RequestMapping("/api/projects")
@@ -39,7 +41,9 @@ public class ProjectWorkspaceApiController {
     private final PerfilRepository perfilRepository;
     private final PostulacionRepository postulacionRepository;
     private final EquipoTrabajoRepository equipoTrabajoRepository;
-        private final GridFsTemplate gridFsTemplate;
+    private final GridFsTemplate gridFsTemplate;
+    private final ProjectRiskService projectRiskService;
+    private final ProyectoFaseService proyectoFaseService;
 
     public ProjectWorkspaceApiController(
             ProyectoRepository proyectoRepository,
@@ -47,13 +51,17 @@ public class ProjectWorkspaceApiController {
             PerfilRepository perfilRepository,
             PostulacionRepository postulacionRepository,
             EquipoTrabajoRepository equipoTrabajoRepository,
-            GridFsTemplate gridFsTemplate) {
+            GridFsTemplate gridFsTemplate,
+            ProjectRiskService projectRiskService,
+            ProyectoFaseService proyectoFaseService) {
         this.proyectoRepository = proyectoRepository;
         this.usuarioRepository = usuarioRepository;
         this.perfilRepository = perfilRepository;
         this.postulacionRepository = postulacionRepository;
         this.equipoTrabajoRepository = equipoTrabajoRepository;
         this.gridFsTemplate = gridFsTemplate;
+        this.projectRiskService = projectRiskService;
+        this.proyectoFaseService = proyectoFaseService;
     }
 
     @GetMapping("/{projectId}/workspace")
@@ -76,12 +84,7 @@ public class ProjectWorkspaceApiController {
         }
 
         List<EquipoTrabajo> teams = equipoTrabajoRepository.findByProyectoId(projectId);
-        double progress = teams.stream()
-                .map(EquipoTrabajo::getPorcentajeAvance)
-                .filter(java.util.Objects::nonNull)
-                .mapToDouble(Double::doubleValue)
-                .average()
-                .orElse(0.0);
+        double progress = proyectoFaseService.calcularAvanceObra(project);
         Perfil contractor = project.getContratistaAsignado();
         return ResponseEntity.ok(new ProjectWorkspace(
                 project.getId(), project.getTitulo(), project.getDescripcion(), project.getTipoProyecto(),
@@ -101,7 +104,8 @@ public class ProjectWorkspaceApiController {
                         Boolean.TRUE.equals(contractor.getVerificado())),
                 project.getEquipoTrabajo() == null ? List.of() : project.getEquipoTrabajo().stream()
                         .map(this::toMemberCard).toList(),
-                teams.stream().map(this::toTeamCard).toList()));
+                teams.stream().map(this::toTeamCard).toList(),
+                projectRiskService.calcularIndicadores(project)));
     }
 
         @GetMapping("/{projectId}/document")
@@ -188,7 +192,8 @@ public class ProjectWorkspaceApiController {
             boolean administrador,
             ContractorCard contratista,
             List<MemberCard> poolTrabajadores,
-            List<TeamCard> equipos) {}
+            List<TeamCard> equipos,
+            ProjectRiskService.ProjectIndicators indicadores) {}
 
     public record ContractorCard(String id, String nombre, String especialidad, double calificacionPromedio, boolean verificado) {}
 

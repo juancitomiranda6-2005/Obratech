@@ -3,6 +3,9 @@ import { Link } from 'react-router-dom'
 import { EvidenceAttachment } from '../../components/shared/EvidenceAttachment.jsx'
 import { ProfileAvatar } from '../../components/shared/ProfileAvatar.jsx'
 import { contractorDashboardService } from '../../services/professionalDashboardService.js'
+import { participantProjectsService } from '../../services/participantProjectsService.js'
+import { PhasePanel } from '../../components/PhasePanel.jsx'
+import { ProjectRiskPanel } from '../../components/ProjectRiskPanel.jsx'
 
 async function loadProjectWorkerReports(projects = []) {
   const entries = await Promise.all(projects.map(async (project) => {
@@ -29,6 +32,10 @@ function ContractorDashboard({ onLogout }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
+  const [selectedProjectId, setSelectedProjectId] = useState('')
+  const [selectedPhaseStatus, setSelectedPhaseStatus] = useState(null)
+  const [phaseLoading, setPhaseLoading] = useState(false)
+  const [phaseError, setPhaseError] = useState('')
 
   const reload = async () => {
     setLoading(true)
@@ -40,6 +47,11 @@ function ContractorDashboard({ onLogout }) {
       ])
       setDashboard(dashboardResponse.data)
       setReports(reportsResponse.data)
+      const nextProjectId = dashboardResponse.data.proyectos.some((project) => project.id === selectedProjectId)
+        ? selectedProjectId : dashboardResponse.data.proyectos[0]?.id || ''
+      setSelectedProjectId(nextProjectId)
+      if (!nextProjectId) setSelectedPhaseStatus(null)
+      setPhaseLoading(Boolean(nextProjectId))
       setWorkerReportsByProject(await loadProjectWorkerReports(dashboardResponse.data.proyectos))
     } catch (requestError) {
       setError(requestError.response?.data?.error || 'No se pudo cargar tu resumen de trabajo.')
@@ -56,6 +68,8 @@ function ContractorDashboard({ onLogout }) {
         if (active) {
           setDashboard(dashboardResponse.data)
           setReports(reportsResponse.data)
+          setSelectedProjectId(dashboardResponse.data.proyectos[0]?.id || '')
+          setPhaseLoading(Boolean(dashboardResponse.data.proyectos[0]?.id))
           setWorkerReportsByProject(await loadProjectWorkerReports(dashboardResponse.data.proyectos))
         }
       })
@@ -65,6 +79,20 @@ function ContractorDashboard({ onLogout }) {
       .finally(() => { if (active) setLoading(false) })
     return () => { active = false }
   }, [])
+
+  useEffect(() => {
+    if (!selectedProjectId) {
+      return undefined
+    }
+    let active = true
+    participantProjectsService.getPhaseStatus(selectedProjectId)
+      .then(({ data }) => { if (active) setSelectedPhaseStatus(data) })
+      .catch((requestError) => {
+        if (active) setPhaseError(requestError.response?.data?.error || 'No se pudo cargar el estado de fases.')
+      })
+      .finally(() => { if (active) setPhaseLoading(false) })
+    return () => { active = false }
+  }, [dashboard, selectedProjectId])
 
   const createReport = async (event, projectId) => {
     event.preventDefault()
@@ -163,6 +191,28 @@ function ContractorDashboard({ onLogout }) {
             </section>
 
             <div className="client-lower-grid contractor-lower-grid">
+              <section className="client-project-section contractor-phase-selector">
+                <div className="client-section-heading"><div><p className="client-eyebrow">Seguimiento</p><h2>Fases y riesgo del proyecto</h2></div></div>
+                <label className="contractor-phase-select">
+                  <span>Selecciona un proyecto</span>
+                  <select onChange={(event) => {
+                    setSelectedProjectId(event.target.value)
+                    setSelectedPhaseStatus(null)
+                    setPhaseLoading(Boolean(event.target.value))
+                    setPhaseError('')
+                  }} value={selectedProjectId}>
+                    {dashboard.proyectos.map((project) => <option key={project.id} value={project.id}>{project.titulo}</option>)}
+                  </select>
+                </label>
+                {phaseError && <div className="admin-alert admin-alert-error" role="alert">{phaseError}</div>}
+                {phaseLoading && <p className="admin-loading" role="status">Cargando fases e indicadores…</p>}
+                {!phaseLoading && selectedPhaseStatus && (
+                  <>
+                    <PhasePanel canAdvance={false} phaseStatus={selectedPhaseStatus} />
+                    <ProjectRiskPanel fechaEntrega={selectedPhaseStatus.fechaEntrega} indicators={selectedPhaseStatus.indicadores} />
+                  </>
+                )}
+              </section>
               <section className="client-project-section" id="proyectos">
                 <div className="client-section-heading"><div><p className="client-eyebrow">Trabajo</p><h2>Proyectos asignados</h2></div><span>{dashboard.proyectosEnProgreso} activos</span></div>
                 {dashboard.proyectos.length ? (
@@ -175,6 +225,7 @@ function ContractorDashboard({ onLogout }) {
                         <h3>{project.titulo || 'Proyecto sin título'}</h3>
                         <p>{project.descripcion || 'Sin descripción disponible.'}</p>
                         <div className="client-project-meta"><span><span className="material-symbols-outlined" aria-hidden="true">location_on</span>{project.ubicacion || 'Ubicación pendiente'}</span><span>{project.contratista}</span></div>
+                        <Link className="profile-open-link" to={`/proyectos/asignados/${project.id}`}>Ver fases del proyecto<span className="material-symbols-outlined" aria-hidden="true">arrow_forward</span></Link>
                         <details className="contractor-report-composer">
                           <summary><span className="material-symbols-outlined" aria-hidden="true">edit_note</span>Hacer reporte para el cliente</summary>
                           <form onSubmit={(event) => createReport(event, project.id)}>

@@ -4,6 +4,7 @@ export const teamService = {
   getContractorTeams: (projectId) => api.get('/contractor/teams', { params: projectId ? { projectId } : undefined }),
   getContractorOptions: () => api.get('/contractor/teams/options'),
   createContractorTeam: (projectId, payload) => api.post(`/contractor/projects/${projectId}/teams`, payload),
+  updateContractorTeam: (projectId, teamId, payload) => api.put(`/contractor/projects/${projectId}/teams/${teamId}`, payload),
   deleteContractorTeam: (projectId, teamId) => api.delete(`/contractor/projects/${projectId}/teams/${teamId}`),
   addMemberToTeam: (projectId, teamId, memberId) => api.post(`/contractor/projects/${projectId}/teams/${teamId}/members`, { memberId }),
   removeMemberFromTeam: (projectId, teamId, memberId) => api.delete(`/contractor/projects/${projectId}/teams/${teamId}/members/${memberId}`),

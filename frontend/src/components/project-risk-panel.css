@@ -1,0 +1,140 @@
+.contractor-risk-panel {
+  display: grid;
+  gap: 1rem;
+  padding: 1.1rem;
+  border: 1px solid var(--border-color, #e6e8ec);
+  border-radius: 1rem;
+  background: var(--surface-color, #fff);
+  color: var(--text-color, #20242b);
+}
+
+.contractor-risk-panel.is-compact {
+  margin-top: 0.85rem;
+  padding: 0.9rem;
+  background: var(--surface-secondary, #f8f9fb);
+}
+
+.contractor-risk-header,
+.contractor-risk-factor-heading,
+.contractor-risk-delivery > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.contractor-risk-header h3,
+.contractor-risk-chart h4,
+.contractor-risk-delivery h4 {
+  margin: 0;
+}
+
+.contractor-risk-badge {
+  padding: 0.35rem 0.7rem;
+  border-radius: 99px;
+  white-space: nowrap;
+}
+
+.contractor-risk-badge.risk-low {
+  color: #126b3e;
+  background: #e4f4eb;
+}
+
+.contractor-risk-badge.risk-medium {
+  color: #765707;
+  background: #fff4cd;
+}
+
+.contractor-risk-badge.risk-high {
+  color: #922f2f;
+  background: #fde8e8;
+}
+
+.contractor-risk-badge.risk-unknown {
+  color: #565e68;
+  background: #edf0f3;
+}
+
+.contractor-risk-disclaimer,
+.contractor-risk-coverage,
+.contractor-risk-factor small,
+.contractor-risk-delivery p,
+.contractor-risk-chart-heading p,
+.contractor-risk-empty {
+  margin: 0;
+  color: var(--muted-color, #68707c);
+  font-size: 0.85rem;
+}
+
+.contractor-risk-factors {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.contractor-risk-factor {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.contractor-risk-factor-heading {
+  font-size: 0.85rem;
+}
+
+.contractor-risk-factor-heading span {
+  color: var(--muted-color, #68707c);
+}
+
+.contractor-risk-track {
+  height: 0.4rem;
+  overflow: hidden;
+  border-radius: 99px;
+  background: var(--border-color, #e6e8ec);
+}
+
+.contractor-risk-track span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  transition: width 200ms ease;
+}
+
+.contractor-risk-delivery {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.8rem;
+  border-radius: 0.75rem;
+  background: var(--surface-secondary, #f8f9fb);
+}
+
+.contractor-risk-delivery > div {
+  align-items: flex-start;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  font-size: 0.85rem;
+}
+
+.contractor-risk-chart {
+  display: grid;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.contractor-risk-chart-heading p {
+  margin-top: 0.25rem;
+}
+
+.contractor-risk-panel .recharts-cartesian-grid-horizontal line,
+.contractor-risk-panel .recharts-cartesian-grid-vertical line {
+  stroke: var(--border-color, #e6e8ec);
+}
+
+@media (max-width: 600px) {
+  .contractor-risk-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .contractor-risk-delivery > div {
+    flex-direction: column;
+  }
+}
