@@ -27,6 +27,9 @@ export function RegistroPage() {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
   const strength = passwordStrength(password)
+  const selectedRoleLabels = roles
+    .filter((role) => selectedRoles.includes(role.value))
+    .map((role) => role.label)
 
   const toggleRole = (role) => {
     setSelectedRoles((current) => current.includes(role)
@@ -99,25 +102,35 @@ export function RegistroPage() {
             <span className="strength-label">{strength.label}</span>
           </div>
 
-          <fieldset className="register-role-fieldset">
-            <legend className="field-label">Soy un... (puedes seleccionar varios)</legend>
-            <p aria-live="polite" className="role-selection-status">
-              {selectedRoles.length ? `${selectedRoles.length} perfil${selectedRoles.length > 1 ? 'es' : ''} seleccionado${selectedRoles.length > 1 ? 's' : ''}` : 'Selecciona al menos un perfil'}
-            </p>
-            <div className="register-role-list">
-              {roles.map((role) => {
-                const checked = selectedRoles.includes(role.value)
-                return (
-                  <label className={`register-role-option ${checked ? 'is-selected' : ''}`} key={role.value}>
-                    <input checked={checked} onChange={() => toggleRole(role.value)} type="checkbox" value={role.value} />
-                    <span className="material-symbols-outlined role-option-icon" aria-hidden="true">{role.icon}</span>
-                    <span className="role-option-copy"><strong>{role.label}</strong><small>{role.description}</small></span>
-                    <span className="material-symbols-outlined role-option-check" aria-hidden="true">check</span>
-                  </label>
-                )
-              })}
-            </div>
-          </fieldset>
+          <details className="register-role-picker">
+            <summary className="register-role-picker-toggle">
+              <span className="register-role-picker-copy">
+                <span className="field-label">Soy un... (puedes seleccionar varios)</span>
+                <span aria-live="polite" className="role-selection-status">
+                  {selectedRoles.length
+                    ? selectedRoleLabels.join(', ')
+                    : 'Selecciona al menos un perfil'}
+                </span>
+              </span>
+              <span aria-hidden="true" className="material-symbols-outlined role-picker-chevron">expand_more</span>
+            </summary>
+            <fieldset className="register-role-fieldset">
+              <legend className="sr-only">Perfiles de usuario</legend>
+              <div className="register-role-list">
+                {roles.map((role) => {
+                  const checked = selectedRoles.includes(role.value)
+                  return (
+                    <label className={`register-role-option ${checked ? 'is-selected' : ''}`} key={role.value}>
+                      <input checked={checked} onChange={() => toggleRole(role.value)} type="checkbox" value={role.value} />
+                      <span className="material-symbols-outlined role-option-icon" aria-hidden="true">{role.icon}</span>
+                      <span className="role-option-copy"><strong>{role.label}</strong><small>{role.description}</small></span>
+                      <span className="material-symbols-outlined role-option-check" aria-hidden="true">check</span>
+                    </label>
+                  )
+                })}
+              </div>
+            </fieldset>
+          </details>
 
           <label className="register-terms">
             <input checked={acceptedTerms} onChange={(event) => setAcceptedTerms(event.target.checked)} type="checkbox" />
