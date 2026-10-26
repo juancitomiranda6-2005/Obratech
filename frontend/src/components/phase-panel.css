@@ -2,10 +2,10 @@
   display: grid;
   gap: 1rem;
   padding: clamp(1rem, 2.5vw, 1.5rem);
-  border: 1px solid var(--border-color, #e6e8ec);
-  border-radius: 1.25rem;
-  background: var(--surface-color, #fff);
-  color: var(--text-color, #20242b);
+  border: 1px solid var(--ot-line);
+  border-radius: var(--ot-radius);
+  background: linear-gradient(180deg, var(--ot-panel-2), var(--ot-panel));
+  color: var(--ot-text);
 }
 
 .phase-panel-header {
@@ -17,11 +17,12 @@
 
 .phase-panel-header h2 {
   margin: 0;
+  color: var(--ot-text);
 }
 
 .phase-panel-header p:last-child {
   margin: 0.35rem 0 0;
-  color: var(--muted-color, #68707c);
+  color: var(--ot-muted);
 }
 
 .phase-panel-overall {
@@ -36,11 +37,12 @@
 }
 
 .phase-segment,
-.phase-panel-card {
+.phase-panel-card,
+.phase-progress-chart {
   padding: 1rem;
-  border: 1px solid var(--border-color, #e6e8ec);
-  border-radius: 0.9rem;
-  background: var(--surface-secondary, #f8f9fb);
+  border: 1px solid var(--ot-line);
+  border-radius: 12px;
+  background: var(--ot-panel-2);
 }
 
 .phase-segment-heading {
@@ -50,12 +52,24 @@
   font-size: 0.875rem;
 }
 
+.phase-segment-heading strong,
+.phase-panel-card h3,
+.phase-progress-chart h3 {
+  color: var(--ot-text);
+}
+
+.phase-segment-heading span {
+  flex: 0 0 auto;
+  color: var(--ot-orange-text);
+  font-weight: 700;
+}
+
 .phase-segment-track {
   height: 0.55rem;
   margin: 0.7rem 0 0.4rem;
   overflow: hidden;
   border-radius: 99px;
-  background: #e7e9ed;
+  background: color-mix(in srgb, var(--ot-muted) 20%, transparent);
 }
 
 .phase-segment-track span {
@@ -71,7 +85,46 @@
 .phase-installments small {
   display: block;
   margin-top: 0.3rem;
-  color: var(--muted-color, #68707c);
+  color: var(--ot-muted);
+}
+
+.phase-progress-chart {
+  min-width: 0;
+}
+
+.phase-progress-chart-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.25rem;
+}
+
+.phase-progress-chart-heading h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.phase-progress-chart-heading p {
+  margin: 0.3rem 0 0;
+  color: var(--ot-muted);
+  font-size: 0.85rem;
+}
+
+.phase-progress-chart-legend {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--ot-muted);
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.phase-progress-chart-legend span {
+  width: 0.65rem;
+  height: 0.65rem;
+  border-radius: 50%;
+  background: var(--ot-orange-2);
 }
 
 .phase-panel-grid {
@@ -104,14 +157,14 @@
 .phase-payment-list li + li,
 .phase-installments li + li {
   padding-top: 0.65rem;
-  border-top: 1px solid var(--border-color, #e6e8ec);
+  border-top: 1px solid var(--ot-line);
 }
 
 .phase-requirement {
   display: flex;
   align-items: center;
   gap: 0.55rem;
-  color: var(--muted-color, #68707c);
+  color: var(--ot-muted);
 }
 
 .phase-requirement .material-symbols-outlined {
@@ -119,13 +172,13 @@
 }
 
 .phase-requirement.is-complete {
-  color: #13834a;
+  color: #36bd78;
 }
 
 .phase-evidence-hint,
 .phase-actions p {
   margin: 0.75rem 0 0;
-  color: var(--muted-color, #68707c);
+  color: var(--ot-muted);
   font-size: 0.875rem;
 }
 
@@ -152,13 +205,13 @@
   display: grid;
   gap: 0.5rem;
   padding: 1rem;
-  border: 1px dashed var(--border-color, #e6e8ec);
+  border: 1px dashed var(--ot-line);
   border-radius: 0.9rem;
 }
 
 .phase-requirement-actions p {
   margin: 0;
-  color: var(--muted-color, #68707c);
+  color: var(--ot-muted);
 }
 
 .contractor-phase-selector {
@@ -170,16 +223,16 @@
   gap: 0.4rem;
   max-width: 32rem;
   margin-bottom: 1rem;
-  color: var(--muted-color, #68707c);
+  color: var(--ot-muted);
 }
 
 .contractor-phase-select select {
   min-height: 2.7rem;
   padding: 0.5rem 0.75rem;
-  border: 1px solid var(--border-color, #e6e8ec);
-  border-radius: 0.6rem;
-  background: var(--surface-color, #fff);
-  color: var(--text-color, #20242b);
+  border: 1px solid var(--ot-line);
+  border-radius: 10px;
+  background: var(--ot-panel);
+  color: var(--ot-text);
 }
 
 .project-assigned-actions {
@@ -197,5 +250,10 @@
 
   .phase-panel-header {
     align-items: flex-start;
+  }
+
+  .phase-progress-chart-heading {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }

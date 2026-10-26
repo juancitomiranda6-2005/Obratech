@@ -33,9 +33,14 @@ function ContractorDashboard({ onLogout }) {
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
   const [selectedProjectId, setSelectedProjectId] = useState('')
+  const [reportsShowAll, setReportsShowAll] = useState(false)
   const [selectedPhaseStatus, setSelectedPhaseStatus] = useState(null)
   const [phaseLoading, setPhaseLoading] = useState(false)
   const [phaseError, setPhaseError] = useState('')
+  const selectedProject = dashboard?.proyectos.find((project) => project.id === selectedProjectId)
+  const visibleReports = reportsShowAll
+    ? reports
+    : reports.filter((report) => report.proyectoId === selectedProjectId)
 
   const reload = async () => {
     setLoading(true)
@@ -190,29 +195,7 @@ function ContractorDashboard({ onLogout }) {
               <ContractorStat icon="task_alt" label="Proyectos completados" value={dashboard.proyectosCompletados} tone="green" />
             </section>
 
-            <div className="client-lower-grid contractor-lower-grid">
-              <section className="client-project-section contractor-phase-selector">
-                <div className="client-section-heading"><div><p className="client-eyebrow">Seguimiento</p><h2>Fases y riesgo del proyecto</h2></div></div>
-                <label className="contractor-phase-select">
-                  <span>Selecciona un proyecto</span>
-                  <select onChange={(event) => {
-                    setSelectedProjectId(event.target.value)
-                    setSelectedPhaseStatus(null)
-                    setPhaseLoading(Boolean(event.target.value))
-                    setPhaseError('')
-                  }} value={selectedProjectId}>
-                    {dashboard.proyectos.map((project) => <option key={project.id} value={project.id}>{project.titulo}</option>)}
-                  </select>
-                </label>
-                {phaseError && <div className="admin-alert admin-alert-error" role="alert">{phaseError}</div>}
-                {phaseLoading && <p className="admin-loading" role="status">Cargando fases e indicadores…</p>}
-                {!phaseLoading && selectedPhaseStatus && (
-                  <>
-                    <PhasePanel canAdvance={false} phaseStatus={selectedPhaseStatus} />
-                    <ProjectRiskPanel fechaEntrega={selectedPhaseStatus.fechaEntrega} indicators={selectedPhaseStatus.indicadores} />
-                  </>
-                )}
-              </section>
+            <div className="client-lower-grid contractor-project-profile-grid">
               <section className="client-project-section" id="proyectos">
                 <div className="client-section-heading"><div><p className="client-eyebrow">Trabajo</p><h2>Proyectos asignados</h2></div><span>{dashboard.proyectosEnProgreso} activos</span></div>
                 {dashboard.proyectos.length ? (
@@ -265,9 +248,126 @@ function ContractorDashboard({ onLogout }) {
               </section>
             </div>
 
+            <section aria-label="Seguimiento del proyecto" className="contractor-follow-up">
+              <header className="contractor-follow-up-sticky">
+                <div className="client-section-heading">
+                  <div>
+                    <p className="client-eyebrow">Fases y riesgo del proyecto</p>
+                    <h2>{selectedProject ? `Seguimiento de: ${selectedProject.titulo || 'Proyecto sin título'}` : 'Seguimiento del proyecto'}</h2>
+                  </div>
+                  <label className="contractor-phase-select">
+                    <span>Selecciona un proyecto</span>
+                    <select
+                      disabled={!dashboard.proyectos.length}
+                      onChange={(event) => {
+                        setSelectedProjectId(event.target.value)
+                        setReportsShowAll(false)
+                        setSelectedPhaseStatus(null)
+                        setPhaseLoading(Boolean(event.target.value))
+                        setPhaseError('')
+                      }}
+                      value={selectedProjectId}
+                    >
+                      {!dashboard.proyectos.length && <option value="">Sin proyectos asignados</option>}
+                      {dashboard.proyectos.map((project) => <option key={project.id} value={project.id}>{project.titulo}</option>)}
+                    </select>
+                  </label>
+                </div>
+              </header>
+
+              {phaseError && <div className="admin-alert admin-alert-error" role="alert">{phaseError}</div>}
+              {phaseLoading && <p className="admin-loading" role="status">Cargando fases e indicadores…</p>}
+              {!selectedProjectId && !phaseLoading && <p className="contractor-follow-up-empty">No tienes proyectos asignados para mostrar el seguimiento.</p>}
+              {!phaseLoading && selectedPhaseStatus && (
+                <>
+                  <div className="contractor-follow-up-summary">
+                    <div className="contractor-follow-up-summary-primary">
+                      <PhasePanel phaseStatus={selectedPhaseStatus} sections={['summary']} />
+                      {selectedPhaseStatus.indicadores && (
+                        <div className="contractor-follow-up-delivery">
+                          <ProjectRiskPanel
+                            fechaEntrega={selectedPhaseStatus.fechaEntrega}
+                            indicators={selectedPhaseStatus.indicadores}
+                            sections={['delivery']}
+                          />
+                        </div>
+                      )}
+                    </div>
+                    <ProjectRiskPanel
+                      fechaEntrega={selectedPhaseStatus.fechaEntrega}
+                      indicators={selectedPhaseStatus.indicadores}
+                      sections={['summary']}
+                    />
+                  </div>
+
+                  <PhasePanel phaseStatus={selectedPhaseStatus} sections={['phases']} />
+
+                  {selectedPhaseStatus.indicadores && (
+                    <ProjectRiskPanel
+                      fechaEntrega={selectedPhaseStatus.fechaEntrega}
+                      indicators={selectedPhaseStatus.indicadores}
+                      sections={['factors']}
+                    />
+                  )}
+
+                  <div aria-label="Evidencias del riesgo" className="contractor-risk-evidence">
+                    <details>
+                      <summary><strong>Pagos y aprobaciones</strong><span>Ver detalle</span></summary>
+                      <PhasePanel phaseStatus={selectedPhaseStatus} sections={['payments']} />
+                    </details>
+                    {selectedPhaseStatus.indicadores && (
+                      <>
+                        <details>
+                          <summary><strong>Clima</strong><span>Ver detalle</span></summary>
+                          <ProjectRiskPanel
+                            fechaEntrega={selectedPhaseStatus.fechaEntrega}
+                            indicators={selectedPhaseStatus.indicadores}
+                            sections={['weather']}
+                          />
+                        </details>
+                        <details>
+                          <summary><strong>Equipos</strong><span>Ver detalle</span></summary>
+                          <ProjectRiskPanel
+                            fechaEntrega={selectedPhaseStatus.fechaEntrega}
+                            indicators={selectedPhaseStatus.indicadores}
+                            sections={['teams']}
+                          />
+                        </details>
+                      </>
+                    )}
+                  </div>
+                </>
+              )}
+            </section>
+
             <section aria-label="Historial de informes" className="contractor-reports-section" id="informes">
-              <div className="client-section-heading"><div><p className="client-eyebrow">Seguimiento</p><h2>Informes enviados</h2></div><span>{reports.length} informes</span></div>
-              {reports.length ? <div className="contractor-report-list">{reports.map((report) => (
+              <div className="client-section-heading">
+                <div><p className="client-eyebrow">Seguimiento</p><h2>Informes enviados</h2></div>
+                <label className="contractor-report-filter">
+                  <span>Proyecto</span>
+                  <select
+                    aria-label="Filtrar informes por proyecto"
+                    onChange={(event) => {
+                      if (event.target.value === 'all') {
+                        setReportsShowAll(true)
+                      } else {
+                        setReportsShowAll(false)
+                        setSelectedProjectId(event.target.value)
+                        setSelectedPhaseStatus(null)
+                        setPhaseLoading(Boolean(event.target.value))
+                        setPhaseError('')
+                      }
+                    }}
+                    value={reportsShowAll ? 'all' : selectedProjectId}
+                  >
+                    {!dashboard.proyectos.length && <option value="">Sin proyectos asignados</option>}
+                    {dashboard.proyectos.map((project) => <option key={project.id} value={project.id}>{project.titulo}</option>)}
+                    <option value="all">Ver todos</option>
+                  </select>
+                </label>
+                <span>{visibleReports.length} informes</span>
+              </div>
+              {visibleReports.length ? <div className="contractor-report-list">{visibleReports.map((report) => (
                 <article className="contractor-report-item" key={report.id}>
                   <div><strong>{report.proyecto || 'Proyecto'}</strong><time dateTime={report.creado}>{report.creado ? new Intl.DateTimeFormat('es-CO', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(report.creado)) : 'Fecha no disponible'}</time>
                     {report.proyectoDisponible !== false ? <button aria-label="Editar informe enviado al cliente" className="report-edit-button" onClick={() => { setEditingReportId(report.id); setEditingReportContent(report.contenido) }} title="Editar informe" type="button"><span className="material-symbols-outlined" aria-hidden="true">edit</span></button> : <span className="report-project-unavailable">Proyecto eliminado · solo lectura</span>}

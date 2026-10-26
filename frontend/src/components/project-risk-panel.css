@@ -2,16 +2,16 @@
   display: grid;
   gap: 1rem;
   padding: 1.1rem;
-  border: 1px solid var(--border-color, #e6e8ec);
-  border-radius: 1rem;
-  background: var(--surface-color, #fff);
-  color: var(--text-color, #20242b);
+  border: 1px solid var(--ot-line);
+  border-radius: var(--ot-radius);
+  background: linear-gradient(180deg, var(--ot-panel-2), var(--ot-panel));
+  color: var(--ot-text);
 }
 
 .contractor-risk-panel.is-compact {
   margin-top: 0.85rem;
   padding: 0.9rem;
-  background: var(--surface-secondary, #f8f9fb);
+  background: var(--ot-panel-2);
 }
 
 .contractor-risk-header,
@@ -25,8 +25,10 @@
 
 .contractor-risk-header h3,
 .contractor-risk-chart h4,
-.contractor-risk-delivery h4 {
+.contractor-risk-delivery h4,
+.contractor-risk-actions h4 {
   margin: 0;
+  color: var(--ot-text);
 }
 
 .contractor-risk-badge {
@@ -51,44 +53,111 @@
 }
 
 .contractor-risk-badge.risk-unknown {
-  color: #565e68;
-  background: #edf0f3;
+  color: var(--ot-text);
+  border: 1px solid var(--ot-line);
+  background: var(--ot-panel-2);
 }
 
-.contractor-risk-disclaimer,
-.contractor-risk-coverage,
-.contractor-risk-factor small,
+.contractor-risk-summary {
+  margin: 0;
+  color: var(--ot-text);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.55;
+}
+
+.contractor-risk-method {
+  margin: -0.45rem 0 0;
+  color: var(--ot-muted);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
 .contractor-risk-delivery p,
 .contractor-risk-chart-heading p,
 .contractor-risk-empty {
   margin: 0;
-  color: var(--muted-color, #68707c);
+  color: var(--ot-muted);
   font-size: 0.85rem;
+}
+
+.contractor-risk-factor-chart {
+  padding: 0.9rem;
+  border: 1px solid var(--ot-line);
+  border-radius: 0.85rem;
+  background: color-mix(in srgb, var(--ot-panel-2) 72%, transparent);
 }
 
 .contractor-risk-factors {
   display: grid;
-  gap: 0.75rem;
+  gap: 0.9rem;
 }
 
 .contractor-risk-factor {
   display: grid;
-  gap: 0.25rem;
+  min-width: 0;
+  gap: 0.45rem;
 }
 
 .contractor-risk-factor-heading {
-  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
 }
 
-.contractor-risk-factor-heading span {
-  color: var(--muted-color, #68707c);
+.contractor-risk-factor-heading h5 {
+  margin: 0;
+  color: var(--ot-text);
+  font-size: 0.9rem;
+}
+
+.contractor-risk-factor-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 0 0 auto;
+}
+
+.contractor-risk-factor-meta > strong {
+  min-width: 2.7rem;
+  color: var(--ot-text);
+  font-size: 0.82rem;
+  text-align: right;
+}
+
+.contractor-risk-factor-level {
+  padding: 0.2rem 0.55rem;
+  border: 1px solid transparent;
+  border-radius: 99px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.contractor-risk-factor-level.risk-low {
+  color: #a9f1c8;
+  border-color: rgba(54, 189, 120, .45);
+  background: rgba(54, 189, 120, .14);
+}
+
+.contractor-risk-factor-level.risk-medium {
+  color: #ffe39a;
+  border-color: rgba(234, 180, 63, .45);
+  background: rgba(234, 180, 63, .14);
+}
+
+.contractor-risk-factor-level.risk-high {
+  color: #ffc0c0;
+  border-color: rgba(239, 98, 98, .45);
+  background: rgba(239, 98, 98, .14);
 }
 
 .contractor-risk-track {
-  height: 0.4rem;
+  height: 0.55rem;
   overflow: hidden;
   border-radius: 99px;
-  background: var(--border-color, #e6e8ec);
+  background: color-mix(in srgb, var(--ot-muted) 22%, transparent);
 }
 
 .contractor-risk-track span {
@@ -98,12 +167,122 @@
   transition: width 200ms ease;
 }
 
+.contractor-risk-track .risk-fill-low {
+  background: #36bd78;
+}
+
+.contractor-risk-track .risk-fill-medium {
+  background: #eab43f;
+}
+
+.contractor-risk-track .risk-fill-high {
+  background: #ef6262;
+}
+
+.contractor-risk-factor > p {
+  margin: 0;
+  color: var(--ot-muted);
+  font-size: 0.85rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.contractor-risk-actions {
+  display: grid;
+  gap: 0.65rem;
+  padding: 0.9rem;
+  border: 1px solid var(--ot-line);
+  border-left: 3px solid var(--ot-orange);
+  border-radius: 0.85rem;
+  background: var(--ot-panel-2);
+}
+
+.contractor-risk-actions ul {
+  display: grid;
+  gap: 0.55rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.contractor-risk-actions li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  color: var(--ot-text);
+  font-size: 0.85rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.contractor-risk-actions li .material-symbols-outlined {
+  flex: 0 0 auto;
+  color: var(--ot-orange-text);
+  font-size: 1.1rem;
+}
+
+.contractor-risk-actions > p {
+  margin: 0;
+  color: var(--ot-muted);
+  font-size: 0.85rem;
+}
+
+.contractor-risk-chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  margin: 0;
+  color: var(--ot-muted);
+  font-size: 0.75rem;
+}
+
+.contractor-risk-chart-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.contractor-risk-chart-legend i {
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 50%;
+}
+
+.contractor-risk-footnote {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.4rem 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--ot-line);
+}
+
+.contractor-risk-footnote p {
+  margin: 0;
+  color: var(--ot-muted);
+  font-size: 0.72rem;
+  line-height: 1.45;
+}
+
+.risk-legend-low {
+  background: #36bd78;
+}
+
+.risk-legend-medium {
+  background: #eab43f;
+}
+
+.risk-legend-high {
+  background: #ef6262;
+}
+
 .contractor-risk-delivery {
   display: grid;
   gap: 0.5rem;
   padding: 0.8rem;
   border-radius: 0.75rem;
-  background: var(--surface-secondary, #f8f9fb);
+  border: 1px solid var(--ot-line);
+  background: var(--ot-panel-2);
 }
 
 .contractor-risk-delivery > div {
@@ -125,7 +304,7 @@
 
 .contractor-risk-panel .recharts-cartesian-grid-horizontal line,
 .contractor-risk-panel .recharts-cartesian-grid-vertical line {
-  stroke: var(--border-color, #e6e8ec);
+  stroke: var(--ot-line);
 }
 
 @media (max-width: 600px) {

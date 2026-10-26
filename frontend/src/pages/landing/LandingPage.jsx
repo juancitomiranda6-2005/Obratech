@@ -125,7 +125,7 @@ export function LandingPage() {
               <span className="landing-preview-status"><span /> Proyecto de ejemplo</span>
             </div>
             <div className="landing-preview-heading">
-              <div><span className="landing-preview-label">PANEL DEL PROYECTO</span><strong>Construcción residencial</strong></div>
+              <div><span className="landing-preview-label">PANEL DEL PROYECTO</span><strong>Construcción Residencial </strong></div>
               <span className="material-symbols-outlined" aria-hidden="true">more_horiz</span>
             </div>
             <div className="landing-preview-progress">

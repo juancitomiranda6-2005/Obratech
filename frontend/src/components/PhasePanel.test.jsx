@@ -40,6 +40,8 @@ describe('PhasePanel', () => {
     expect(html).toContain('Planeación')
     expect(html).toContain('Desarrollo')
     expect(html).toContain('Detalles y entrega')
+    expect(html).toContain('Gráfica de avance por fase')
+    expect(html).toContain('Avance real por fase')
     expect(html).toContain('por semana durante 3 semanas')
     expect(html).toContain('Pago único')
     expect(html).not.toContain('Avanzar a la siguiente fase')

@@ -1,15 +1,31 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { EvidenceAttachment } from '../../components/shared/EvidenceAttachment.jsx'
 import { ProfileAvatar } from '../../components/shared/ProfileAvatar.jsx'
 import { teamService } from '../../services/teamService.js'
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts'
+import {
+  getTeamDashboardMetrics,
+  getTeamDashboardWarnings,
+  TEAM_PHASES,
+} from './teamDashboardMetrics.js'
 
 const contractor = 'ROLE_CONTRACTOR'
-const phaseOptions = [
-  { value: 'PLANEACION', label: 'Fase 1 · Planeación' },
-  { value: 'DESARROLLO', label: 'Fase 2 · Desarrollo' },
-  { value: 'DETALLE_Y_ENTREGA_FINAL', label: 'Fase 3 · Detalles y entrega' },
-]
+const phaseOptions = TEAM_PHASES.map((phase, index) => ({
+  ...phase,
+  label: `Fase ${index + 1} · ${phase.label}`,
+}))
 
 function phaseName(phase) {
   return phaseOptions.find((option) => option.value === phase)?.label || 'Fase no definida'
@@ -36,6 +52,7 @@ function TeamCard({
   workerReports = [],
   reportsAnchor = false,
   currentTime,
+  daysSinceActivity,
   onDelete,
   onAddMember,
   onRemoveMember,
@@ -95,7 +112,7 @@ function TeamCard({
   }
 
   return (
-    <article className="team-card">
+    <article className="team-card" id={`team-card-${team.id}`} tabIndex={isContractor ? -1 : undefined}>
       {/* Identificacion de la cuadrilla y porcentaje de avance */}
       <header className="team-card-header">
         <div>
@@ -111,6 +128,14 @@ function TeamCard({
       <div aria-label={`Avance ${Math.round(team.porcentajeAvance)} por ciento`} className="team-progress-track">
         <span style={{ width: `${Math.max(0, Math.min(100, team.porcentajeAvance))}%` }} />
       </div>
+      {isContractor && (
+        <p className={`team-last-activity ${daysSinceActivity > 7 ? 'is-stale' : ''}`}>
+          <span className="material-symbols-outlined" aria-hidden="true">schedule</span>
+          {daysSinceActivity == null
+            ? 'Sin actividad registrada'
+            : `Última actividad: hace ${daysSinceActivity} ${daysSinceActivity === 1 ? 'día' : 'días'}`}
+        </p>
+      )}
 
       {isWorker && !team.proyectoDisponible && <p className="team-project-unavailable" role="status">Proyecto no disponible. Puedes consultar el historial, pero ya no enviar avances.</p>}
 
@@ -385,14 +410,22 @@ function TeamCard({
 export function EquiposPage({ role, onLogout, projectId: initialProjectId = '' }) {
   const location = useLocation()
   const isContractor = role === contractor
+  const createFormRef = useRef(null)
+  const scrollToCreateForm = useRef(false)
+  const [createFormScrollRequest, setCreateFormScrollRequest] = useState(0)
   // Hora actualizada periodicamente para habilitar o bloquear la edicion de informes.
   const [currentTime, setCurrentTime] = useState(0)
   // Equipos que llegaron de la API; si la ruta trae proyecto, pertenecen solo a ese proyecto.
   const [teams, setTeams] = useState([])
   // Informes agrupados por ID de equipo para mostrarlos en la tarjeta correcta.
   const [workerReportsByTeam, setWorkerReportsByTeam] = useState({})
+  const [projectReports, setProjectReports] = useState([])
+  const [activityError, setActivityError] = useState('')
   // Opciones de proyecto e integrantes que el contratista puede asignar.
   const [projects, setProjects] = useState([])
+  // Proyecto cuyos equipos se muestran en la lista.
+  const [selectedProjectId, setSelectedProjectId] = useState(initialProjectId)
+  const teamRequestId = useRef(0)
   // ID del proyecto seleccionado en el formulario para crear una cuadrilla.
   const [projectId, setProjectId] = useState(initialProjectId)
   // Texto del campo de nombre de la nueva cuadrilla.
@@ -414,25 +447,37 @@ export function EquiposPage({ role, onLogout, projectId: initialProjectId = '' }
   const [notice, setNotice] = useState('')
   // Equipo que se mostrara en el dialogo antes de confirmar su eliminacion.
   const [teamToDelete, setTeamToDelete] = useState(null)
+  const [createPanelOpen, setCreatePanelOpen] = useState(false)
 
   // Consulta los equipos (y opciones del contratista) y actualiza el estado de la pagina.
   // Si se abrio desde un proyecto, envia ese ID para que el backend no mezcle cuadrillas.
-  const loadData = async (showLoading = true) => {
+  const loadData = async (showLoading = true, projectFilterId = selectedProjectId) => {
     if (showLoading) setLoading(true)
     setError('')
     try {
       if (isContractor) {
-        const [teamResponse, projectResponse] = await Promise.all([
-          teamService.getContractorTeams(initialProjectId || undefined),
-          teamService.getContractorOptions(),
-        ])
+        const { data: projectOptions } = await teamService.getContractorOptions()
+        const selected = projectOptions.find((project) => project.id === projectFilterId)
+          || projectOptions.find((project) => project.id === initialProjectId)
+          || projectOptions[0]
+        const teamResponse = selected
+          ? await teamService.getContractorTeams(selected.id)
+          : { data: [] }
         setTeams(teamResponse.data)
-        setProjects(projectResponse.data)
-        const selected = projectResponse.data.find((project) => project.id === projectId)
-          || projectResponse.data.find((project) => project.id === initialProjectId)
-          || projectResponse.data[0]
+        setProjects(projectOptions)
+        setSelectedProjectId(selected?.id || '')
         setProjectId(selected?.id || '')
         setTeamPhase(selected?.faseActual || 'PLANEACION')
+        setProjectReports([])
+        setActivityError('')
+        if (selected) {
+          try {
+            const { data: reports } = await teamService.getProjectProgressReports(selected.id)
+            setProjectReports(reports)
+          } catch (reportsError) {
+            setActivityError(reportsError.response?.data?.error || 'No se pudo cargar la actividad reciente de los equipos.')
+          }
+        }
       } else {
         const { data } = await teamService.getWorkerTeams(initialProjectId || undefined)
         setTeams(data)
@@ -455,19 +500,33 @@ export function EquiposPage({ role, onLogout, projectId: initialProjectId = '' }
     document.title = isContractor ? 'Equipos de trabajo | ObraTech' : 'Mi equipo de trabajo | ObraTech'
     let active = true
     const load = async () => {
+      const requestId = ++teamRequestId.current
       try {
         if (isContractor) {
-          const [teamResponse, projectResponse] = await Promise.all([
-            teamService.getContractorTeams(initialProjectId || undefined),
-            teamService.getContractorOptions(),
-          ])
-          if (active) {
-            setTeams(teamResponse.data)
-            setProjects(projectResponse.data)
-            const selected = projectResponse.data.find((project) => project.id === initialProjectId)
-              || projectResponse.data[0]
+          const { data: projectOptions } = await teamService.getContractorOptions()
+          const selected = projectOptions.find((project) => project.id === initialProjectId)
+            || projectOptions[0]
+          const teamResponse = selected
+            ? await teamService.getContractorTeams(selected.id)
+            : { data: [] }
+          if (active && requestId === teamRequestId.current) {
+            setTeams(teamResponse.data.filter((team) => team.proyectoId === selected?.id))
+            setProjects(projectOptions)
+            setSelectedProjectId(selected?.id || '')
             setProjectId(selected?.id || '')
             setTeamPhase(selected?.faseActual || 'PLANEACION')
+            setProjectReports([])
+            setActivityError('')
+          }
+          if (selected) {
+            try {
+              const { data: reports } = await teamService.getProjectProgressReports(selected.id)
+              if (active && requestId === teamRequestId.current) setProjectReports(reports)
+            } catch (reportsError) {
+              if (active && requestId === teamRequestId.current) {
+                setActivityError(reportsError.response?.data?.error || 'No se pudo cargar la actividad reciente de los equipos.')
+              }
+            }
           }
         } else {
           const { data } = await teamService.getWorkerTeams(initialProjectId || undefined)
@@ -475,15 +534,15 @@ export function EquiposPage({ role, onLogout, projectId: initialProjectId = '' }
             const response = await teamService.getWorkerReports(team.id)
             return [team.id, response.data]
           }))
-          if (active) {
+          if (active && requestId === teamRequestId.current) {
             setTeams(data)
             setWorkerReportsByTeam(Object.fromEntries(reports))
           }
         }
       } catch (requestError) {
-        if (active) setError(requestError.response?.data?.error || 'No se pudieron cargar los equipos de trabajo.')
+        if (active && requestId === teamRequestId.current) setError(requestError.response?.data?.error || 'No se pudieron cargar los equipos de trabajo.')
       } finally {
-        if (active) setLoading(false)
+        if (active && requestId === teamRequestId.current) setLoading(false)
       }
     }
     load()
@@ -662,11 +721,62 @@ export function EquiposPage({ role, onLogout, projectId: initialProjectId = '' }
     }
   }
 
-  const hasCreatableProject = projects.some((project) => project.integrantesDisponibles.length > 0)
-  // Segundo filtro de seguridad visual: una ruta con proyecto nunca muestra otras cuadrillas.
-  const visibleTeams = initialProjectId
-    ? teams.filter((team) => team.proyectoId === initialProjectId)
-    : teams
+  const visibleTeams = isContractor
+    ? teams.filter((team) => team.proyectoId === selectedProjectId)
+    : initialProjectId
+      ? teams.filter((team) => team.proyectoId === initialProjectId)
+      : teams
+  const dashboardMetrics = getTeamDashboardMetrics(visibleTeams, selectedProject, projectReports)
+  const hasCreatableProject = dashboardMetrics.unassignedWorkerCount > 0
+  const createFormVisible = createPanelOpen || (!loading && Boolean(selectedProjectId) && visibleTeams.length === 0)
+  const dashboardWarnings = getTeamDashboardWarnings(dashboardMetrics)
+
+  useEffect(() => {
+    if (!scrollToCreateForm.current || !createFormVisible) return
+    createFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    createFormRef.current?.querySelector('input:not([type="checkbox"])')?.focus({ preventScroll: true })
+    scrollToCreateForm.current = false
+  }, [createFormVisible, createFormScrollRequest])
+
+  const openCreateForm = (phase = teamPhase) => {
+    setTeamPhase(phase)
+    setCreatePanelOpen(true)
+    scrollToCreateForm.current = true
+    setCreateFormScrollRequest((current) => current + 1)
+  }
+
+  const selectProjectForTeams = async (nextProjectId) => {
+    const requestId = ++teamRequestId.current
+    setSelectedProjectId(nextProjectId)
+    setProjectId(nextProjectId)
+    setMemberIds([])
+    setTeamPhase(projects.find((project) => project.id === nextProjectId)?.faseActual || 'PLANEACION')
+    setTeams([])
+    setProjectReports([])
+    setActivityError('')
+    setLoading(true)
+    setError('')
+    try {
+      const { data } = await teamService.getContractorTeams(nextProjectId)
+      if (requestId === teamRequestId.current) {
+        setTeams(data.filter((team) => team.proyectoId === nextProjectId))
+        try {
+          const { data: reports } = await teamService.getProjectProgressReports(nextProjectId)
+          if (requestId === teamRequestId.current) setProjectReports(reports)
+        } catch (reportsError) {
+          if (requestId === teamRequestId.current) {
+            setActivityError(reportsError.response?.data?.error || 'No se pudo cargar la actividad reciente de los equipos.')
+          }
+        }
+      }
+    } catch (requestError) {
+      if (requestId === teamRequestId.current) {
+        setError(requestError.response?.data?.error || 'No se pudieron cargar los equipos de este proyecto.')
+      }
+    } finally {
+      if (requestId === teamRequestId.current) setLoading(false)
+    }
+  }
 
   // Mapa de miembros asignados a equipos por proyecto
   const assignedByProject = {}
@@ -704,76 +814,275 @@ export function EquiposPage({ role, onLogout, projectId: initialProjectId = '' }
         {notice && <div className="admin-alert admin-alert-success" role="status">{notice}</div>}
         {error && <div className="admin-alert admin-alert-error" role="alert">{error}</div>}
 
-        {isContractor && hasCreatableProject && (
-          /* Formulario para crear una cuadrilla dentro del proyecto seleccionado */
-          <form className="team-create-panel" onSubmit={createTeam}>
-            <div><p className="client-eyebrow">Nueva cuadrilla</p><h2>Crear equipo</h2></div>
-            <div className="team-create-fields">
-              <label><span>Proyecto</span><select onChange={(event) => { setProjectId(event.target.value); setMemberIds([]); setTeamPhase(projects.find((project) => project.id === event.target.value)?.faseActual || 'PLANEACION') }} required value={projectId}>{projects.filter((project) => project.integrantesDisponibles.length).map((project) => <option key={project.id} value={project.id}>{project.titulo || 'Proyecto sin título'}</option>)}</select></label>
-              <label><span>Nombre del equipo</span><input maxLength={100} onChange={(event) => setName(event.target.value)} required value={name} /></label>
-              <label><span>Actividad asignada</span><input maxLength={160} onChange={(event) => setActivity(event.target.value)} required value={activity} /></label>
-              <label><span>Fase de obra</span><select onChange={(event) => setTeamPhase(event.target.value)} required value={teamPhase}>{phaseOptions.map((phase) => <option key={phase.value} value={phase.value}>{phase.label}</option>)}</select></label>
-            </div>
-            <fieldset className="team-member-picker">
-              <legend>Integrantes del proyecto</legend>
-              {selectedProject?.integrantesDisponibles.map((member) => {
-                const alreadyInTeam = memberAssignedTeamName[`${projectId}_${member.id}`]
-                return (
-                  <label
-                    key={member.id}
-                    style={alreadyInTeam ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
-                    title={alreadyInTeam ? `Ya pertenece a la cuadrilla "${alreadyInTeam}"` : ''}
-                  >
-                    <input
-                      checked={memberIds.includes(member.id)}
-                      disabled={Boolean(alreadyInTeam)}
-                      onChange={() => toggleMember(member.id)}
-                      type="checkbox"
-                    />
-                    <span>
-                      {displayName(member)}
-                      <small>
-                        {alreadyInTeam ? `(En: ${alreadyInTeam})` : member.oficio || 'Operario'}
-                      </small>
-                    </span>
-                  </label>
-                )
-              })}
-            </fieldset>
-            {/* Boton para guardar el equipo con los integrantes seleccionados */}
-            <button className="button button-primary" disabled={pending === 'create' || memberIds.length === 0} type="submit"><span className="material-symbols-outlined" aria-hidden="true">group_add</span>{pending === 'create' ? 'Creando…' : 'Crear equipo'}</button>
-          </form>
+        {isContractor && projects.length > 0 && (
+          <label className="team-project-filter">
+            <span>Filtrar equipos por proyecto</span>
+            <select onChange={(event) => selectProjectForTeams(event.target.value)} value={selectedProjectId}>
+              {projects.map((project) => (
+                <option key={project.id} value={project.id}>{project.titulo || 'Proyecto sin título'}</option>
+              ))}
+            </select>
+          </label>
         )}
 
-        {isContractor && !loading && !hasCreatableProject && <div className="team-create-hint">Para crear una cuadrilla, primero asigna trabajadores a uno de tus proyectos.</div>}
-        {loading && <div className="admin-loading" role="status">Cargando equipos…</div>}
-        {!loading && visibleTeams.length === 0 && <div className="client-empty team-empty"><span className="material-symbols-outlined" aria-hidden="true">group_off</span><h2>{isContractor ? 'Aún no tienes equipos' : 'Sin equipos asignados'}</h2><p>{isContractor ? 'Crea una cuadrilla cuando tengas trabajadores asignados a un proyecto.' : 'Cuando te asignen a una cuadrilla, sus actividades y compañeros aparecerán aquí.'}</p><Link className="button button-secondary" to="/">Volver al dashboard</Link></div>}
+        {loading && <div className="admin-loading" role="status">Cargando equipos del proyecto…</div>}
+        {activityError && isContractor && <div className="admin-alert admin-alert-error" role="alert">{activityError}</div>}
 
-        {/* Tarjetas de equipos limitadas al proyecto de la ruta, si aplica */}
-        {visibleTeams.length > 0 && (
-          <section aria-label="Equipos de trabajo" className="team-grid">
-            {visibleTeams.map((team, index) => (
-              <TeamCard
-                key={team.id}
-                allAssignedInProject={assignedByProject[team.proyectoId] || []}
-                onAddMember={handleAddMember}
-                onDelete={setTeamToDelete}
-                onProgressChange={(id, value) => setProgressValues((current) => ({ ...current, [id]: value }))}
-                onRemoveMember={handleRemoveMember}
-                onSaveProgress={saveProgress}
-                onSubmitProgressReport={submitProgressReport}
-                onUpdateProgressReport={updateProgressReport}
-                onUpdateTeam={updateTeam}
-                workerReports={workerReportsByTeam[team.id] || []}
-                reportsAnchor={!isContractor && index === 0}
-                currentTime={currentTime}
-                project={projects.find((p) => p.id === team.proyectoId)}
-                progressValue={progressValues[team.id]}
-                role={role}
-                saving={pending === team.id}
-                team={team}
-              />
-            ))}
+        {isContractor && !loading && selectedProject && (
+          <>
+            <section aria-label="Indicadores del proyecto" className="team-dashboard-metrics">
+              <article className="team-dashboard-metric">
+                <span className="material-symbols-outlined" aria-hidden="true">groups</span>
+                <div><strong>{dashboardMetrics.teamCount}</strong><span>Equipos creados</span></div>
+              </article>
+              <article className={`team-dashboard-metric ${dashboardMetrics.staleTeamCount > 0 ? 'is-attention' : ''}`}>
+                <span className="material-symbols-outlined" aria-hidden="true">schedule</span>
+                <div><strong>{dashboardMetrics.staleTeamCount}</strong><span>Sin actividad &gt; 7 días</span></div>
+              </article>
+              <article className="team-dashboard-metric">
+                <span className="material-symbols-outlined" aria-hidden="true">trending_up</span>
+                <div><strong>{Math.round(dashboardMetrics.averageProgress)}%</strong><span>Avance promedio</span></div>
+              </article>
+            </section>
+
+            {dashboardWarnings.length > 0 && (
+              <section aria-label="Avisos del proyecto" className="team-dashboard-alerts">
+                <h2>Avisos</h2>
+                <div className="team-dashboard-alert-list">
+                  {dashboardWarnings.slice(0, 3).map((warning) => (
+                    <article className="team-dashboard-alert" key={warning.id}>
+                      <span className="material-symbols-outlined" aria-hidden="true">{warning.icon}</span>
+                      <div><strong>{warning.title}</strong><p>{warning.description}</p></div>
+                      <button className="button button-secondary" onClick={() => {
+                        if (warning.id === 'missing-phases' && warning.action === 'Crear equipo') {
+                          openCreateForm(warning.phase)
+                          return
+                        }
+                        if (warning.id === 'inactive-teams') {
+                          const card = warning.teamId ? document.getElementById(`team-card-${warning.teamId}`) : null
+                          card?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                          card?.focus({ preventScroll: true })
+                        } else if (warning.id === 'missing-phases' && warning.teamId) {
+                          const card = document.getElementById(`team-card-${warning.teamId}`)
+                          card?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                          card?.focus({ preventScroll: true })
+                        } else if (warning.id === 'unassigned-workers') {
+                          openCreateForm()
+                        } else {
+                          document.querySelector('.team-project-filter')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                        }
+                      }} type="button">{warning.action}</button>
+                    </article>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {visibleTeams.length > 0 ? (
+              <section aria-label="Equipos del proyecto" className="team-dashboard-section">
+                <div className="client-section-heading team-project-heading">
+                  <div><p className="client-eyebrow">Proyecto seleccionado</p><h2>{selectedProject.titulo || 'Proyecto'}</h2></div>
+                  <span>{visibleTeams.length} {visibleTeams.length === 1 ? 'equipo' : 'equipos'}</span>
+                </div>
+                <div className="team-grid">
+                  {visibleTeams.map((team) => (
+                    <TeamCard
+                      key={team.id}
+                      allAssignedInProject={assignedByProject[team.proyectoId] || []}
+                      daysSinceActivity={dashboardMetrics.activityDaysByTeam[team.id]}
+                      onAddMember={handleAddMember}
+                      onDelete={setTeamToDelete}
+                      onProgressChange={(id, value) => setProgressValues((current) => ({ ...current, [id]: value }))}
+                      onRemoveMember={handleRemoveMember}
+                      onSaveProgress={saveProgress}
+                      onSubmitProgressReport={submitProgressReport}
+                      onUpdateProgressReport={updateProgressReport}
+                      onUpdateTeam={updateTeam}
+                      workerReports={workerReportsByTeam[team.id] || []}
+                      currentTime={currentTime}
+                      project={selectedProject}
+                      progressValue={progressValues[team.id]}
+                      role={role}
+                      saving={pending === team.id}
+                      team={team}
+                    />
+                  ))}
+                </div>
+              </section>
+            ) : (
+              <section aria-label="Equipos del proyecto" className="client-empty team-empty team-project-empty">
+                <span className="material-symbols-outlined" aria-hidden="true">group_off</span>
+                <h2>Aún no hay equipos en este proyecto</h2>
+                <p>Crea el primer equipo y asigna integrantes disponibles para comenzar a registrar avances.</p>
+                <button className="button button-primary" onClick={() => openCreateForm()} type="button">Crear equipo</button>
+              </section>
+            )}
+
+            <section aria-label="Gráficas de equipos y trabajadores" className="team-dashboard-charts">
+              <article className="team-chart-panel">
+                <div className="team-chart-heading"><div><h2>Avance por equipo</h2><p>Porcentaje de avance registrado en cada equipo.</p></div></div>
+                {visibleTeams.length ? (
+                  <ResponsiveContainer height={Math.max(190, visibleTeams.length * 48)} minWidth={0} width="100%">
+                    <BarChart data={dashboardMetrics.progressChartData} layout="vertical" margin={{ top: 6, right: 20, bottom: 4, left: 8 }}>
+                      <CartesianGrid stroke="var(--ot-line)" strokeDasharray="3 3" horizontal={false} />
+                      <XAxis axisLine={false} domain={[0, 100]} tick={{ fill: 'var(--ot-muted)', fontSize: 11 }} tickFormatter={(value) => `${value}%`} tickLine={false} type="number" />
+                      <YAxis axisLine={false} dataKey="equipo" tick={{ fill: 'var(--ot-text)', fontSize: 11 }} tickLine={false} type="category" width={115} />
+                      <Tooltip
+                        contentStyle={{ border: '1px solid var(--ot-line)', borderRadius: 10, background: 'var(--ot-panel)' }}
+                        formatter={(value) => [`${Math.round(value)}%`, 'Avance']}
+                        itemStyle={{ color: 'var(--ot-text)' }}
+                        labelFormatter={(label, payload) => payload?.[0]?.payload?.fase ? `${label} · ${payload[0].payload.fase}` : label}
+                        labelStyle={{ color: 'var(--ot-text)' }}
+                      />
+                      <Bar background={{ fill: 'var(--ot-bg-2)', radius: 6 }} dataKey="avance" fill="#ff8a2a" maxBarSize={26} name="Avance" radius={[0, 6, 6, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : <p className="team-chart-empty">Crea un equipo para ver su avance en esta gráfica.</p>}
+              </article>
+
+              <article className="team-chart-panel">
+                <div className="team-chart-heading"><div><h2>Distribución de trabajadores y equipos</h2><p>Integrantes asignados y equipos organizados por fase.</p></div></div>
+                <div className="team-distribution-grid">
+                  <section aria-label="Trabajadores asignados y sin equipo" className="team-distribution-block">
+                    <h3>Trabajadores</h3>
+                    <p>{dashboardMetrics.assignedWorkerCount} asignados · {dashboardMetrics.unassignedWorkerCount} sin equipo</p>
+                    {dashboardMetrics.workerCount > 0 ? (
+                      <ResponsiveContainer height={190} minWidth={0} width="100%">
+                        <PieChart>
+                          <Pie data={[
+                            { nombre: 'Asignados', valor: dashboardMetrics.assignedWorkerCount },
+                            { nombre: 'Sin equipo', valor: dashboardMetrics.unassignedWorkerCount },
+                          ]} dataKey="valor" nameKey="nombre" innerRadius={48} outerRadius={72} paddingAngle={3}>
+                            <Cell fill="#ff8a2a" />
+                            <Cell fill="#718096" />
+                          </Pie>
+                          <Tooltip
+                            contentStyle={{ border: '1px solid var(--ot-line)', borderRadius: 10, background: 'var(--ot-panel)' }}
+                            formatter={(value, name) => [`${value} ${value === 1 ? 'trabajador' : 'trabajadores'}`, name]}
+                            itemStyle={{ color: 'var(--ot-text)' }}
+                            labelStyle={{ color: 'var(--ot-text)' }}
+                          />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    ) : <p className="team-chart-empty">No hay trabajadores asignados al proyecto.</p>}
+                    <div className="team-chart-legend">
+                      <span><i className="is-orange" />Asignados: {dashboardMetrics.assignedWorkerCount}</span>
+                      <span><i className="is-muted" />Sin equipo: {dashboardMetrics.unassignedWorkerCount}</span>
+                    </div>
+                  </section>
+                  <section aria-label="Equipos por fase" className="team-distribution-block">
+                    <h3>Equipos por fase</h3>
+                    {visibleTeams.length ? (
+                      <ResponsiveContainer height={220} minWidth={0} width="100%">
+                        <BarChart data={dashboardMetrics.phaseCounts} layout="vertical" margin={{ top: 6, right: 12, bottom: 4, left: 4 }}>
+                          <CartesianGrid stroke="var(--ot-line)" strokeDasharray="3 3" horizontal={false} />
+                          <XAxis allowDecimals={false} axisLine={false} tick={{ fill: 'var(--ot-muted)', fontSize: 10 }} tickLine={false} type="number" />
+                          <YAxis axisLine={false} dataKey="fase" tick={{ fill: 'var(--ot-text)', fontSize: 10 }} tickLine={false} type="category" width={112} />
+                          <Tooltip
+                            contentStyle={{ border: '1px solid var(--ot-line)', borderRadius: 10, background: 'var(--ot-panel)' }}
+                            formatter={(value) => [`${value} ${value === 1 ? 'equipo' : 'equipos'}`, 'Cantidad']}
+                            itemStyle={{ color: 'var(--ot-text)' }}
+                            labelStyle={{ color: 'var(--ot-text)' }}
+                          />
+                          <Bar dataKey="equipos" fill="#ff8a2a" maxBarSize={22} name="Equipos" radius={[0, 6, 6, 0]} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    ) : <p className="team-chart-empty">Aún no hay equipos para distribuir por fase.</p>}
+                  </section>
+                </div>
+              </article>
+            </section>
+
+            <div className="team-create-toggle-row">
+              <button className="button button-primary" disabled={!hasCreatableProject} onClick={() => {
+                if (createFormVisible) setCreatePanelOpen(false)
+                else openCreateForm()
+              }} type="button">
+                <span className="material-symbols-outlined" aria-hidden="true">{createFormVisible ? 'close' : 'add'}</span>
+                {createFormVisible ? 'Cerrar formulario' : '+ Nuevo equipo'}
+              </button>
+              {!hasCreatableProject && <span>Primero asigna trabajadores al proyecto para crear un equipo.</span>}
+            </div>
+
+            {createFormVisible && (
+              <form className="team-create-panel" id="team-create-panel" onSubmit={createTeam} ref={createFormRef}>
+                <div className="team-create-heading">
+                  <div><p className="client-eyebrow">Nueva cuadrilla</p><h2>Crear equipo</h2></div>
+                  {visibleTeams.length > 0 && <button aria-label="Cerrar formulario para crear equipo" className="admin-icon-button" onClick={() => setCreatePanelOpen(false)} type="button"><span className="material-symbols-outlined" aria-hidden="true">close</span></button>}
+                </div>
+                <div className="team-create-fields">
+                  <div className="team-create-selected-project"><span>Proyecto seleccionado</span><strong>{selectedProject.titulo || 'Proyecto sin título'}</strong></div>
+                  <label><span>Nombre del equipo</span><input maxLength={100} onChange={(event) => setName(event.target.value)} required value={name} /></label>
+                  <label><span>Actividad asignada</span><input maxLength={160} onChange={(event) => setActivity(event.target.value)} required value={activity} /></label>
+                  <label><span>Fase de obra</span><select onChange={(event) => setTeamPhase(event.target.value)} required value={teamPhase}>{phaseOptions.map((phase) => <option key={phase.value} value={phase.value}>{phase.label}</option>)}</select></label>
+                </div>
+                <fieldset className="team-member-picker">
+                  <legend>Integrantes del proyecto</legend>
+                  {selectedProject.integrantesDisponibles.length ? selectedProject.integrantesDisponibles.map((member) => {
+                    const alreadyInTeam = memberAssignedTeamName[`${projectId}_${member.id}`]
+                    const assignmentNoteId = `team-member-assignment-${member.id}`
+                    return (
+                      <label className={alreadyInTeam ? 'is-already-assigned' : ''} key={member.id}>
+                        <input
+                          aria-describedby={alreadyInTeam ? assignmentNoteId : undefined}
+                          checked={memberIds.includes(member.id)}
+                          disabled={Boolean(alreadyInTeam)}
+                          onChange={() => toggleMember(member.id)}
+                          type="checkbox"
+                        />
+                        <span>
+                          {displayName(member)}
+                          <small id={alreadyInTeam ? assignmentNoteId : undefined}>
+                            {alreadyInTeam ? `Ya pertenece a ${alreadyInTeam}` : member.oficio || 'Operario'}
+                          </small>
+                        </span>
+                      </label>
+                    )
+                  }) : <p className="team-empty-members">No hay trabajadores asignados a este proyecto. Asígnalos antes de crear el equipo.</p>}
+                </fieldset>
+                <button className="button button-primary" disabled={pending === 'create' || memberIds.length === 0} type="submit"><span className="material-symbols-outlined" aria-hidden="true">group_add</span>{pending === 'create' ? 'Creando…' : 'Crear equipo'}</button>
+              </form>
+            )}
+          </>
+        )}
+
+        {isContractor && !loading && !selectedProject && (
+          <div className="client-empty team-empty">
+            <span className="material-symbols-outlined" aria-hidden="true">folder_open</span>
+            <h2>{projects.length ? 'Selecciona un proyecto' : 'No tienes proyectos disponibles'}</h2>
+            <p>{projects.length ? 'Elige un proyecto en el filtro para ver sus equipos e indicadores.' : 'Cuando tengas un proyecto asignado, su estado de equipos aparecerá aquí.'}</p>
+          </div>
+        )}
+
+        {!isContractor && loading && <div className="admin-loading" role="status">Cargando equipos…</div>}
+        {!isContractor && !loading && visibleTeams.length === 0 && <div className="client-empty team-empty"><span className="material-symbols-outlined" aria-hidden="true">group_off</span><h2>Sin equipos asignados</h2><p>Cuando te asignen a una cuadrilla, sus actividades y compañeros aparecerán aquí.</p><Link className="button button-secondary" to="/">Volver al dashboard</Link></div>}
+
+        {!isContractor && visibleTeams.length > 0 && (
+          <section aria-label="Equipos de trabajo">
+            <div className="team-grid">
+              {visibleTeams.map((team, index) => (
+                <TeamCard
+                  key={team.id}
+                  allAssignedInProject={assignedByProject[team.proyectoId] || []}
+                  onAddMember={handleAddMember}
+                  onDelete={setTeamToDelete}
+                  onProgressChange={(id, value) => setProgressValues((current) => ({ ...current, [id]: value }))}
+                  onRemoveMember={handleRemoveMember}
+                  onSaveProgress={saveProgress}
+                  onSubmitProgressReport={submitProgressReport}
+                  onUpdateProgressReport={updateProgressReport}
+                  onUpdateTeam={updateTeam}
+                  workerReports={workerReportsByTeam[team.id] || []}
+                  reportsAnchor={index === 0}
+                  currentTime={currentTime}
+                  project={projects.find((p) => p.id === team.proyectoId)}
+                  progressValue={progressValues[team.id]}
+                  role={role}
+                  saving={pending === team.id}
+                  team={team}
+                />
+              ))}
+            </div>
           </section>
         )}
       </main>
