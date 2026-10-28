@@ -145,6 +145,7 @@
 
 .landing-hero-content {
   width: min(100%, 700px);
+  margin-top: 40px;
   padding-bottom: 18px;
 }
 
@@ -272,17 +273,21 @@
 }
 
 .landing-project-preview {
-  position: absolute;
-  top: max(150px, 20vh);
-  right: max(24px, calc((100% - 1320px) / 2));
+  position: absolute !important;
+  top: max(170px, 30vh) !important;
+  right: max(24px, calc((100% - 1320px) / 2)) !important;
+  height: auto;
+  min-height: max-content;
   bottom: auto;
-  width: min(350px, 31vw);
-  padding: 15px;
+  width: min(300px, 31vw);
+  padding: 20px;
   border: 1px solid rgba(255, 255, 255, .14);
   border-radius: 16px;
   background: rgba(12, 23, 36, .84);
   box-shadow: 0 24px 80px rgba(0, 0, 0, .42);
   backdrop-filter: blur(18px);
+
+  overflow: visible; 
 }
 
 .landing-preview-top,

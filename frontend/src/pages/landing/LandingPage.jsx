@@ -87,7 +87,7 @@ export function LandingPage() {
             <a href="#como-funciona" onClick={closeMenu}>Cómo funciona</a>
             <a href="#contacto" onClick={closeMenu}>Contacto</a>
             <Link className="landing-nav-login" onClick={closeMenu} to="/login">Iniciar sesión</Link>
-            <Link className="landing-nav-register" onClick={closeMenu} to="/registro">Comenzar gratis</Link>
+            <Link className="landing-nav-register" onClick={closeMenu} to="/registro">Crear cuenta gratis</Link>
           </nav>
         </div>
       </header>
@@ -106,7 +106,7 @@ export function LandingPage() {
             </p>
             <div className="landing-hero-actions">
               <Link className="landing-button landing-button-primary" to="/registro">
-                Comenzar ahora
+                Crear cuenta gratis
                 <span className="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
               </Link>
               <a className="landing-button landing-button-secondary" href="#beneficios">
@@ -143,9 +143,9 @@ export function LandingPage() {
               <span className="material-symbols-outlined" aria-hidden="true">arrow_outward</span>
             </div>
           </div>
-          <a aria-label="Descubrir beneficios" className="landing-scroll-cue" href="#beneficios">
+         {/* <a aria-label="Descubrir beneficios" className="landing-scroll-cue" href="#beneficios">
             <span className="material-symbols-outlined" aria-hidden="true">keyboard_arrow_down</span>
-          </a>
+          </a>*/}
         </section>
 
         <section aria-label="Herramientas principales" className="landing-benefit-strip" id="beneficios">

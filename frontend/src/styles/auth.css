@@ -717,6 +717,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center top;
 }
 
 .auth-visual-content {
@@ -1075,5 +1076,23 @@
   .auth-page.auth-page-register .auth-visual-content p,
   .auth-page.auth-page-register .auth-visual-note {
     display: none;
+  }
+
+}
+
+@media (min-width: 901px) {
+  .auth-page.auth-page-login .auth-visual {
+    position: sticky !important;
+    top: 24px !important;
+    align-self: start !important;
+    min-height: 0 !important;
+    height: calc(100svh - 48px) !important;  /* siempre cabe en la pantalla */
+    max-height: 760px !important;
+    margin-top: 0 !important;
+  }
+
+  .auth-page.auth-page-login .auth-visual-content {
+    top: auto !important;
+    bottom: 130px !important;
   }
 }
