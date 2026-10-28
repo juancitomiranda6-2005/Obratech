@@ -128,8 +128,8 @@
   inset: 0;
   z-index: -1;
   background:
-    linear-gradient(90deg, #08111d 0%, rgba(8, 17, 29, .95) 42%, rgba(8, 17, 29, .82) 75%, rgba(8, 17, 29, .72) 100%),
-    linear-gradient(180deg, rgba(8, 17, 29, .35) 0%, transparent 40%, #08111d 96%);
+    linear-gradient(90deg, rgba(8, 17, 29, .96) 0%, rgba(8, 17, 29, .92) 22%, rgba(8, 17, 29, .78) 42%, rgba(8, 17, 29, .32) 64%, rgba(8, 17, 29, .04) 100%),
+    linear-gradient(180deg, rgba(8, 17, 29, .22) 0%, transparent 45%, rgba(8, 17, 29, .65) 100%);
   content: '';
 }
 
@@ -140,8 +140,8 @@
   background-image: url('/images/obra-hero.jpg');
   background-position: center 55%;
   background-size: cover;
-  opacity: .52;
-  filter: brightness(0.82) contrast(1.05);
+  opacity: .92;
+  filter: brightness(1.14) contrast(1.06);
 }
 
 .landing-hero-content {
@@ -479,24 +479,6 @@
 
 .landing-avatar-stack span:nth-child(2) { background: #9d6448; }
 .landing-avatar-stack span:nth-child(3) { color: #ffb767; background: #33313b; }
-
-.landing-scroll-cue {
-  position: absolute;
-  bottom: 23px;
-  left: 50%;
-  width: 36px;
-  height: 36px;
-  display: grid;
-  place-items: center;
-  border: 1px solid rgba(255, 255, 255, .2);
-  border-radius: 50%;
-  color: #e6ecf2;
-  transform: translateX(-50%);
-}
-
-.landing-scroll-cue .material-symbols-outlined {
-  font-size: 21px;
-}
 
 @media (min-width: 761px) {
   :root:has(.landing-page) .theme-toggle {
@@ -1033,23 +1015,36 @@ html[data-theme='light'] .landing-nav-actions .landing-nav-register:hover {
   color: #1d160f;
 }
 
+
+html[data-theme='light'] .landing-brand img {
+  filter: invert(0.88) hue-rotate(180deg);
+}
+
 html[data-theme='light'] .landing-hero {
   background: #edf2f6;
 }
 
 html[data-theme='light'] .landing-hero::after {
   background:
-    linear-gradient(90deg, #f5f7fa 0%, rgba(245, 247, 250, .94) 32%, rgba(245, 247, 250, .48) 66%, rgba(245, 247, 250, .12) 100%),
-    linear-gradient(0deg, #f5f7fa 0%, transparent 27%, rgba(245, 247, 250, .08) 100%);
+    linear-gradient(90deg, #f5f7fa 0%, rgba(245, 247, 250, .96) 24%, rgba(245, 247, 250, .80) 44%, rgba(245, 247, 250, .32) 66%, rgba(245, 247, 250, .04) 100%),
+    linear-gradient(180deg, rgba(245, 247, 250, .20) 0%, transparent 45%, rgba(245, 247, 250, .65) 100%);
 }
 
 html[data-theme='light'] .landing-hero-image {
   opacity: .88;
+  filter: brightness(1.04) contrast(1.02);
 }
 
 html[data-theme='light'] .landing-hero h1,
 html[data-theme='light'] .landing-image-caption strong {
   color: #192536;
+}
+
+html[data-theme='light'] .landing-hero-content > .landing-eyebrow {
+  border-color: rgba(255, 138, 28, .35);
+  background: #ffffff;
+  color: #c2410c;
+  box-shadow: 0 4px 14px rgba(18, 34, 52, .08);
 }
 
 html[data-theme='light'] .landing-hero-copy,
@@ -1135,7 +1130,23 @@ html[data-theme='light'] .landing-overview-copy li {
 }
 
 html[data-theme='light'] .landing-cta {
-  background: linear-gradient(105deg, #fff0e2, #fff 62%);
+  border-color: rgba(255, 138, 28, .35);
+  background: #ffffff;
+  box-shadow: 0 12px 36px rgba(18, 34, 52, .08);
+}
+
+html[data-theme='light'] .landing-cta-image {
+  background:
+    linear-gradient(100deg, rgba(255, 245, 238, .96), rgba(255, 255, 255, .90) 56%, rgba(255, 255, 255, .60)),
+    url('/images/obra-grua.jpg') center 39% / cover;
+}
+
+html[data-theme='light'] .landing-cta h2 {
+  color: #192536;
+}
+
+html[data-theme='light'] .landing-cta > div > p:last-child {
+  color: #435267;
 }
 
 html[data-theme='light'] .landing-footer {
@@ -1215,7 +1226,6 @@ html[data-theme='light'] .landing-footer-bottom {
     max-width: 370px;
     margin: 0 auto;
   }
-  .landing-scroll-cue { display: none; }
   .landing-benefit-strip {
     width: min(calc(100% - 32px), 620px);
     grid-template-columns: repeat(2, minmax(0, 1fr));

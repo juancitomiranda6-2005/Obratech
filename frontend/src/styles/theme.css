@@ -21,7 +21,6 @@
   .admin-sidebar,
   .client-header,
   .admin-header,
-  .auth-shell,
   .auth-card,
   .register-card
 ) {
@@ -277,4 +276,10 @@
   ) {
     transition: none;
   }
+}
+
+:root[data-theme='light'] :is(.auth-shell, .register-shell) {
+  border-color: transparent !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
 }
