@@ -143,9 +143,9 @@ export function LandingPage() {
               <span className="material-symbols-outlined" aria-hidden="true">arrow_outward</span>
             </div>
           </div>
-         {/* <a aria-label="Descubrir beneficios" className="landing-scroll-cue" href="#beneficios">
+          <a aria-label="Descubrir beneficios" className="landing-scroll-cue" href="#beneficios">
             <span className="material-symbols-outlined" aria-hidden="true">keyboard_arrow_down</span>
-          </a>*/}
+          </a>
         </section>
 
         <section aria-label="Herramientas principales" className="landing-benefit-strip" id="beneficios">
