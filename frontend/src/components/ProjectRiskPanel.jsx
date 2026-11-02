@@ -27,13 +27,14 @@ export function ProjectRiskPanel({
   indicators,
   fechaEntrega,
   compact = false,
-  sections = ['summary', 'factors', 'delivery', 'weather', 'teams'],
+  sections = ['summary', 'factors', 'actions', 'delivery', 'weather', 'teams'],
 }) {
   if (!indicators) {
     return <section className="contractor-risk-panel contractor-risk-empty"><p>Los indicadores de riesgo no están disponibles.</p></section>
   }
   const showSummary = sections.includes('summary')
   const showFactors = sections.includes('factors')
+  const showActions = sections.includes('actions')
   const showDelivery = sections.includes('delivery')
   const showWeather = sections.includes('weather')
   const showTeams = sections.includes('teams')
@@ -46,7 +47,7 @@ export function ProjectRiskPanel({
   const riskActions = getRiskActions(risk?.factores || [])
 
   return (
-    <section aria-label="Indicadores de riesgo del proyecto" className={`contractor-risk-panel ${compact ? 'is-compact' : ''}`}>
+    <section aria-label={showActions && !showSummary && !showFactors ? 'Acciones preventivas recomendadas' : 'Indicadores de riesgo del proyecto'} className={`contractor-risk-panel ${compact ? 'is-compact' : ''}`}>
       {showSummary && (
         <>
           <header className="contractor-risk-header">
@@ -106,7 +107,7 @@ export function ProjectRiskPanel({
         </p>
       </section>}
 
-      {showFactors && <section aria-labelledby="contractor-risk-actions-heading" className="contractor-risk-actions">
+      {showActions && <section aria-labelledby="contractor-risk-actions-heading" className="contractor-risk-actions">
         <h4 id="contractor-risk-actions-heading">Qué puedes hacer</h4>
         {riskActions.length ? (
           <ul>{riskActions.map((action) => <li key={action}><span className="material-symbols-outlined" aria-hidden="true">arrow_forward</span>{action}</li>)}</ul>

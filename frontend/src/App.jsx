@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect, useState } from 'react'
 import { BrowserRouter, Link, Route, Routes, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { authService, establishSession } from './services/authService.js'
 import { AuthProvider, useAuth } from './context/AuthContext.jsx'
+import { SettingsMenu } from './components/layout/SettingsMenu.jsx'
 
 const lazyNamed = (importer, name) => lazy(() => importer().then((module) => ({ default: module[name] })))
 const LoginPage = lazyNamed(() => import('./pages/auth/LoginPage.jsx'), 'LoginPage')
@@ -410,6 +411,7 @@ function App() {
         )}>
           <AppRoutes />
         </Suspense>
+        <SettingsMenu />
       </AuthProvider>
     </BrowserRouter>
   )

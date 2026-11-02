@@ -1024,12 +1024,6 @@
   padding-bottom: 24px;
 }
 
-:root:has(.auth-page-login, .auth-page-register) .theme-toggle {
-  top: 16px;
-  right: 20px;
-  bottom: auto;
-}
-
 @media (max-height: 760px) and (min-width: 901px) {
   .auth-page.auth-page-login {
     align-items: start;

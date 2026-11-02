@@ -258,64 +258,198 @@ a {
   cursor: pointer;
 }
 
-.theme-toggle {
+.settings-menu {
   position: fixed;
   right: 20px;
-  bottom: 20px;
-  z-index: 1000;
-  min-height: 44px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 0 14px;
+  top: 20px;
+  z-index: 1100;
+}
+
+.settings-menu-inline {
+  position: relative;
+  flex: 0 0 auto;
+  width: 100%;
+  margin: 0;
+}
+
+.settings-trigger {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
   border: 1px solid color-mix(in srgb, var(--ot-orange) 42%, transparent);
-  border-radius: 999px;
-  color: #f4f4f4;
+  border-radius: 50%;
+  color: var(--ot-text);
   background: var(--ot-panel-2);
   box-shadow: 0 8px 26px rgba(0, 0, 0, .22);
-  font-size: 11px;
-  font-weight: 700;
   cursor: pointer;
   transition: background-color 150ms ease, transform 150ms ease;
 }
 
-.theme-toggle:hover {
+.settings-menu-inline .settings-trigger {
+  display: flex;
+  width: 100%;
+  min-height: 44px;
+  justify-content: flex-start;
+  gap: 12px;
+  padding: 0 12px;
+  border-color: transparent;
+  border-radius: 10px;
+  box-shadow: none;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.settings-menu-inline .settings-account-trigger {
+  height: auto;
+  min-height: 60px;
+  justify-content: flex-start;
+  padding: 8px;
+  border-color: transparent;
+  background: transparent;
+  text-align: left;
+}
+
+.settings-menu-inline .settings-account-trigger:hover,
+.settings-menu-inline .settings-account-trigger[aria-expanded='true'] {
+  border-color: var(--ot-line);
+  background: var(--ot-panel-2);
+}
+
+.settings-menu-inline .settings-account-trigger > .client-user,
+.settings-menu-inline .settings-account-trigger > .admin-user-badge {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  display: flex;
+}
+
+.settings-account-chevron {
+  flex: 0 0 auto;
+  color: var(--ot-muted);
+  font-size: 18px;
+}
+
+.settings-trigger:hover {
   background: var(--ot-panel);
   transform: translateY(-2px);
 }
 
-.theme-toggle .material-symbols-outlined {
+.settings-menu-inline .settings-trigger:hover {
+  transform: none;
+}
+
+.settings-trigger .material-symbols-outlined {
   color: var(--accent);
   font-size: 18px;
 }
 
-:root[data-theme='light'] .theme-toggle {
-  border-color: var(--ot-line);
+.settings-panel {
+  position: absolute;
+  top: 54px;
+  right: 0;
+  width: min(260px, calc(100vw - 32px));
+  padding: 8px;
+  border: 1px solid var(--ot-line);
+  border-radius: 16px;
   color: var(--ot-text);
+  background: var(--ot-panel);
+  box-shadow: var(--ot-shadow), 0 12px 32px rgba(0, 0, 0, .2);
+}
+
+.settings-menu-inline .settings-panel {
+  top: auto;
+  right: auto;
+  bottom: calc(100% + 8px);
+  left: 0;
+  width: 100%;
+}
+
+.settings-menu-inline:has(.settings-account-trigger) .settings-panel {
+  width: max(100%, 220px);
+}
+
+.settings-heading {
+  margin: 4px 8px 8px;
+  color: var(--ot-muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.settings-item {
+  display: flex;
+  width: 100%;
+  min-height: 42px;
+  align-items: center;
+  gap: 10px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 10px;
+  color: var(--ot-text);
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.settings-item:hover {
+  background: var(--ot-panel-2);
+}
+
+.settings-item .material-symbols-outlined {
+  color: var(--accent);
+  font-size: 18px;
+}
+
+.settings-logout {
+  margin-top: 6px;
+  border-top: 1px solid var(--ot-line);
+  border-radius: 0 0 10px 10px;
+  color: var(--ot-danger, #ef6a62);
+}
+
+:root[data-theme='light'] .settings-trigger {
+  border-color: var(--ot-line);
   background: var(--ot-panel);
   box-shadow: 0 8px 24px rgba(27, 39, 53, .16);
 }
 
-:root[data-theme='light'] .theme-toggle:hover {
+:root[data-theme='light'] .settings-trigger:hover {
   background: var(--ot-panel-2);
 }
 
-@media (max-width: 520px) {
-  .theme-toggle {
-    right: 14px;
-    bottom: 14px;
-    width: 44px;
-    padding: 0;
+:root:has(.settings-menu-inline) .settings-menu:not(.settings-menu-inline) {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .settings-menu-inline .settings-account-trigger {
+    width: 42px;
+    min-height: 42px;
+    justify-content: center;
+    padding: 4px;
   }
 
-  .theme-toggle > span:last-child {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
+  .settings-menu-inline .settings-account-trigger > .client-user,
+  .settings-menu-inline .settings-account-trigger > .admin-user-badge {
+    flex: 0 0 auto;
+  }
+
+  .settings-account-trigger .client-user > span:last-child,
+  .settings-account-trigger .admin-user-badge > span:last-child,
+  .settings-account-chevron {
+    display: none;
+  }
+
+  .settings-menu-inline .settings-panel {
+    top: calc(100% + 8px);
+    right: 0;
+    bottom: auto;
+    left: auto;
   }
 }
 

@@ -120,7 +120,7 @@
   padding: 7px 4px 13px;
 }
 
-.admin-user-badge>span {
+.admin-user-badge>span:first-child {
   width: 34px;
   height: 34px;
   display: grid;

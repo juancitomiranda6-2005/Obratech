@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { clientDashboardService } from '../../services/clientDashboardService.js'
 import { ProfileAvatar } from '../../components/shared/ProfileAvatar.jsx'
 import { ProjectRiskPanel } from '../../components/ProjectRiskPanel.jsx'
+import { SettingsMenu } from '../../components/layout/SettingsMenu.jsx'
 
 const currencyFormatter = new Intl.NumberFormat('es-CO', {
   style: 'currency',
@@ -17,7 +18,7 @@ const stateLabels = {
   CANCELADO: 'Cancelado',
 }
 
-function ClientDashboard({ onLogout }) {
+function ClientDashboard() {
   const [dashboard, setDashboard] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -67,17 +68,18 @@ function ClientDashboard({ onLogout }) {
           <Link to="/clientes/mis-contratistas"><span className="material-symbols-outlined" aria-hidden="true">engineering</span>Mis contratistas</Link>
           <Link to="/contratistas"><span className="material-symbols-outlined" aria-hidden="true">search</span>Explorar contratistas</Link>
           <Link to="/trabajadores/disponibles"><span className="material-symbols-outlined" aria-hidden="true">construction</span>Trabajadores disponibles</Link>
-          <Link to="/perfil-cliente"><span className="material-symbols-outlined" aria-hidden="true">person</span>Mi perfil</Link>
         </nav>
         <div className="client-sidebar-footer">
-          <div className="client-user">
-            <ProfileAvatar className="client-avatar" name={dashboard?.username || 'Cliente'} profileId={dashboard?.username} />
-            <div><strong>{dashboard?.username || 'Cliente'}</strong><small>Cliente</small></div>
-          </div>
-          <button className="client-logout" onClick={onLogout} type="button">
-            <span className="material-symbols-outlined" aria-hidden="true">logout</span>
-            Cerrar sesión
-          </button>
+          <SettingsMenu
+            inline
+            triggerContent={(
+              <span className="client-user">
+                <ProfileAvatar className="client-avatar" name={dashboard?.username || 'Cliente'} profileId={dashboard?.username} />
+                <span><strong>{dashboard?.username || 'Cliente'}</strong><small>Cliente</small></span>
+              </span>
+            )}
+            triggerLabel={`Opciones de cuenta de ${dashboard?.username || 'Cliente'}`}
+          />
         </div>
       </aside>
 
@@ -195,6 +197,6 @@ function ClientStat({ icon, label, value, tone }) {
   )
 }
 
-export function DashboardCliente({ onLogout }) {
-  return <ClientDashboard onLogout={onLogout} />
+export function DashboardCliente() {
+  return <ClientDashboard />
 }

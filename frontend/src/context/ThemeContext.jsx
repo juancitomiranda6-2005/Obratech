@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { ThemeContext } from './themeContext.js'
 
 function getInitialTheme() {
   const savedTheme = window.localStorage.getItem('obratech_theme')
@@ -22,20 +23,8 @@ export function ThemeProvider({ children }) {
   }
 
   return (
-    <>
+    <ThemeContext.Provider value={{ theme, toggleTheme }}>
       {children}
-      <button
-        aria-label={`Cambiar a modo ${theme === 'dark' ? 'claro' : 'oscuro'}`}
-        aria-pressed={theme === 'dark'}
-        className="theme-toggle"
-        onClick={toggleTheme}
-        type="button"
-      >
-        <span className="material-symbols-outlined" aria-hidden="true">
-          {theme === 'dark' ? 'light_mode' : 'dark_mode'}
-        </span>
-        <span>{theme === 'dark' ? 'Modo claro' : 'Modo oscuro'}</span>
-      </button>
-    </>
+    </ThemeContext.Provider>
   )
 }

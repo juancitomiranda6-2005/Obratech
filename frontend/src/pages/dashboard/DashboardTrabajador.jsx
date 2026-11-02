@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { workerDashboardService } from '../../services/professionalDashboardService.js'
 import { ProfileAvatar } from '../../components/shared/ProfileAvatar.jsx'
 import { ProjectRiskPanel } from '../../components/ProjectRiskPanel.jsx'
+import { SettingsMenu } from '../../components/layout/SettingsMenu.jsx'
 
 const money = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 })
 
@@ -10,7 +11,7 @@ function formatDate(date) {
   return date ? new Intl.DateTimeFormat('es-CO', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(date)) : 'No disponible'
 }
 
-function WorkerDashboard({ onLogout }) {
+function WorkerDashboard() {
   const [dashboard, setDashboard] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -64,13 +65,20 @@ function WorkerDashboard({ onLogout }) {
           <Link to="/mis-postulaciones"><span className="material-symbols-outlined" aria-hidden="true">mail</span>Mis postulaciones</Link>
           <Link to="/trabajadores/mi-equipo"><span className="material-symbols-outlined" aria-hidden="true">groups</span>Mi equipo de trabajo</Link>
           <Link to="/trabajadores/mi-equipo#mis-informes"><span className="material-symbols-outlined" aria-hidden="true">description</span>Mis informes enviados</Link>
-          <Link to="/perfil-trabajador"><span className="material-symbols-outlined" aria-hidden="true">person</span>Mi perfil</Link>
           <a href="#invitaciones"><span className="material-symbols-outlined" aria-hidden="true">notifications</span>Invitaciones</a>
           <a href="#proyectos"><span className="material-symbols-outlined" aria-hidden="true">folder_special</span>Proyectos asignados</a>
         </nav>
         <div className="client-sidebar-footer">
-          <div className="client-user"><ProfileAvatar className="client-avatar" name={dashboard?.nombre || 'Trabajador'} profileId={dashboard?.username} /><div><strong>{dashboard?.nombre || 'Trabajador'}</strong><small>Trabajador</small></div></div>
-          <button className="client-logout" onClick={onLogout} type="button"><span className="material-symbols-outlined" aria-hidden="true">logout</span>Cerrar sesión</button>
+          <SettingsMenu
+            inline
+            triggerContent={(
+              <span className="client-user">
+                <ProfileAvatar className="client-avatar" name={dashboard?.nombre || 'Trabajador'} profileId={dashboard?.username} />
+                <span><strong>{dashboard?.nombre || 'Trabajador'}</strong><small>Trabajador</small></span>
+              </span>
+            )}
+            triggerLabel={`Opciones de cuenta de ${dashboard?.nombre || 'Trabajador'}`}
+          />
         </div>
       </aside>
 
@@ -147,6 +155,6 @@ function WorkerDashboard({ onLogout }) {
   )
 }
 
-export function DashboardTrabajador({ onLogout }) {
-  return <WorkerDashboard onLogout={onLogout} />
+export function DashboardTrabajador() {
+  return <WorkerDashboard />
 }

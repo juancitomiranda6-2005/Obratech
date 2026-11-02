@@ -283,3 +283,8 @@
   background-color: transparent !important;
   box-shadow: none !important;
 }
+
+:root .client-sidebar-footer > .client-logout,
+:root .admin-sidebar-footer > .admin-logout {
+  display: none;
+}

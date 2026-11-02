@@ -37,4 +37,17 @@ describe('ProjectRiskPanel sections', () => {
     expect(html).toContain('Datos disponibles: 0 de 4 factores.')
     expect(html).not.toContain('Riesgo de retraso')
   })
+
+  it('renders preventive actions independently from risk factors', () => {
+    const factorsHtml = renderToStaticMarkup(
+      <ProjectRiskPanel indicators={indicators} sections={['factors']} />,
+    )
+    const actionsHtml = renderToStaticMarkup(
+      <ProjectRiskPanel indicators={indicators} sections={['actions']} />,
+    )
+
+    expect(factorsHtml).not.toContain('Qué puedes hacer')
+    expect(actionsHtml).toContain('Qué puedes hacer')
+    expect(actionsHtml).toContain('Acciones preventivas recomendadas')
+  })
 })

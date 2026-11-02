@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { adminService } from '../../services/adminService.js'
+import { SettingsMenu } from '../../components/layout/SettingsMenu.jsx'
 
 const sections = [
   { id: 'proyectos', label: 'Proyectos', icon: 'grading' },
@@ -56,7 +57,7 @@ function EmptyState({ children }) {
   return <p className="admin-empty">{children}</p>
 }
 
-function AdminDashboard({ onLogout }) {
+function AdminDashboard() {
   const [dashboard, setDashboard] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -135,14 +136,16 @@ function AdminDashboard({ onLogout }) {
           ))}
         </nav>
         <div className="admin-sidebar-footer">
-          <div className="admin-user-badge">
-            <span className="material-symbols-outlined" aria-hidden="true">shield</span>
-            <div><strong>Administrador</strong><small>Sesión verificada</small></div>
-          </div>
-          <button className="admin-logout" onClick={onLogout} type="button">
-            <span className="material-symbols-outlined" aria-hidden="true">logout</span>
-            Cerrar sesión
-          </button>
+          <SettingsMenu
+            inline
+            triggerContent={(
+              <span className="admin-user-badge">
+                <span className="material-symbols-outlined" aria-hidden="true">shield</span>
+                <span><strong>Administrador</strong><small>Sesión verificada</small></span>
+              </span>
+            )}
+            triggerLabel="Opciones de cuenta de Administrador"
+          />
         </div>
       </aside>
 
@@ -334,6 +337,6 @@ function ProfileList({ items, emptyText = 'No hay perfiles para mostrar.', onTog
   )
 }
 
-export function DashboardAdmin({ onLogout }) {
-  return <AdminDashboard onLogout={onLogout} />
+export function DashboardAdmin() {
+  return <AdminDashboard />
 }

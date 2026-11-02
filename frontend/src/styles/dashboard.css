@@ -107,6 +107,10 @@
   font-size: 11px;
 }
 
+.contractor-risk-view > .contractor-risk-panel {
+  grid-template-columns: 1fr;
+}
+
 .client-user small {
   margin-top: 3px;
   color: var(--ot-orange-text);
@@ -2323,6 +2327,131 @@
   scroll-margin-top: 20px;
 }
 
+.contractor-overview-projects {
+  display: grid;
+  gap: 16px;
+  padding-top: 22px;
+}
+
+.contractor-overview-projects .client-section-heading {
+  margin-bottom: 12px;
+}
+
+.contractor-overview-projects .client-project-list {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 440px));
+  gap: 12px;
+}
+
+.contractor-overview-reports {
+  margin-top: 14px;
+  border: 1px solid var(--ot-line);
+  border-radius: 12px;
+  background: var(--ot-panel);
+}
+
+.contractor-overview-reports > summary {
+  display: flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 16px;
+  color: var(--ot-text);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  list-style: none;
+}
+
+.contractor-overview-reports > summary::-webkit-details-marker {
+  display: none;
+}
+
+.contractor-overview-reports > summary::after {
+  content: 'expand_more';
+  color: var(--ot-orange-text);
+  font-family: 'Material Symbols Outlined';
+  font-size: 20px;
+}
+
+.contractor-overview-reports[open] > summary {
+  border-bottom: 1px solid var(--ot-line);
+}
+
+.contractor-overview-reports[open] > summary::after {
+  content: 'expand_less';
+}
+
+.contractor-overview-reports .contractor-reports-section {
+  margin: 0;
+  padding: 16px;
+}
+
+.contractor-overview-reports .contractor-reports-section > .client-section-heading {
+  display: none;
+}
+
+.contractor-view-header {
+  padding: 4px 0 18px;
+  border-bottom: 1px solid var(--ot-line);
+}
+
+.contractor-view-header .client-section-heading {
+  align-items: center;
+  margin: 0;
+}
+
+.contractor-view-header h2 {
+  margin: 0;
+  font-size: 21px;
+}
+
+.contractor-tab-content {
+  display: grid;
+  gap: 16px;
+  padding-top: 8px;
+  animation: contractor-tab-enter 180ms ease-out both;
+}
+
+.contractor-risk-view > .contractor-risk-panel {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 16px;
+  padding: 20px;
+}
+
+.contractor-risk-view .contractor-risk-header,
+.contractor-risk-view .contractor-risk-summary,
+.contractor-risk-view .contractor-risk-method,
+.contractor-risk-view .contractor-risk-factor-chart,
+.contractor-risk-view .contractor-risk-actions,
+.contractor-risk-view .contractor-risk-delivery,
+.contractor-risk-view .contractor-risk-chart {
+  align-self: stretch;
+}
+
+.contractor-risk-view .contractor-risk-header,
+.contractor-risk-view .contractor-risk-summary,
+.contractor-risk-view .contractor-risk-method {
+  grid-column: 1 / -1;
+}
+
+.contractor-risk-view .contractor-risk-actions {
+  margin: 0;
+}
+
+@keyframes contractor-tab-enter {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .contractor-follow-up-sticky {
   position: sticky;
   top: 0;
@@ -2346,6 +2475,61 @@
 .contractor-follow-up-sticky .contractor-phase-select {
   flex: 0 1 20rem;
   margin: 0;
+}
+
+.contractor-follow-up-tabs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 16px;
+  margin-bottom: 16px;
+  padding: 5px;
+  overflow-x: auto;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 12px;
+  background: #0b0f17;
+  scrollbar-width: thin;
+  scrollbar-color: #475569 transparent;
+}
+
+.contractor-follow-up-tabs button {
+  min-height: 42px;
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 16px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  color: #94a3b8;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 150ms ease, background-color 150ms ease, border-color 150ms ease;
+}
+
+.contractor-follow-up-tabs button:hover {
+  color: #f8fafc;
+  background: rgba(148, 163, 184, 0.1);
+}
+
+.contractor-follow-up-tabs button.is-active {
+  border-color: rgba(255, 107, 0, 0.34);
+  color: #fff;
+  background: #ff6b00;
+  box-shadow: 0 4px 14px rgba(255, 107, 0, 0.2);
+}
+
+.contractor-follow-up-tabs button:focus-visible {
+  outline: 2px solid #ff8a2a;
+  outline-offset: 2px;
+}
+
+.contractor-follow-up-tabs .material-symbols-outlined {
+  font-size: 18px;
 }
 
 .contractor-follow-up-summary {
@@ -2861,5 +3045,216 @@
 
   .client-review-badge {
     margin-left: 35px;
+  }
+}
+
+:root:not([data-theme='light']) .contractor-dashboard {
+  --ot-bg: #0b0f17;
+  --ot-bg-2: #101722;
+  --ot-panel: #141c28;
+  --ot-panel-2: #1a2432;
+}
+
+.contractor-dashboard .client-stats {
+  gap: 12px;
+  border: 0;
+}
+
+.contractor-dashboard .client-stat {
+  min-height: 112px;
+  padding: 20px;
+  border: 1px solid var(--ot-line);
+  border-top: 2px solid var(--tone);
+  border-radius: 12px;
+  background: var(--ot-panel);
+}
+
+.contractor-dashboard .client-stat strong {
+  font-size: clamp(26px, 2.4vw, 32px);
+  line-height: 1;
+}
+
+.contractor-dashboard .client-stat p {
+  margin-top: 8px;
+  font-size: 10px;
+  letter-spacing: 0.035em;
+}
+
+.contractor-dashboard .client-project {
+  padding: 12px;
+  border-radius: 10px;
+  background: linear-gradient(145deg, var(--ot-panel-2), var(--ot-panel));
+}
+
+.contractor-dashboard .client-project h3 {
+  margin: 6px 0 4px;
+  font-size: 14px;
+}
+
+.contractor-dashboard .client-project > p {
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.contractor-dashboard .client-project-meta {
+  gap: 6px 10px;
+  margin-top: 9px;
+  padding-top: 8px;
+  font-size: 10px;
+}
+
+.contractor-dashboard .client-project .profile-open-link {
+  width: fit-content;
+  justify-content: flex-start;
+  gap: 6px;
+  min-height: 32px;
+  margin-top: 9px;
+  padding: 0 10px;
+  border: 1px solid var(--ot-orange);
+  border-radius: 8px;
+  color: #fff;
+  background: var(--ot-orange-grad);
+  font-size: 10px;
+  transition: filter 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+}
+
+.contractor-dashboard .client-project .profile-open-link:hover {
+  filter: brightness(1.12);
+  transform: translateY(-1px);
+  box-shadow: 0 7px 18px rgba(255, 106, 26, 0.2);
+}
+
+.contractor-dashboard .client-project .profile-open-link:focus-visible,
+.contractor-dashboard .contractor-report-composer summary:focus-visible,
+.contractor-dashboard .button-primary:focus-visible {
+  outline: 2px solid var(--ot-orange-2);
+  outline-offset: 3px;
+}
+
+.contractor-dashboard .contractor-report-composer summary {
+  width: fit-content;
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--ot-orange);
+  border-radius: 8px;
+  color: #fff;
+  background: var(--ot-orange-grad);
+  font-size: 10px;
+  transition: filter 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+}
+
+.contractor-dashboard .contractor-report-composer summary:hover {
+  filter: brightness(1.12);
+  transform: translateY(-1px);
+  box-shadow: 0 7px 18px rgba(255, 106, 26, 0.2);
+}
+
+.contractor-dashboard .button-primary {
+  min-height: 42px;
+  padding: 0 16px;
+  font-size: 12px;
+  transition: filter 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+}
+
+.contractor-dashboard .button-primary:hover:not(:disabled) {
+  filter: brightness(1.12);
+  transform: translateY(-1px);
+  box-shadow: 0 7px 18px rgba(255, 106, 26, 0.2);
+}
+
+.contractor-follow-up-summary {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: stretch;
+}
+
+.contractor-follow-up-summary > .phase-panel,
+.contractor-follow-up-summary > .contractor-risk-panel {
+  min-height: 100%;
+}
+
+.contractor-follow-up-modules {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 14px;
+}
+
+.contractor-follow-up-modules > .phase-panel {
+  grid-column: 1 / -1;
+}
+
+.contractor-follow-up-phase {
+  grid-column: 1 / -1;
+  scroll-margin-top: 150px;
+}
+
+.contractor-follow-up-summary,
+.contractor-follow-up-modules > #contractor-tab-risks,
+.contractor-risk-evidence > details {
+  scroll-margin-top: 150px;
+}
+
+.contractor-follow-up-modules > .contractor-risk-panel {
+  min-height: 100%;
+  padding: 20px;
+}
+
+.contractor-follow-up-modules .contractor-risk-actions {
+  align-content: start;
+  min-height: 100%;
+  padding: 18px;
+}
+
+@media (max-width: 1150px) {
+  .contractor-follow-up-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .contractor-follow-up-summary,
+  .contractor-follow-up-modules {
+    grid-template-columns: 1fr;
+  }
+
+  .contractor-follow-up-modules > .phase-panel {
+    grid-column: auto;
+  }
+
+  .contractor-follow-up-phase {
+    grid-column: auto;
+  }
+
+  .contractor-follow-up-tabs {
+    gap: 4px;
+    margin-top: 12px;
+    padding: 4px;
+  }
+
+  .contractor-follow-up-tabs button {
+    min-height: 40px;
+    gap: 6px;
+    padding: 0 12px;
+    font-size: 11px;
+  }
+
+  .contractor-dashboard .client-stats {
+    gap: 9px;
+  }
+
+  .contractor-dashboard .client-stat {
+    min-height: 96px;
+    padding: 15px;
+  }
+}
+
+@media (max-width: 420px) {
+  .contractor-dashboard .client-stat {
+    gap: 9px;
+    padding: 12px;
+  }
+
+  .contractor-dashboard .client-stat strong {
+    font-size: 24px;
   }
 }

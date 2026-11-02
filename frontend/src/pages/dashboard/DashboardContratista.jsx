@@ -6,6 +6,7 @@ import { contractorDashboardService } from '../../services/professionalDashboard
 import { participantProjectsService } from '../../services/participantProjectsService.js'
 import { PhasePanel } from '../../components/PhasePanel.jsx'
 import { ProjectRiskPanel } from '../../components/ProjectRiskPanel.jsx'
+import { SettingsMenu } from '../../components/layout/SettingsMenu.jsx'
 
 async function loadProjectWorkerReports(projects = []) {
   const entries = await Promise.all(projects.map(async (project) => {
@@ -19,7 +20,7 @@ async function loadProjectWorkerReports(projects = []) {
   return Object.fromEntries(entries)
 }
 
-function ContractorDashboard({ onLogout }) {
+function ContractorDashboard() {
   const [dashboard, setDashboard] = useState(null)
   const [reports, setReports] = useState([])
   const [workerReportsByProject, setWorkerReportsByProject] = useState({})
@@ -37,10 +38,27 @@ function ContractorDashboard({ onLogout }) {
   const [selectedPhaseStatus, setSelectedPhaseStatus] = useState(null)
   const [phaseLoading, setPhaseLoading] = useState(false)
   const [phaseError, setPhaseError] = useState('')
-  const selectedProject = dashboard?.proyectos.find((project) => project.id === selectedProjectId)
+  const [activeFollowUpTab, setActiveFollowUpTab] = useState('overview')
   const visibleReports = reportsShowAll
     ? reports
     : reports.filter((report) => report.proyectoId === selectedProjectId)
+  const followUpTabs = [
+    { id: 'overview', label: 'Vista General', icon: 'rocket_launch' },
+    { id: 'phases', label: 'Fases', icon: 'description' },
+    { id: 'risks', label: 'Riesgos', icon: 'monitoring' },
+    { id: 'payments', label: 'Pagos y Finanzas', icon: 'account_balance_wallet' },
+    { id: 'teams', label: 'Equipos', icon: 'groups' },
+  ]
+
+  const openProjects = (event) => {
+    event.preventDefault()
+    setActiveFollowUpTab('overview')
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        document.getElementById('proyectos')?.scrollIntoView({ behavior: 'smooth' })
+      })
+    })
+  }
 
   const reload = async () => {
     setLoading(true)
@@ -147,7 +165,7 @@ function ContractorDashboard({ onLogout }) {
   }
 
   return (
-    <div className="client-layout">
+    <div className="client-layout contractor-dashboard">
       <aside className="client-sidebar">
         <a className="client-brand" href="#resumen"><span className="material-symbols-outlined" aria-hidden="true">construction</span>ObraTech</a>
         <nav aria-label="Secciones del dashboard" className="client-nav">
@@ -158,13 +176,20 @@ function ContractorDashboard({ onLogout }) {
           <Link to="/clientes"><span className="material-symbols-outlined" aria-hidden="true">business</span>Directorio de clientes</Link>
           <Link to="/contratistas/mi-equipo"><span className="material-symbols-outlined" aria-hidden="true">groups</span>Mi equipo</Link>
           <Link to="/contratistas/historial"><span className="material-symbols-outlined" aria-hidden="true">history</span>Historial de proyectos</Link>
-          <a href="#proyectos"><span className="material-symbols-outlined" aria-hidden="true">folder_special</span>Proyectos asignados</a>
-          <a href="#proyectos"><span className="material-symbols-outlined" aria-hidden="true">description</span>Hacer reporte</a>
-          <Link to="/perfil-contratista"><span className="material-symbols-outlined" aria-hidden="true">person</span>Mi perfil</Link>
+          <a href="#proyectos" onClick={openProjects}><span className="material-symbols-outlined" aria-hidden="true">folder_special</span>Proyectos asignados</a>
+          <a href="#proyectos" onClick={openProjects}><span className="material-symbols-outlined" aria-hidden="true">description</span>Hacer reporte</a>
         </nav>
         <div className="client-sidebar-footer">
-          <div className="client-user"><ProfileAvatar className="client-avatar" name={dashboard?.nombre || 'Contratista'} profileId={dashboard?.username} /><div><strong>{dashboard?.nombre || 'Contratista'}</strong><small>Contratista</small></div></div>
-          <button className="client-logout" onClick={onLogout} type="button"><span className="material-symbols-outlined" aria-hidden="true">logout</span>Cerrar sesión</button>
+          <SettingsMenu
+            inline
+            triggerContent={(
+              <span className="client-user">
+                <ProfileAvatar className="client-avatar" name={dashboard?.nombre || 'Contratista'} profileId={dashboard?.username} />
+                <span><strong>{dashboard?.nombre || 'Contratista'}</strong><small>Contratista</small></span>
+              </span>
+            )}
+            triggerLabel={`Opciones de cuenta de ${dashboard?.nombre || 'Contratista'}`}
+          />
         </div>
       </aside>
 
@@ -174,12 +199,29 @@ function ContractorDashboard({ onLogout }) {
           <button aria-label="Actualizar dashboard" className="admin-icon-button" disabled={loading} onClick={reload} title={loading ? 'Actualizando…' : 'Actualizar'} type="button"><span className={`material-symbols-outlined ${loading ? 'is-refreshing' : ''}`} aria-hidden="true">refresh</span></button>
         </header>
 
+        <nav aria-label="Secciones del seguimiento" className="contractor-follow-up-tabs">
+          {followUpTabs.map((tab) => (
+            <button
+              aria-pressed={activeFollowUpTab === tab.id}
+              className={activeFollowUpTab === tab.id ? 'is-active' : ''}
+              key={tab.id}
+              onClick={() => setActiveFollowUpTab(tab.id)}
+              type="button"
+            >
+              <span aria-hidden="true" className="material-symbols-outlined">{tab.icon}</span>
+              <span>{tab.label}</span>
+            </button>
+          ))}
+        </nav>
+
         {error && <div className="admin-alert admin-alert-error" role="alert">{error}</div>}
         {notice && <div className="admin-alert admin-alert-success" role="status">{notice}</div>}
         {loading && !dashboard && <div className="admin-loading" role="status">Cargando proyectos asignados…</div>}
 
         {dashboard && (
           <>
+            {activeFollowUpTab === 'overview' && (
+              <>
             {!dashboard.usuarioVerificado && (
               <section className="client-verification" aria-label="Estado de verificación">
                 <span className="material-symbols-outlined" aria-hidden="true">gpp_maybe</span>
@@ -195,7 +237,7 @@ function ContractorDashboard({ onLogout }) {
               <ContractorStat icon="task_alt" label="Proyectos completados" value={dashboard.proyectosCompletados} tone="green" />
             </section>
 
-            <div className="client-lower-grid contractor-project-profile-grid">
+            <div className="contractor-overview-projects">
               <section className="client-project-section" id="proyectos">
                 <div className="client-section-heading"><div><p className="client-eyebrow">Trabajo</p><h2>Proyectos asignados</h2></div><span>{dashboard.proyectosEnProgreso} activos</span></div>
                 {dashboard.proyectos.length ? (
@@ -238,25 +280,19 @@ function ContractorDashboard({ onLogout }) {
                   </div>
                 ) : <div className="client-empty"><span className="material-symbols-outlined" aria-hidden="true">folder_open</span><h3>No tienes proyectos asignados</h3><p>Los proyectos asignados aparecerán aquí con su estado y ubicación.</p></div>}
               </section>
-
-              <section className="client-profile" id="perfil">
-                <p className="client-eyebrow">Perfil profesional</p><h2>{dashboard.especialidad || 'Contratista general'}</h2>
-                <div className="client-profile-email"><span className="material-symbols-outlined" aria-hidden="true">location_on</span><span>{dashboard.ubicacion || 'Ubicación no definida'}</span></div>
-                <div className="client-profile-status"><span className={`client-status-dot ${dashboard.usuarioVerificado ? 'is-verified' : ''}`} /><span>{dashboard.usuarioVerificado ? 'Cuenta verificada' : 'Insignia pendiente'}</span></div>
-                <div className="client-profile-total"><span>Proyectos completados</span><strong>{dashboard.proyectosCompletados}</strong></div>
-                <Link className="profile-open-link" to="/perfil-contratista">Ver perfil completo<span className="material-symbols-outlined" aria-hidden="true">arrow_forward</span></Link>
-              </section>
             </div>
+              </>
+            )}
 
-            <section aria-label="Seguimiento del proyecto" className="contractor-follow-up">
-              <header className="contractor-follow-up-sticky">
+            {activeFollowUpTab !== 'overview' && <section aria-label="Seguimiento del proyecto" className="contractor-follow-up">
+              <header className="contractor-view-header">
                 <div className="client-section-heading">
                   <div>
-                    <p className="client-eyebrow">Fases y riesgo del proyecto</p>
-                    <h2>{selectedProject ? `Seguimiento de: ${selectedProject.titulo || 'Proyecto sin título'}` : 'Seguimiento del proyecto'}</h2>
+                    <p className="client-eyebrow">Seguimiento del proyecto</p>
+                    <h2>{followUpTabs.find((tab) => tab.id === activeFollowUpTab)?.label}</h2>
                   </div>
                   <label className="contractor-phase-select">
-                    <span>Selecciona un proyecto</span>
+                    <span>Proyecto seleccionado</span>
                     <select
                       disabled={!dashboard.proyectos.length}
                       onChange={(event) => {
@@ -279,68 +315,40 @@ function ContractorDashboard({ onLogout }) {
               {phaseLoading && <p className="admin-loading" role="status">Cargando fases e indicadores…</p>}
               {!selectedProjectId && !phaseLoading && <p className="contractor-follow-up-empty">No tienes proyectos asignados para mostrar el seguimiento.</p>}
               {!phaseLoading && selectedPhaseStatus && (
-                <>
-                  <div className="contractor-follow-up-summary">
-                    <div className="contractor-follow-up-summary-primary">
-                      <PhasePanel phaseStatus={selectedPhaseStatus} sections={['summary']} />
-                      {selectedPhaseStatus.indicadores && (
-                        <div className="contractor-follow-up-delivery">
+                <div className={`contractor-tab-content contractor-tab-${activeFollowUpTab}`}>
+                  {activeFollowUpTab === 'phases' && (
+                    <PhasePanel phaseStatus={selectedPhaseStatus} sections={['summary', 'phases']} />
+                  )}
+                  {activeFollowUpTab === 'risks' && (
+                    selectedPhaseStatus.indicadores
+                      ? <div className="contractor-risk-view">
                           <ProjectRiskPanel
                             fechaEntrega={selectedPhaseStatus.fechaEntrega}
                             indicators={selectedPhaseStatus.indicadores}
-                            sections={['delivery']}
+                            sections={['summary', 'factors', 'actions', 'delivery', 'weather']}
                           />
                         </div>
-                      )}
-                    </div>
-                    <ProjectRiskPanel
-                      fechaEntrega={selectedPhaseStatus.fechaEntrega}
-                      indicators={selectedPhaseStatus.indicadores}
-                      sections={['summary']}
-                    />
-                  </div>
-
-                  <PhasePanel phaseStatus={selectedPhaseStatus} sections={['phases']} />
-
-                  {selectedPhaseStatus.indicadores && (
-                    <ProjectRiskPanel
-                      fechaEntrega={selectedPhaseStatus.fechaEntrega}
-                      indicators={selectedPhaseStatus.indicadores}
-                      sections={['factors']}
-                    />
+                      : <ProjectRiskPanel indicators={null} />
                   )}
-
-                  <div aria-label="Evidencias del riesgo" className="contractor-risk-evidence">
-                    <details>
-                      <summary><strong>Pagos y aprobaciones</strong><span>Ver detalle</span></summary>
-                      <PhasePanel phaseStatus={selectedPhaseStatus} sections={['payments']} />
-                    </details>
-                    {selectedPhaseStatus.indicadores && (
-                      <>
-                        <details>
-                          <summary><strong>Clima</strong><span>Ver detalle</span></summary>
-                          <ProjectRiskPanel
-                            fechaEntrega={selectedPhaseStatus.fechaEntrega}
-                            indicators={selectedPhaseStatus.indicadores}
-                            sections={['weather']}
-                          />
-                        </details>
-                        <details>
-                          <summary><strong>Equipos</strong><span>Ver detalle</span></summary>
-                          <ProjectRiskPanel
-                            fechaEntrega={selectedPhaseStatus.fechaEntrega}
-                            indicators={selectedPhaseStatus.indicadores}
-                            sections={['teams']}
-                          />
-                        </details>
-                      </>
-                    )}
-                  </div>
-                </>
+                  {activeFollowUpTab === 'payments' && (
+                    <PhasePanel phaseStatus={selectedPhaseStatus} sections={['payments']} />
+                  )}
+                  {activeFollowUpTab === 'teams' && (
+                    selectedPhaseStatus.indicadores
+                      ? <ProjectRiskPanel
+                          fechaEntrega={selectedPhaseStatus.fechaEntrega}
+                          indicators={selectedPhaseStatus.indicadores}
+                          sections={['teams']}
+                        />
+                      : <p className="contractor-follow-up-empty">Los datos de equipos no están disponibles.</p>
+                  )}
+                </div>
               )}
-            </section>
+            </section>}
 
-            <section aria-label="Historial de informes" className="contractor-reports-section" id="informes">
+            {activeFollowUpTab === 'overview' && <details className="contractor-overview-reports" id="informes">
+              <summary>Ver historial de informes<span>{visibleReports.length} informes</span></summary>
+              <section aria-label="Historial de informes" className="contractor-reports-section">
               <div className="client-section-heading">
                 <div><p className="client-eyebrow">Seguimiento</p><h2>Informes enviados</h2></div>
                 <label className="contractor-report-filter">
@@ -389,7 +397,8 @@ function ContractorDashboard({ onLogout }) {
                   <div className="evidence-attachment-list">{report.evidencias?.map((evidence) => <EvidenceAttachment evidence={evidence} key={evidence.fileId} />)}</div>
                 </article>
               ))}</div> : <div className="client-empty"><span className="material-symbols-outlined" aria-hidden="true">description</span><h3>Aún no has enviado informes</h3><p>Registra avances, novedades o bloqueos desde cualquiera de tus proyectos asignados.</p></div>}
-            </section>
+              </section>
+            </details>}
           </>
         )}
       </main>
@@ -401,6 +410,6 @@ function ContractorStat({ icon, label, value, tone }) {
   return <article className={`client-stat tone-${tone}`}><span className="material-symbols-outlined" aria-hidden="true">{icon}</span><div><strong>{value}</strong><p>{label}</p></div></article>
 }
 
-export function DashboardContratista({ onLogout }) {
-  return <ContractorDashboard onLogout={onLogout} />
+export function DashboardContratista() {
+  return <ContractorDashboard />
 }
