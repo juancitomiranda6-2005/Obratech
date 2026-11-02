@@ -3258,3 +3258,330 @@
     font-size: 24px;
   }
 }
+
+/* ═══════════════════════════════════════════════════════
+   CLIENTE · Fase 1 — Sidebar agrupado, banda de atención,
+   barra de progreso, completitud de perfil, hitos
+   ═══════════════════════════════════════════════════════ */
+
+/* ── Sidebar: etiquetas de grupo ─────────────────────── */
+
+.client-nav-group-label {
+  margin: 14px 0 4px 10px;
+  color: var(--ot-muted);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.client-nav-group-label:first-child {
+  margin-top: 4px;
+}
+
+/* ── Banda de atención ───────────────────────────────── */
+
+.client-attention-band {
+  margin-top: 18px;
+  padding: 14px 16px;
+  border: 1px solid rgba(255, 153, 0, .22);
+  border-left: 3px solid var(--ot-orange);
+  border-radius: 8px;
+  background: rgba(255, 153, 0, .05);
+}
+
+.client-attention-band-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 10px;
+  color: var(--ot-orange-text);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+
+.client-attention-band-label .material-symbols-outlined {
+  font-size: 16px;
+}
+
+.client-attention-list {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.client-attention-item {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 11px;
+  border: 1px solid var(--ot-line);
+  border-radius: 7px;
+  background: var(--ot-panel);
+}
+
+.client-attention-item > .material-symbols-outlined {
+  color: var(--ot-orange-text);
+  font-size: 18px;
+}
+
+.client-attention-text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.client-attention-text strong {
+  color: var(--ot-text);
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+
+.client-attention-text span {
+  color: var(--ot-muted);
+  font-size: 9px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.client-attention-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  white-space: nowrap;
+  color: var(--ot-orange-text);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.client-attention-action .material-symbols-outlined {
+  font-size: 16px;
+}
+
+.client-attention-action:hover {
+  opacity: .8;
+}
+
+/* ── Estado vacío "Todo al día" ──────────────────────── */
+
+.client-attention-empty {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 18px;
+  padding: 11px 14px;
+  border: 1px solid rgba(74, 222, 128, .2);
+  border-radius: 7px;
+  color: #4ade80;
+  background: rgba(34, 197, 94, .06);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.client-attention-empty .material-symbols-outlined {
+  font-size: 18px;
+}
+
+/* ── Barra de progreso mini (tarjeta de proyecto) ────── */
+
+.client-progress-mini {
+  display: flex;
+  height: 5px;
+  overflow: hidden;
+  border-radius: 4px;
+  margin: 10px 0 0;
+  background: rgba(255, 255, 255, .06);
+  gap: 2px;
+}
+
+.client-progress-mini span {
+  display: block;
+  height: 100%;
+  border-radius: 4px;
+  transition: width 400ms ease;
+}
+
+.client-progress-mini .cpm-done {
+  background: #4ade80;
+}
+
+.client-progress-mini .cpm-active {
+  background: var(--ot-orange);
+}
+
+.client-progress-mini .cpm-pending {
+  background: rgba(255, 255, 255, .12);
+}
+
+/* ── Barra de completitud de perfil ─────────────────── */
+
+.client-completeness-wrap {
+  margin-top: 14px;
+  padding: 11px 13px;
+  border: 1px solid var(--ot-line);
+  border-radius: 7px;
+  background: var(--ot-panel);
+}
+
+.client-completeness-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 7px;
+  color: var(--ot-muted);
+  font-size: 9px;
+}
+
+.client-completeness-header strong {
+  color: var(--ot-orange-text);
+  font-size: 11px;
+}
+
+.client-completeness-track {
+  height: 5px;
+  overflow: hidden;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, .08);
+}
+
+.client-completeness-fill {
+  display: block;
+  height: 100%;
+  border-radius: 4px;
+  background: var(--ot-orange-grad);
+  transition: width 500ms ease;
+}
+
+/* ── Hitos próximos (sidebar derecho) ───────────────── */
+
+.client-milestones {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--ot-line);
+}
+
+.client-milestones-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 10px;
+  color: var(--ot-muted);
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+}
+
+.client-milestones-title .material-symbols-outlined {
+  font-size: 15px;
+  color: var(--ot-orange-text);
+}
+
+.client-milestone-list {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.client-milestone-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.client-milestone-item > .material-symbols-outlined {
+  flex: 0 0 auto;
+  margin-top: 2px;
+  color: var(--ot-orange-text);
+  font-size: 14px;
+}
+
+.client-milestone-item span {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.client-milestone-item strong {
+  color: var(--ot-text);
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+
+.client-milestone-item small {
+  color: var(--ot-muted);
+  font-size: 9px;
+}
+
+.client-milestones-empty {
+  margin: 0;
+  color: var(--ot-muted);
+  font-size: 10px;
+}
+
+/* ── Light-mode overrides — Fase 1 ──────────────────── */
+
+[data-theme='light'] .client-attention-band {
+  border-color: rgba(200, 110, 0, .22);
+  border-left-color: var(--ot-orange);
+  background: rgba(255, 153, 0, .06);
+}
+
+[data-theme='light'] .client-attention-item {
+  border-color: var(--ot-line);
+  background: var(--ot-panel);
+}
+
+[data-theme='light'] .client-attention-empty {
+  border-color: rgba(22, 163, 74, .25);
+  color: #16a34a;
+  background: rgba(22, 163, 74, .07);
+}
+
+[data-theme='light'] .client-completeness-track {
+  background: rgba(0, 0, 0, .08);
+}
+
+[data-theme='light'] .client-progress-mini {
+  background: rgba(0, 0, 0, .06);
+}
+
+[data-theme='light'] .client-progress-mini .cpm-pending {
+  background: rgba(0, 0, 0, .1);
+}
+
+/* ── Responsive — Fase 1 ─────────────────────────────── */
+
+@media (max-width: 760px) {
+  .client-nav-group-label {
+    display: none;
+  }
+
+  .client-attention-band,
+  .client-attention-empty {
+    margin-top: 14px;
+  }
+
+  .client-attention-item {
+    grid-template-columns: 20px minmax(0, 1fr);
+  }
+
+  .client-attention-action {
+    grid-column: 2;
+    justify-self: start;
+  }
+}
+
+@media (max-width: 420px) {
+  .client-completeness-wrap {
+    padding: 9px 10px;
+  }
+}
