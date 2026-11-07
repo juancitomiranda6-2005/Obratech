@@ -1,3 +1,18 @@
+# Configuración de Google OAuth
+
+Para habilitar el inicio de sesión con Google, debes crear un cliente OAuth 2.0
+en Google Cloud Console y definir `GOOGLE_CLIENT_ID` y `GOOGLE_CLIENT_SECRET`
+antes de arrancar el backend.
+
+1. Entra a Google Cloud Console.
+2. Crea un proyecto o usa uno existente.
+3. Habilita la API de "Google Identity Services" y crea una credencial OAuth 2.0 Client ID.
+4. Añade la URI de redirección:
+   `http://localhost:9999/login/oauth2/code/google`
+5. Copia el `Client ID` y el `Client secret` al archivo `.env` del repositorio.
+
+No dejes valores en duro como `dummy-google-client-id` o `obratech-dev-google-client-id` en el código o en el `.env`; Google rechazará las peticiones con `Error 401: client not valid`.
+
 # Datos de demostración
 
 ObraTech puede cargar un conjunto pequeño de datos ficticios para revisar los

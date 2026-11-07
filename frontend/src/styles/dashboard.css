@@ -3260,8 +3260,7 @@
 }
 
 /* ═══════════════════════════════════════════════════════
-   CLIENTE · Fase 1 — Sidebar agrupado, banda de atención,
-   barra de progreso, completitud de perfil, hitos
+   CLIENTE · Seguimiento estilo Contratista
    ═══════════════════════════════════════════════════════ */
 
 /* ── Sidebar: etiquetas de grupo ─────────────────────── */
@@ -3277,6 +3276,33 @@
 
 .client-nav-group-label:first-child {
   margin-top: 4px;
+}
+
+/* ── Tarjetas de estadísticas estilo Contratista para Cliente ── */
+
+.client-layout .client-stats {
+  gap: 12px;
+  border: 0;
+}
+
+.client-layout .client-stat {
+  min-height: 112px;
+  padding: 20px;
+  border: 1px solid var(--ot-line);
+  border-top: 2px solid var(--tone);
+  border-radius: 12px;
+  background: var(--ot-panel);
+}
+
+.client-layout .client-stat strong {
+  font-size: clamp(24px, 2.2vw, 30px);
+  line-height: 1;
+}
+
+.client-layout .client-stat p {
+  margin-top: 8px;
+  font-size: 10px;
+  letter-spacing: 0.035em;
 }
 
 /* ── Banda de atención ───────────────────────────────── */
@@ -3527,7 +3553,7 @@
   font-size: 10px;
 }
 
-/* ── Light-mode overrides — Fase 1 ──────────────────── */
+/* ── Light-mode overrides ────────────────────────────── */
 
 [data-theme='light'] .client-attention-band {
   border-color: rgba(200, 110, 0, .22);
@@ -3558,11 +3584,20 @@
   background: rgba(0, 0, 0, .1);
 }
 
-/* ── Responsive — Fase 1 ─────────────────────────────── */
+/* ── Responsive ──────────────────────────────────────── */
 
 @media (max-width: 760px) {
   .client-nav-group-label {
     display: none;
+  }
+
+  .client-layout .client-stats {
+    gap: 9px;
+  }
+
+  .client-layout .client-stat {
+    min-height: 96px;
+    padding: 15px;
   }
 
   .client-attention-band,
@@ -3584,4 +3619,147 @@
   .client-completeness-wrap {
     padding: 9px 10px;
   }
+
+  .client-layout .client-stat {
+    gap: 9px;
+    padding: 12px;
+  }
+
+  .client-layout .client-stat strong {
+    font-size: 20px;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Mejoras UI/UX: Chips de requisitos, estados vacíos y legibilidad
+   ══════════════════════════════════════════════════════════════ */
+
+.client-missing-chips {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.client-missing-tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.client-req-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border: 1px solid rgba(251, 191, 36, 0.28);
+  border-radius: 12px;
+  background: rgba(251, 191, 36, 0.09);
+  color: #fde68a;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.client-req-tag-more {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 9px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--ot-muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.projects-empty-card {
+  padding: 34px 20px;
+  border: 1px dashed var(--ot-line);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.02);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.projects-empty-card .material-symbols-outlined {
+  font-size: 44px;
+  color: var(--ot-orange-text);
+  margin-bottom: 10px;
+  opacity: 0.9;
+}
+
+.projects-empty-card h3 {
+  margin: 0 0 6px;
+  font-size: 16px;
+  color: var(--ot-text);
+}
+
+.projects-empty-card p {
+  max-width: 440px;
+  margin: 0 auto;
+  color: var(--ot-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* ── Mejoras en tamaño y legibilidad de metadatos secundarios ── */
+
+.client-stat p {
+  font-size: 11px;
+}
+
+.client-eyebrow {
+  font-size: 11px;
+}
+
+.client-project-meta {
+  font-size: 11px;
+}
+
+.client-project > p {
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.client-attention-text strong {
+  font-size: 12px;
+}
+
+.client-attention-text span {
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.client-completeness-header {
+  font-size: 11px;
+}
+
+.client-milestones-title {
+  font-size: 11px;
+}
+
+.client-milestone-item strong {
+  font-size: 12px;
+}
+
+.client-milestone-item small {
+  font-size: 11px;
+}
+
+.project-spec small {
+  font-size: 11px;
+}
+
+.project-spec strong {
+  font-size: 12px;
+}
+
+.project-list-meta {
+  font-size: 11px;
+}
+
+.project-list-meta strong {
+  font-size: 12px;
 }

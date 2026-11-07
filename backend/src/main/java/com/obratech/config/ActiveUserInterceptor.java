@@ -34,7 +34,10 @@ public class ActiveUserInterceptor implements HandlerInterceptor {
                 || uri.startsWith(request.getContextPath() + "/uploads/")
                 || uri.startsWith(request.getContextPath() + "/css/")
                 || uri.startsWith(request.getContextPath() + "/js/")
-                || uri.startsWith(request.getContextPath() + "/images/")) {
+                || uri.startsWith(request.getContextPath() + "/images/")
+                || uri.startsWith(request.getContextPath() + "/assets/")
+                || uri.startsWith(request.getContextPath() + "/favicon.ico")
+                || uri.startsWith(request.getContextPath() + "/api/")) {
             return true;
         }
 

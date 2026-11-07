@@ -100,8 +100,12 @@ public class ClientDashboardApiController {
                 .map(this::toProjectCard)
                 .toList();
 
+        String nombreUsuario = perfil != null && perfil.getNombre() != null && !perfil.getNombre().isBlank()
+                ? perfil.getNombre().trim() : "";
+
         return ResponseEntity.ok(new ClientDashboardResponse(
                 usuario.getUsername(),
+                nombreUsuario,
                 usuario.isVerificado(),
                 !requisitosFaltantes.isEmpty(),
                 requisitosFaltantes,
@@ -266,6 +270,7 @@ public class ClientDashboardApiController {
 
     public record ClientDashboardResponse(
             String username,
+            String nombre,
             boolean usuarioVerificado,
             boolean perfilIncompleto,
             List<String> requisitosFaltantes,
@@ -275,7 +280,22 @@ public class ClientDashboardApiController {
             int miembrosEquipo,
             double presupuestoTotal,
             int tasaExito,
-            List<ProjectCard> proyectosRecientes) {}
+            List<ProjectCard> proyectosRecientes) {
+        public ClientDashboardResponse(
+                String username,
+                boolean usuarioVerificado,
+                boolean perfilIncompleto,
+                List<String> requisitosFaltantes,
+                int totalProyectos,
+                long proyectosEnProgreso,
+                long proyectosCompletados,
+                int miembrosEquipo,
+                double presupuestoTotal,
+                int tasaExito,
+                List<ProjectCard> proyectosRecientes) {
+            this(username, "", usuarioVerificado, perfilIncompleto, requisitosFaltantes, totalProyectos, proyectosEnProgreso, proyectosCompletados, miembrosEquipo, presupuestoTotal, tasaExito, proyectosRecientes);
+        }
+    }
 
     public record ProjectCard(
             String id,

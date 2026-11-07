@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { clientDashboardService } from '../../services/clientDashboardService.js'
+import { clientProjectsService } from '../../services/proyectoService.js'
 import { ProfileAvatar } from '../../components/shared/ProfileAvatar.jsx'
+import { PhasePanel } from '../../components/PhasePanel.jsx'
 import { ProjectRiskPanel } from '../../components/ProjectRiskPanel.jsx'
 import { SettingsMenu } from '../../components/layout/SettingsMenu.jsx'
+import { useAuth } from '../../hooks/useAuth.js'
 
 const currencyFormatter = new Intl.NumberFormat('es-CO', {
   style: 'currency',
@@ -18,6 +21,17 @@ const stateLabels = {
   CANCELADO: 'Cancelado',
 }
 
+function formatDisplayName(dashboard, user) {
+  if (dashboard?.nombre && dashboard.nombre.trim()) return dashboard.nombre.trim()
+  if (user?.nombre && user.nombre.trim()) return user.nombre.trim()
+  const raw = dashboard?.username || user?.username || user?.email || ''
+  if (raw.includes('@')) {
+    const rawName = raw.split('@')[0]
+    return rawName.replace(/[._]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+  }
+  return raw ? raw.replace(/[._]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()) : 'Cliente'
+}
+
 /* ── Helpers ─────────────────────────────────────────── */
 
 function deriveAttentionItems(dashboard) {
@@ -29,7 +43,7 @@ function deriveAttentionItems(dashboard) {
       key: 'perfil',
       icon: 'person_alert',
       label: 'Perfil incompleto',
-      detail: `Faltan: ${dashboard.requisitosFaltantes.join(', ')}`,
+      detail: `Faltan ${dashboard.requisitosFaltantes.length} requisitos: ${dashboard.requisitosFaltantes.map(r => r.replace(/\.$/, '').replace(/^Debes cargar /i, '').replace(/^La presentación profesional /i, 'Presentación ')).slice(0, 3).join(', ')}${dashboard.requisitosFaltantes.length > 3 ? ` (+${dashboard.requisitosFaltantes.length - 3} más)` : ''}`,
       to: '/perfil-cliente/editar',
     })
   }
@@ -48,7 +62,7 @@ function deriveAttentionItems(dashboard) {
     })
   }
 
-  // Proyectos con indicadores de riesgo alto
+  // Proyectos con indicadores de riesgo alto o crítico
   const conRiesgo = (dashboard.proyectosRecientes || []).filter(
     (p) =>
       p.indicadores &&
@@ -142,7 +156,6 @@ function ProfileCompletenessBar({ pct }) {
 }
 
 function ProjectProgressBar({ estado }) {
-  // Segment widths based on estado
   const config = {
     PENDIENTE:   { done: 0,  active: 0,  pending: 100 },
     EN_PROGRESO: { done: 35, active: 40, pending: 25 },
@@ -167,12 +180,33 @@ function ClientDashboard() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
+  // Pestañas de seguimiento como en Contratista
+  const [activeFollowUpTab, setActiveFollowUpTab] = useState('overview')
+  const [selectedProjectId, setSelectedProjectId] = useState('')
+  const [selectedPhaseStatus, setSelectedPhaseStatus] = useState(null)
+  const [phaseLoading, setPhaseLoading] = useState(false)
+  const [phaseError, setPhaseError] = useState('')
+
+  const followUpTabs = [
+    { id: 'overview', label: 'Vista General', icon: 'rocket_launch' },
+    { id: 'phases', label: 'Fases', icon: 'description' },
+    { id: 'risks', label: 'Riesgos', icon: 'monitoring' },
+    { id: 'payments', label: 'Pagos y Finanzas', icon: 'account_balance_wallet' },
+    { id: 'teams', label: 'Equipos', icon: 'groups' },
+  ]
+
   const reload = async () => {
     setLoading(true)
     setError('')
     try {
       const { data } = await clientDashboardService.getDashboard()
       setDashboard(data)
+      const nextProjectId = data.proyectosRecientes?.some((p) => p.id === selectedProjectId)
+        ? selectedProjectId
+        : data.proyectosRecientes?.[0]?.id || ''
+      setSelectedProjectId(nextProjectId)
+      if (!nextProjectId) setSelectedPhaseStatus(null)
+      setPhaseLoading(Boolean(nextProjectId && activeFollowUpTab !== 'overview'))
     } catch (requestError) {
       setError(requestError.response?.data?.error || 'No se pudo cargar tu resumen de proyectos.')
     } finally {
@@ -185,7 +219,10 @@ function ClientDashboard() {
     let active = true
     clientDashboardService.getDashboard()
       .then(({ data }) => {
-        if (active) setDashboard(data)
+        if (!active) return
+        setDashboard(data)
+        const initialProjectId = data.proyectosRecientes?.[0]?.id || ''
+        setSelectedProjectId(initialProjectId)
       })
       .catch((requestError) => {
         if (active) setError(requestError.response?.data?.error || 'No se pudo cargar tu resumen de proyectos.')
@@ -196,8 +233,31 @@ function ClientDashboard() {
     return () => { active = false }
   }, [])
 
+  // Carga de estado de fases cuando se selecciona un proyecto o cambia la pestaña
+  useEffect(() => {
+    if (!selectedProjectId || activeFollowUpTab === 'overview') {
+      return undefined
+    }
+    let active = true
+    setPhaseLoading(true)
+    setPhaseError('')
+    clientProjectsService.getPhaseStatus(selectedProjectId)
+      .then(({ data }) => {
+        if (active) setSelectedPhaseStatus(data)
+      })
+      .catch((requestError) => {
+        if (active) setPhaseError(requestError.response?.data?.error || 'No se pudo cargar el seguimiento del proyecto.')
+      })
+      .finally(() => {
+        if (active) setPhaseLoading(false)
+      })
+    return () => { active = false }
+  }, [selectedProjectId, activeFollowUpTab])
+
   const attentionItems = dashboard ? deriveAttentionItems(dashboard) : []
   const completeness   = dashboard ? calcProfileCompleteness(dashboard) : 0
+  const { user }       = useAuth()
+  const displayName    = formatDisplayName(dashboard, user)
 
   return (
     <div className="client-layout">
@@ -211,7 +271,9 @@ function ClientDashboard() {
         <nav aria-label="Secciones del dashboard" className="client-nav">
           {/* GESTIÓN */}
           <p className="client-nav-group-label">Gestión</p>
-          <a href="#resumen"><span className="material-symbols-outlined" aria-hidden="true">dashboard</span>Resumen</a>
+          <a href="#resumen" onClick={() => setActiveFollowUpTab('overview')}>
+            <span className="material-symbols-outlined" aria-hidden="true">dashboard</span>Resumen
+          </a>
           <Link to="/mis-proyectos"><span className="material-symbols-outlined" aria-hidden="true">folder_open</span>Mis proyectos</Link>
           <Link to="/proyectos/publicar"><span className="material-symbols-outlined" aria-hidden="true">add_circle</span>Publicar proyecto</Link>
           <Link to="/clientes/mis-postulaciones"><span className="material-symbols-outlined" aria-hidden="true">mail</span>Postulaciones recibidas</Link>
@@ -232,11 +294,11 @@ function ClientDashboard() {
             inline
             triggerContent={(
               <span className="client-user">
-                <ProfileAvatar className="client-avatar" name={dashboard?.username || 'Cliente'} profileId={dashboard?.username} />
-                <span><strong>{dashboard?.username || 'Cliente'}</strong><small>Cliente</small></span>
+                <ProfileAvatar className="client-avatar" name={displayName} profileId={dashboard?.username} />
+                <span><strong>{displayName}</strong><small>Cliente</small></span>
               </span>
             )}
-            triggerLabel={`Opciones de cuenta de ${dashboard?.username || 'Cliente'}`}
+            triggerLabel={`Opciones de cuenta de ${displayName}`}
           />
         </div>
       </aside>
@@ -246,7 +308,7 @@ function ClientDashboard() {
         <header className="client-header">
           <div>
             <p className="client-eyebrow">Área de cliente</p>
-            <h1>Bienvenido, {dashboard?.username || '…'}</h1>
+            <h1>Bienvenido, {displayName}</h1>
             <p>Gestiona tus proyectos de construcción de forma eficiente.</p>
           </div>
           <div className="client-header-actions">
@@ -257,160 +319,241 @@ function ClientDashboard() {
           </div>
         </header>
 
+        {/* ── Pestañas de seguimiento como en Contratista ── */}
+        <nav aria-label="Secciones del seguimiento" className="contractor-follow-up-tabs">
+          {followUpTabs.map((tab) => (
+            <button
+              aria-pressed={activeFollowUpTab === tab.id}
+              className={activeFollowUpTab === tab.id ? 'is-active' : ''}
+              key={tab.id}
+              onClick={() => setActiveFollowUpTab(tab.id)}
+              type="button"
+            >
+              <span aria-hidden="true" className="material-symbols-outlined">{tab.icon}</span>
+              <span>{tab.label}</span>
+            </button>
+          ))}
+        </nav>
+
         {error && <div className="admin-alert admin-alert-error" role="alert">{error}</div>}
         {loading && !dashboard && <div className="admin-loading" role="status">Cargando tus proyectos…</div>}
 
         {dashboard && (
           <>
-            {/* ── Banda de atención ── */}
-            <AttentionBand items={attentionItems} />
+            {/* PESTAÑA: VISTA GENERAL */}
+            {activeFollowUpTab === 'overview' && (
+              <>
+                {/* ── Banda de atención inteligente ── */}
+                <AttentionBand items={attentionItems} />
 
-            {/* ── Verificación de cuenta (si aplica) ── */}
-            {!dashboard.usuarioVerificado && (
-              <section className="client-verification" aria-label="Estado de verificación">
-                <span className="material-symbols-outlined" aria-hidden="true">gpp_maybe</span>
-                <div>
-                  <h2>Completa tu perfil para obtener la insignia</h2>
-                  <p>Tu cuenta está activa. La insignia se habilitará automáticamente cuando completes los requisitos.</p>
-                  {dashboard.perfilIncompleto && dashboard.requisitosFaltantes.length > 0 && (
-                    <>
-                      <p className="client-missing">Completa estos campos: {dashboard.requisitosFaltantes.join(', ')}.</p>
-                      <Link className="client-verification-action" to="/perfil-cliente/editar"><span className="material-symbols-outlined" aria-hidden="true">edit</span>Completar perfil</Link>
-                    </>
-                  )}
+                {/* ── KPIs en tarjetas individuales como en Contratista ── */}
+                <section aria-label="Estadísticas de proyectos" className="client-stats">
+                  <ClientStat icon="construction" label="Proyectos activos"    value={dashboard.proyectosEnProgreso}                       tone="orange" />
+                  <ClientStat icon="groups"       label="Miembros de equipo"   value={dashboard.miembrosEquipo}                             tone="blue"   />
+                  <ClientStat icon="payments"     label="Presupuesto total"    value={currencyFormatter.format(dashboard.presupuestoTotal)} tone="purple" />
+                  <ClientStat icon="task_alt"     label="Tasa de finalización" value={`${dashboard.tasaExito}%`}                           tone="green"  />
+                </section>
+
+                {/* ── Grid principal ── */}
+                <div className="client-lower-grid">
+                  {/* Proyectos recientes */}
+                  <section className="client-project-section" id="proyectos">
+                    <div className="client-section-heading">
+                      <div><p className="client-eyebrow">Actividad</p><h2>Proyectos recientes</h2></div>
+                      <span>{dashboard.totalProyectos} en total</span>
+                    </div>
+
+                    {dashboard.proyectosRecientes.length ? (
+                      <div className="client-project-list">
+                        {dashboard.proyectosRecientes.map((project) => (
+                          <article className="client-project" key={project.id}>
+                            <div className="client-project-topline">
+                              <span className={`client-project-state state-${project.estado.toLowerCase()}`}>
+                                {stateLabels[project.estado] || project.estado}
+                              </span>
+                              {project.tipoProyecto && <span className="client-project-type">{project.tipoProyecto}</span>}
+                            </div>
+
+                            <h3>{project.titulo || 'Proyecto sin título'}</h3>
+                            <p>{project.descripcion || 'Sin descripción disponible.'}</p>
+
+                            <ProjectProgressBar estado={project.estado} />
+
+                            <div className="client-project-meta">
+                              <span><span className="material-symbols-outlined" aria-hidden="true">location_on</span>{project.ubicacion || 'Ubicación pendiente'}</span>
+                              <span>{project.miembrosEquipo} miembros</span>
+                              <strong>{project.presupuesto == null ? 'Sin presupuesto' : currencyFormatter.format(project.presupuesto)}</strong>
+                            </div>
+
+                            <ProjectRiskPanel compact fechaEntrega={project.fechaEntrega} indicators={project.indicadores} />
+
+                            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '10px' }}>
+                              <button
+                                className="button button-secondary"
+                                onClick={() => {
+                                  setSelectedProjectId(project.id)
+                                  setActiveFollowUpTab('phases')
+                                }}
+                                style={{ minHeight: '32px', fontSize: '10px', padding: '0 10px' }}
+                                type="button"
+                              >
+                                Ver fases
+                              </button>
+                              <Link className="profile-open-link" to={`/proyectos/${project.id}`}>
+                                Gestionar obra
+                                <span className="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
+                              </Link>
+                            </div>
+                          </article>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="client-empty projects-empty-card">
+                        <span className="material-symbols-outlined" aria-hidden="true">post_add</span>
+                        <h3>Aún no has publicado obras</h3>
+                        <p>Publica tu obra o remodelación para recibir propuestas de contratistas calificados y hacer seguimiento continuo.</p>
+                        <Link className="button button-primary" to="/proyectos/publicar" style={{ marginTop: 14 }}>
+                          <span className="material-symbols-outlined" aria-hidden="true">add_circle</span>
+                          Publicar mi primer proyecto
+                        </Link>
+                      </div>
+                    )}
+                  </section>
+
+                  {/* Sidebar derecho: perfil + próximos hitos */}
+                  <section className="client-profile" id="perfil">
+                    <p className="client-eyebrow">Cuenta</p>
+                    <h2>Estado del perfil</h2>
+
+                    <div className="client-profile-email">
+                      <span className="material-symbols-outlined" aria-hidden="true">mail</span>
+                      <span>{dashboard.username}</span>
+                    </div>
+
+                    <div className="client-profile-status">
+                      <span className={`client-status-dot ${dashboard.usuarioVerificado ? 'is-verified' : ''}`} />
+                      <span>{dashboard.usuarioVerificado ? 'Cuenta verificada' : 'Insignia pendiente'}</span>
+                    </div>
+
+                    <ProfileCompletenessBar pct={completeness} />
+
+                    <div className="client-profile-total">
+                      <span>Proyectos registrados</span><strong>{dashboard.totalProyectos}</strong>
+                    </div>
+
+                    <div className="client-milestones">
+                      <p className="client-milestones-title">
+                        <span className="material-symbols-outlined" aria-hidden="true">event</span>
+                        Próximos hitos
+                      </p>
+                      {dashboard.proyectosRecientes.filter((p) => p.estado === 'EN_PROGRESO').length > 0 ? (
+                        <ul className="client-milestone-list" role="list">
+                          {dashboard.proyectosRecientes
+                            .filter((p) => p.estado === 'EN_PROGRESO')
+                            .slice(0, 3)
+                            .map((p) => (
+                              <li className="client-milestone-item" key={p.id}>
+                                <span className="material-symbols-outlined" aria-hidden="true">radio_button_unchecked</span>
+                                <span>
+                                  <strong>{p.titulo || 'Sin título'}</strong>
+                                  {p.fechaEntrega && (
+                                    <small>
+                                      Entrega:{' '}
+                                      {new Date(p.fechaEntrega).toLocaleDateString('es-CO', {
+                                        day: '2-digit',
+                                        month: 'short',
+                                        year: 'numeric',
+                                      })}
+                                    </small>
+                                  )}
+                                </span>
+                              </li>
+                            ))}
+                        </ul>
+                      ) : (
+                        <p className="client-milestones-empty">No hay proyectos activos en este momento.</p>
+                      )}
+                    </div>
+
+                    <Link className="profile-open-link" to="/perfil-cliente">
+                      Ver perfil completo
+                      <span className="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
+                    </Link>
+                  </section>
                 </div>
-                <span className="client-review-badge">Activa</span>
-              </section>
+              </>
             )}
 
-            {/* ── KPIs ── */}
-            <section aria-label="Estadísticas de proyectos" className="client-stats">
-              <ClientStat icon="construction" label="Proyectos activos"    value={dashboard.proyectosEnProgreso}                       tone="orange" />
-              <ClientStat icon="groups"       label="Miembros de equipo"   value={dashboard.miembrosEquipo}                             tone="blue"   />
-              <ClientStat icon="payments"     label="Presupuesto total"    value={currencyFormatter.format(dashboard.presupuestoTotal)} tone="purple" />
-              <ClientStat icon="task_alt"     label="Tasa de finalización" value={`${dashboard.tasaExito}%`}                           tone="green"  />
-            </section>
-
-            {/* ── Grid principal ── */}
-            <div className="client-lower-grid">
-
-              {/* Proyectos recientes */}
-              <section className="client-project-section" id="proyectos">
-                <div className="client-section-heading">
-                  <div><p className="client-eyebrow">Actividad</p><h2>Proyectos recientes</h2></div>
-                  <span>{dashboard.totalProyectos} en total</span>
-                </div>
-
-                {dashboard.proyectosRecientes.length ? (
-                  <div className="client-project-list">
-                    {dashboard.proyectosRecientes.map((project) => (
-                      <article className="client-project" key={project.id}>
-                        {/* Topline: estado + tipo */}
-                        <div className="client-project-topline">
-                          <span className={`client-project-state state-${project.estado.toLowerCase()}`}>
-                            {stateLabels[project.estado] || project.estado}
-                          </span>
-                          {project.tipoProyecto && <span className="client-project-type">{project.tipoProyecto}</span>}
-                        </div>
-
-                        <h3>{project.titulo || 'Proyecto sin título'}</h3>
-                        <p>{project.descripcion || 'Sin descripción disponible.'}</p>
-
-                        {/* Barra de progreso visual */}
-                        <ProjectProgressBar estado={project.estado} />
-
-                        {/* Meta: ubicación, equipo, presupuesto */}
-                        <div className="client-project-meta">
-                          <span><span className="material-symbols-outlined" aria-hidden="true">location_on</span>{project.ubicacion || 'Ubicación pendiente'}</span>
-                          <span>{project.miembrosEquipo} miembros</span>
-                          <strong>{project.presupuesto == null ? 'Sin presupuesto' : currencyFormatter.format(project.presupuesto)}</strong>
-                        </div>
-
-                        {/* Panel de riesgos compacto */}
-                        <ProjectRiskPanel compact fechaEntrega={project.fechaEntrega} indicators={project.indicadores} />
-
-                        <Link className="profile-open-link" to={`/proyectos/${project.id}`}>
-                          Abrir proyecto y gestionar fases
-                          <span className="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
-                        </Link>
-                      </article>
-                    ))}
+            {/* PESTAÑAS: FASES / RIESGOS / PAGOS / EQUIPOS (COMO EN CONTRATISTA) */}
+            {activeFollowUpTab !== 'overview' && (
+              <section aria-label="Seguimiento del proyecto" className="contractor-follow-up">
+                <header className="contractor-view-header">
+                  <div className="client-section-heading">
+                    <div>
+                      <p className="client-eyebrow">Seguimiento del proyecto</p>
+                      <h2>{followUpTabs.find((tab) => tab.id === activeFollowUpTab)?.label}</h2>
+                    </div>
+                    <label className="contractor-phase-select">
+                      <span>Proyecto seleccionado</span>
+                      <select
+                        disabled={!dashboard.proyectosRecientes.length}
+                        onChange={(event) => {
+                          setSelectedProjectId(event.target.value)
+                          setSelectedPhaseStatus(null)
+                          setPhaseLoading(Boolean(event.target.value))
+                          setPhaseError('')
+                        }}
+                        value={selectedProjectId}
+                      >
+                        {!dashboard.proyectosRecientes.length && <option value="">Sin proyectos registrados</option>}
+                        {dashboard.proyectosRecientes.map((project) => (
+                          <option key={project.id} value={project.id}>{project.titulo}</option>
+                        ))}
+                      </select>
+                    </label>
                   </div>
-                ) : (
-                  <div className="client-empty">
-                    <span className="material-symbols-outlined" aria-hidden="true">folder_open</span>
-                    <h3>Aún no tienes proyectos</h3>
-                    <p>Cuando publiques tu primer proyecto, aparecerá aquí con su estado y presupuesto.</p>
+                </header>
+
+                {phaseError && <div className="admin-alert admin-alert-error" role="alert">{phaseError}</div>}
+                {phaseLoading && <p className="admin-loading" role="status">Cargando fases e indicadores…</p>}
+                {!selectedProjectId && !phaseLoading && <p className="contractor-follow-up-empty">No tienes proyectos para mostrar el seguimiento.</p>}
+
+                {!phaseLoading && selectedPhaseStatus && (
+                  <div className={`contractor-tab-content contractor-tab-${activeFollowUpTab}`}>
+                    {activeFollowUpTab === 'phases' && (
+                      <PhasePanel phaseStatus={selectedPhaseStatus} sections={['summary', 'phases']} />
+                    )}
+                    {activeFollowUpTab === 'risks' && (
+                      selectedPhaseStatus.indicadores ? (
+                        <div className="contractor-risk-view">
+                          <ProjectRiskPanel
+                            fechaEntrega={selectedPhaseStatus.fechaEntrega}
+                            indicators={selectedPhaseStatus.indicadores}
+                            sections={['summary', 'factors', 'actions', 'delivery', 'weather']}
+                          />
+                        </div>
+                      ) : (
+                        <ProjectRiskPanel indicators={null} />
+                      )
+                    )}
+                    {activeFollowUpTab === 'payments' && (
+                      <PhasePanel phaseStatus={selectedPhaseStatus} sections={['payments']} />
+                    )}
+                    {activeFollowUpTab === 'teams' && (
+                      selectedPhaseStatus.indicadores ? (
+                        <ProjectRiskPanel
+                          fechaEntrega={selectedPhaseStatus.fechaEntrega}
+                          indicators={selectedPhaseStatus.indicadores}
+                          sections={['teams']}
+                        />
+                      ) : (
+                        <p className="contractor-follow-up-empty">Los datos de equipos no están disponibles para este proyecto.</p>
+                      )
+                    )}
                   </div>
                 )}
               </section>
-
-              {/* Sidebar derecho: perfil + próximos hitos + actividad */}
-              <section className="client-profile" id="perfil">
-                <p className="client-eyebrow">Cuenta</p>
-                <h2>Estado del perfil</h2>
-
-                {/* Email / username */}
-                <div className="client-profile-email">
-                  <span className="material-symbols-outlined" aria-hidden="true">mail</span>
-                  <span>{dashboard.username}</span>
-                </div>
-
-                {/* Estado verificación */}
-                <div className="client-profile-status">
-                  <span className={`client-status-dot ${dashboard.usuarioVerificado ? 'is-verified' : ''}`} />
-                  <span>{dashboard.usuarioVerificado ? 'Cuenta verificada' : 'Insignia pendiente'}</span>
-                </div>
-
-                {/* Barra de completitud */}
-                <ProfileCompletenessBar pct={completeness} />
-
-                {/* Total proyectos */}
-                <div className="client-profile-total">
-                  <span>Proyectos registrados</span><strong>{dashboard.totalProyectos}</strong>
-                </div>
-
-                {/* Próximos hitos */}
-                <div className="client-milestones">
-                  <p className="client-milestones-title">
-                    <span className="material-symbols-outlined" aria-hidden="true">event</span>
-                    Próximos hitos
-                  </p>
-                  {dashboard.proyectosRecientes.filter((p) => p.estado === 'EN_PROGRESO').length > 0 ? (
-                    <ul className="client-milestone-list" role="list">
-                      {dashboard.proyectosRecientes
-                        .filter((p) => p.estado === 'EN_PROGRESO')
-                        .slice(0, 3)
-                        .map((p) => (
-                          <li className="client-milestone-item" key={p.id}>
-                            <span className="material-symbols-outlined" aria-hidden="true">radio_button_unchecked</span>
-                            <span>
-                              <strong>{p.titulo || 'Sin título'}</strong>
-                              {p.fechaEntrega && (
-                                <small>
-                                  Entrega:{' '}
-                                  {new Date(p.fechaEntrega).toLocaleDateString('es-CO', {
-                                    day: '2-digit',
-                                    month: 'short',
-                                    year: 'numeric',
-                                  })}
-                                </small>
-                              )}
-                            </span>
-                          </li>
-                        ))}
-                    </ul>
-                  ) : (
-                    <p className="client-milestones-empty">No hay proyectos activos en este momento.</p>
-                  )}
-                </div>
-
-                <Link className="profile-open-link" to="/perfil-cliente">
-                  Ver perfil completo
-                  <span className="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
-                </Link>
-              </section>
-            </div>
+            )}
           </>
         )}
       </main>

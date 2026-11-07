@@ -1570,3 +1570,296 @@
     grid-column: auto;
   }
 }
+/* ══════════════════════════════════════════════════════════════
+   FASE 2 · Mis Proyectos & Detalle con Pestañas
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── Barra de filtros y búsqueda (Mis Proyectos) ──────────── */
+
+.projects-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 22px;
+  margin-bottom: 20px;
+}
+
+.projects-filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.projects-filter-chip {
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 14px;
+  border: 1px solid var(--ot-line);
+  border-radius: 8px;
+  color: var(--ot-muted);
+  background: var(--ot-panel);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 160ms ease;
+}
+
+.projects-filter-chip:hover {
+  color: var(--ot-text);
+  border-color: rgba(255, 107, 0, 0.35);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.projects-filter-chip.is-active {
+  color: #fff;
+  border-color: rgba(255, 107, 0, 0.5);
+  background: var(--ot-orange);
+  box-shadow: 0 4px 12px rgba(255, 107, 0, 0.2);
+}
+
+.projects-filter-chip .chip-count {
+  padding: 1px 6px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.16);
+  font-size: 10px;
+}
+
+.projects-search-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  padding: 0 12px;
+  border: 1px solid var(--ot-line);
+  border-radius: 8px;
+  background: var(--ot-panel);
+  flex: 1 1 240px;
+  max-width: 380px;
+}
+
+.projects-search-box .material-symbols-outlined {
+  color: var(--ot-muted);
+  font-size: 18px;
+}
+
+.projects-search-box input {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  color: var(--ot-text);
+  background: transparent;
+  font-size: 11px;
+}
+
+.projects-search-box input::placeholder {
+  color: var(--ot-muted);
+}
+
+.projects-search-clear {
+  border: 0;
+  background: transparent;
+  color: var(--ot-muted);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  padding: 2px;
+}
+
+.projects-search-clear:hover {
+  color: var(--ot-text);
+}
+
+.project-phase-pill {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  color: var(--ot-orange-text);
+  background: rgba(255, 107, 0, 0.1);
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.project-phase-pill .material-symbols-outlined {
+  font-size: 13px;
+}
+
+.project-view-phases-btn {
+  min-height: 32px;
+  padding: 0 10px;
+  font-size: 10px;
+  gap: 5px;
+  margin-right: auto;
+  border-color: rgba(255, 107, 0, 0.35);
+  color: var(--ot-orange-text);
+}
+
+.project-view-phases-btn:hover {
+  border-color: var(--ot-orange);
+  background: rgba(255, 107, 0, 0.1);
+}
+
+/* ── Pestañas en Detalle de Proyecto ───────────────────────── */
+
+.project-detail-tabs-wrap {
+  max-width: 1050px;
+  margin: 18px auto 0;
+}
+
+.project-tab-badge {
+  padding: 2px 6px;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.15);
+  font-size: 10px;
+}
+
+.project-tab-content {
+  max-width: 1050px;
+  margin: 0 auto;
+}
+
+.project-tab-single {
+  display: grid;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.project-info-card {
+  padding: 20px;
+  border: 1px solid var(--ot-line);
+  border-radius: 10px;
+  background: var(--ot-panel);
+}
+
+.project-info-card h3 {
+  margin: 0 0 10px;
+  font-size: 14px;
+}
+
+.project-info-card p {
+  margin: 0;
+  color: var(--ot-muted);
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.project-phases-explainer {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.project-phase-step-card {
+  padding: 16px;
+  border: 1px solid var(--ot-line);
+  border-radius: 10px;
+  background: var(--ot-panel);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.project-phase-step-card.is-current {
+  border-color: var(--ot-orange);
+  background: linear-gradient(145deg, var(--ot-panel-2), var(--ot-panel));
+  box-shadow: 0 4px 14px rgba(255, 107, 0, 0.1);
+}
+
+.project-phase-step-card .step-number {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--ot-orange-text);
+  text-transform: uppercase;
+}
+
+.project-phase-step-card h4 {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ot-text);
+}
+
+.project-phase-step-card p {
+  margin: 0;
+  font-size: 10px;
+  color: var(--ot-muted);
+  line-height: 1.45;
+}
+
+.project-phase-step-card .step-weight {
+  margin-top: auto;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ot-text);
+}
+
+.project-payments-overview {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.project-payment-kpi {
+  padding: 16px;
+  border: 1px solid var(--ot-line);
+  border-top: 2px solid var(--ot-orange);
+  border-radius: 10px;
+  background: var(--ot-panel);
+}
+
+.project-payment-kpi small {
+  display: block;
+  color: var(--ot-muted);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+
+.project-payment-kpi strong {
+  display: block;
+  margin-top: 6px;
+  font-size: 18px;
+  color: var(--ot-text);
+}
+
+.project-payment-kpi span {
+  display: block;
+  margin-top: 4px;
+  font-size: 10px;
+  color: var(--ot-muted);
+}
+
+.project-disclaimer-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 8px;
+  background: rgba(148, 163, 184, 0.05);
+  color: var(--ot-muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.project-disclaimer-note .material-symbols-outlined {
+  color: var(--ot-orange-text);
+  font-size: 18px;
+  flex: 0 0 auto;
+}
+
+@media (max-width: 760px) {
+  .project-phases-explainer,
+  .project-payments-overview {
+    grid-template-columns: 1fr;
+  }
+}

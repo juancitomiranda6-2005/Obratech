@@ -99,7 +99,31 @@ function WorkerDashboard() {
             {!dashboard.usuarioVerificado && (
               <section className="client-verification" aria-label="Estado de verificación">
                 <span className="material-symbols-outlined" aria-hidden="true">gpp_maybe</span>
-                <div><h2>Completa tu perfil para obtener la insignia</h2><p>Tu cuenta está activa. La insignia se habilitará automáticamente cuando completes los requisitos.</p>{dashboard.perfilIncompleto && <><p className="client-missing">Completa estos campos: {dashboard.requisitosFaltantes.join(', ')}.</p><Link className="client-verification-action" to="/perfil-trabajador/editar"><span className="material-symbols-outlined" aria-hidden="true">edit</span>Completar perfil</Link></>}</div>
+                <div>
+                  <h2>Completa tu perfil para obtener la insignia</h2>
+                  <p>Tu cuenta está activa. Al completar los requisitos se habilitará automáticamente tu insignia de verificación.</p>
+                  {dashboard.perfilIncompleto && (
+                    <div className="client-missing-chips">
+                      <div className="client-missing-tags">
+                        {dashboard.requisitosFaltantes.slice(0, 4).map((req, i) => (
+                          <span className="client-req-tag" key={i}>
+                            <span className="material-symbols-outlined" style={{ fontSize: '13px' }} aria-hidden="true">pending</span>
+                            {req.length > 35 ? req.substring(0, 33) + '…' : req}
+                          </span>
+                        ))}
+                        {dashboard.requisitosFaltantes.length > 4 && (
+                          <span className="client-req-tag-more">
+                            +{dashboard.requisitosFaltantes.length - 4} requisitos más
+                          </span>
+                        )}
+                      </div>
+                      <Link className="client-verification-action" to="/perfil-trabajador/editar">
+                        <span className="material-symbols-outlined" aria-hidden="true">edit</span>
+                        Completar requisitos
+                      </Link>
+                    </div>
+                  )}
+                </div>
                 <span className="client-review-badge">Activa</span>
               </section>
             )}

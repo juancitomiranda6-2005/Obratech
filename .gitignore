@@ -49,3 +49,6 @@ build/
 # Local data & uploads
 uploads/
 .env
+
+# Nested clones / redundant folders
+Obratech/
