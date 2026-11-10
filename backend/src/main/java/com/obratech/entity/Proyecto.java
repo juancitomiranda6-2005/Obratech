@@ -2,6 +2,7 @@ package com.obratech.entity;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -30,12 +31,18 @@ public class Proyecto {
 
     private String tipoProyecto;
     private String ubicacion;
+    private UbicacionProyecto ubicacionGeografica;
     private Double latitud;
     private Double longitud;
     private Double presupuesto;
     private Integer plazoEstimado;
     private LocalDate fechaInicio;
     private LocalDate fechaEntrega;
+    private LocalDate fechaEntregaOriginal;
+    private Integer diasProrrogaTotal = 0;
+    private LocalDate fechaFinReal;
+    private Integer diasRetraso;
+    private String causaRetraso;
     private LocalDate fechaLimitePostulacion;
     private LocalDateTime fechaLimite;
 
@@ -135,6 +142,14 @@ public class Proyecto {
         this.ubicacion = ubicacion;
     }
 
+    public UbicacionProyecto getUbicacionGeografica() {
+        return ubicacionGeografica;
+    }
+
+    public void setUbicacionGeografica(UbicacionProyecto ubicacionGeografica) {
+        this.ubicacionGeografica = ubicacionGeografica;
+    }
+
     public Double getLatitud() {
         return latitud;
     }
@@ -180,7 +195,58 @@ public class Proyecto {
     }
 
     public void setFechaEntrega(LocalDate fechaEntrega) {
+        LocalDate fechaEntregaAnterior = this.fechaEntrega;
+        if (contratistaAsignado != null && fechaEntregaAnterior != null) {
+            if (fechaEntregaOriginal == null) {
+                fechaEntregaOriginal = fechaEntregaAnterior;
+            }
+            if (fechaEntrega != null && fechaEntrega.isAfter(fechaEntregaAnterior)) {
+                diasProrrogaTotal = (diasProrrogaTotal == null ? 0 : diasProrrogaTotal)
+                        + (int) ChronoUnit.DAYS.between(fechaEntregaAnterior, fechaEntrega);
+            }
+        }
         this.fechaEntrega = fechaEntrega;
+        capturarFechaEntregaOriginalSiAsignado();
+    }
+
+    public LocalDate getFechaEntregaOriginal() {
+        return fechaEntregaOriginal;
+    }
+
+    public void setFechaEntregaOriginal(LocalDate fechaEntregaOriginal) {
+        this.fechaEntregaOriginal = fechaEntregaOriginal;
+    }
+
+    public Integer getDiasProrrogaTotal() {
+        return diasProrrogaTotal;
+    }
+
+    public void setDiasProrrogaTotal(Integer diasProrrogaTotal) {
+        this.diasProrrogaTotal = diasProrrogaTotal;
+    }
+
+    public LocalDate getFechaFinReal() {
+        return fechaFinReal;
+    }
+
+    public void setFechaFinReal(LocalDate fechaFinReal) {
+        this.fechaFinReal = fechaFinReal;
+    }
+
+    public Integer getDiasRetraso() {
+        return diasRetraso;
+    }
+
+    public void setDiasRetraso(Integer diasRetraso) {
+        this.diasRetraso = diasRetraso;
+    }
+
+    public String getCausaRetraso() {
+        return causaRetraso;
+    }
+
+    public void setCausaRetraso(String causaRetraso) {
+        this.causaRetraso = causaRetraso;
     }
 
     public LocalDate getFechaLimitePostulacion() {
@@ -205,6 +271,7 @@ public class Proyecto {
 
     public void setEstadoAsignacion(EstadoAsignacion estadoAsignacion) {
         this.estadoAsignacion = estadoAsignacion;
+        capturarFechaEntregaOriginalSiAsignado();
     }
 
     public EstadoEjecucion getEstadoEjecucion() {
@@ -381,6 +448,14 @@ public class Proyecto {
 
     public void setContratistaAsignado(Perfil contratistaAsignado) {
         this.contratistaAsignado = contratistaAsignado;
+        capturarFechaEntregaOriginalSiAsignado();
+    }
+
+    private void capturarFechaEntregaOriginalSiAsignado() {
+        if ((contratistaAsignado != null || estadoAsignacion == EstadoAsignacion.ASIGNADO)
+                && fechaEntregaOriginal == null && fechaEntrega != null) {
+            fechaEntregaOriginal = fechaEntrega;
+        }
     }
 
     public String getDocumentoLegalUrl() {

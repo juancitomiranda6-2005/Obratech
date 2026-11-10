@@ -1,0 +1,6 @@
+﻿_id,proyecto,usuario,estado,fechaPostulacion,_class
+id_ee70b0bfcf,id_9b9636bea3,id_452ca4d711,ACCEPTED,2026-09-14T05:02:19.497000,com.obratech.entity.Postulacion
+id_314825a8ec,id_9b9636bea3,id_452ca4d711,REJECTED,2026-09-14T05:45:35.817000,com.obratech.entity.Postulacion
+id_517aa7e08d,id_02934c6106,id_452ca4d711,ACCEPTED,2026-10-11T19:39:16.785000,com.obratech.entity.Postulacion
+id_d0ac20053e,id_02934c6106,id_e688b9b296,REJECTED,2026-10-11T19:40:30.082000,com.obratech.entity.Postulacion
+id_9a08ead597,id_267ee31dfb,id_452ca4d711,ACCEPTED,2026-10-13T18:01:42.289000,com.obratech.entity.Postulacion

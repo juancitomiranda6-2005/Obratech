@@ -66,7 +66,9 @@ function WorkerDashboard() {
           <Link to="/trabajadores/mi-equipo"><span className="material-symbols-outlined" aria-hidden="true">groups</span>Mi equipo de trabajo</Link>
           <Link to="/trabajadores/mi-equipo#mis-informes"><span className="material-symbols-outlined" aria-hidden="true">description</span>Mis informes enviados</Link>
           <a href="#invitaciones"><span className="material-symbols-outlined" aria-hidden="true">notifications</span>Invitaciones</a>
-          <a href="#proyectos"><span className="material-symbols-outlined" aria-hidden="true">folder_special</span>Proyectos asignados</a>
+          {dashboard?.proyectosAsignados?.[0]?.id
+            ? <Link to={`/proyectos/asignados/${dashboard.proyectosAsignados[0].id}`}><span className="material-symbols-outlined" aria-hidden="true">folder_special</span>Proyectos asignados</Link>
+            : <a href="#proyectos"><span className="material-symbols-outlined" aria-hidden="true">folder_special</span>Proyectos asignados</a>}
         </nav>
         <div className="client-sidebar-footer">
           <SettingsMenu

@@ -1,0 +1,10 @@
+﻿_id,proyecto,trabajador,contratista,estado,fechaCreacion,_class,proyectoId,clientePerfilId,pagoOfrecido
+id_c8ac9ef59f,id_9b9636bea3,id_2821ed6b6a,id_0c03a191a3,ACEPTADA,2026-09-14T05:27:20.938000,com.obratech.entity.InvitacionTrabajo,,,
+id_3ca93acf65,,id_f0fd36bcc0,id_0c03a191a3,EXPIRADA,2026-10-02T04:28:54.503000,com.obratech.entity.InvitacionTrabajo,,,
+id_86284f0d33,id_9b9636bea3,id_ff6ce9e8ef,id_0c03a191a3,ACEPTADA,2026-10-02T04:28:56.494000,com.obratech.entity.InvitacionTrabajo,,,
+id_ac91ba507a,id_02934c6106,id_2821ed6b6a,id_0c03a191a3,ACEPTADA,2026-10-11T19:47:11.124000,com.obratech.entity.InvitacionTrabajo,,,
+id_2f3a7f1928,id_02934c6106,id_ff6ce9e8ef,id_0c03a191a3,ACEPTADA,2026-10-11T19:47:16.883000,com.obratech.entity.InvitacionTrabajo,,,
+id_06cc1b12c9,id_02934c6106,id_f0fd36bcc0,id_0c03a191a3,ACEPTADA,2026-10-11T19:47:18.182000,com.obratech.entity.InvitacionTrabajo,,,
+id_60f4219059,id_267ee31dfb,id_f0fd36bcc0,id_0c03a191a3,EXPIRADA,2026-10-13T18:05:27.886000,com.obratech.entity.InvitacionTrabajo,id_267ee31dfb,id_49af105155,2500000.0
+id_004c340d85,id_267ee31dfb,id_ff6ce9e8ef,id_0c03a191a3,ACEPTADA,2026-10-13T18:05:36.587000,com.obratech.entity.InvitacionTrabajo,id_267ee31dfb,id_49af105155,2500000.0
+id_68ceb960db,id_267ee31dfb,id_2821ed6b6a,id_0c03a191a3,EXPIRADA,2026-10-13T18:05:37.978000,com.obratech.entity.InvitacionTrabajo,id_267ee31dfb,id_49af105155,2500000.0

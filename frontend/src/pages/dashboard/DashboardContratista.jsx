@@ -176,7 +176,9 @@ function ContractorDashboard() {
           <Link to="/clientes"><span className="material-symbols-outlined" aria-hidden="true">business</span>Directorio de clientes</Link>
           <Link to="/contratistas/mi-equipo"><span className="material-symbols-outlined" aria-hidden="true">groups</span>Mi equipo</Link>
           <Link to="/contratistas/historial"><span className="material-symbols-outlined" aria-hidden="true">history</span>Historial de proyectos</Link>
-          <a href="#proyectos" onClick={openProjects}><span className="material-symbols-outlined" aria-hidden="true">folder_special</span>Proyectos asignados</a>
+          {dashboard?.proyectos?.[0]?.id
+            ? <Link to={`/proyectos/asignados/${dashboard.proyectos[0].id}`}><span className="material-symbols-outlined" aria-hidden="true">folder_special</span>Proyectos asignados</Link>
+            : <a href="#proyectos" onClick={openProjects}><span className="material-symbols-outlined" aria-hidden="true">folder_special</span>Proyectos asignados</a>}
           <a href="#proyectos" onClick={openProjects}><span className="material-symbols-outlined" aria-hidden="true">description</span>Hacer reporte</a>
         </nav>
         <div className="client-sidebar-footer">

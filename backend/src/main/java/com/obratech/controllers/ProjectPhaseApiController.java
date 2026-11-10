@@ -1,5 +1,8 @@
 package com.obratech.controllers;
 
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.dao.DuplicateKeyException;
@@ -80,6 +83,16 @@ public class ProjectPhaseApiController {
         if (proyecto.getFaseActual() == FaseObra.DETALLE_Y_ENTREGA_FINAL
                 && proyecto.getEstadoFaseActual() == EstadoFaseObra.APROBADA) {
             proyecto.setEstadoEjecucion(EstadoEjecucion.COMPLETADO);
+            if (proyecto.getFechaFinReal() == null) {
+                proyecto.setFechaFinReal(LocalDate.now());
+            }
+            LocalDate fechaBase = proyecto.getFechaEntregaOriginal() != null
+                    ? proyecto.getFechaEntregaOriginal()
+                    : proyecto.getFechaEntrega();
+            proyecto.setDiasRetraso(fechaBase == null
+                    ? null
+                    : Math.max(0, (int) ChronoUnit.DAYS.between(
+                            fechaBase, proyecto.getFechaFinReal())));
         }
         proyectoRepository.save(proyecto);
         return ResponseEntity.ok(phaseStatusService.crearEstado(proyecto, false));

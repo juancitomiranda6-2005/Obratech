@@ -1,0 +1,19 @@
+{
+  "n_obras": 4000,
+  "tasa_retraso": 0.4765,
+  "clasificador": {
+    "roc_auc": 0.7598,
+    "accuracy": 0.7,
+    "brier": 0.1992,
+    "brier_sin_modelo": 0.2494
+  },
+  "regresor_dias": {
+    "mae_dias": 8.77,
+    "mae_dias_sin_modelo": 12.26
+  },
+  "clasificador_causa": {
+    "accuracy_top1": 0.3701,
+    "accuracy_top2": 0.5669,
+    "accuracy_sin_modelo": 0.3246
+  }
+}

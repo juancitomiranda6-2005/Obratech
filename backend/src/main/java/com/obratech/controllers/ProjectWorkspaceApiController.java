@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.obratech.entity.EquipoTrabajo;
 import com.obratech.entity.Perfil;
 import com.obratech.entity.Proyecto;
+import com.obratech.entity.UbicacionProyecto;
 import com.obratech.entity.Usuario;
 import com.obratech.repository.EquipoTrabajoRepository;
 import com.obratech.repository.PerfilRepository;
@@ -88,7 +89,7 @@ public class ProjectWorkspaceApiController {
         Perfil contractor = project.getContratistaAsignado();
         return ResponseEntity.ok(new ProjectWorkspace(
                 project.getId(), project.getTitulo(), project.getDescripcion(), project.getTipoProyecto(),
-                project.getUbicacion(), project.getPresupuesto(),
+                project.getUbicacion(), project.getUbicacionGeografica(), project.getPresupuesto(),
                 project.getEstadoValidacion() == null ? "PENDIENTE" : project.getEstadoValidacion().name(),
                 project.getEstadoEjecucion() == null ? "PENDIENTE" : project.getEstadoEjecucion().name(),
                 project.getFaseActual() == null ? "PLANEACION" : project.getFaseActual().name(),
@@ -172,6 +173,7 @@ public class ProjectWorkspaceApiController {
             String descripcion,
             String tipoProyecto,
             String ubicacion,
+            UbicacionProyecto ubicacionGeografica,
             Double presupuesto,
             String estadoValidacion,
             String estadoEjecucion,

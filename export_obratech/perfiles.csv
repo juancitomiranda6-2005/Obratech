@@ -1,0 +1,11 @@
+﻿_id,roles,activo,verificado,creado,contratista.especialidad,contratista.experiencia,contratista.calificacionPromedio,contratista.subespecialidades,contratista.proyectos,trabajador.disponibilidad,trabajador.proyectos,_class,cliente.proyectos,trabajador.oficio
+id_0c03a191a3,ROLE_CONTRACTOR,True,True,2026-09-12T03:58:23.716000,Gestión de Proyectos,5,5.0,Subestaciones|RETIE|Alta Tensión|Mantenimiento,,True,,com.obratech.entity.Perfil,,
+id_49af105155,ROLE_CLIENT,True,True,2026-09-14T04:52:45.694000,,,,,,True,,com.obratech.entity.Perfil,,
+id_2821ed6b6a,ROLE_WORKER,True,True,2026-09-14T05:18:31.210000,,3,,,,False,,com.obratech.entity.Perfil,,Electricista
+id_ff6ce9e8ef,ROLE_CONTRACTOR|ROLE_WORKER,True,True,2026-09-24T15:35:20.206000,Pintura,7,0.0,Mantenimiento|Seguridad Industrial,,False,,com.obratech.entity.Perfil,,Albañil
+id_f0fd36bcc0,ROLE_WORKER,True,True,2026-10-01T06:29:43.476000,,5,,,,False,,com.obratech.entity.Perfil,,maestro de obra
+id_d27ea81588,ROLE_CLIENT,True,False,2026-10-01T07:23:45.754000,,,,,,True,,com.obratech.entity.Perfil,,
+id_0aad03f79e,ROLE_CLIENT,True,False,2026-10-01T22:18:27.466000,,,,,,True,,com.obratech.entity.Perfil,,
+id_34e3fca527,ROLE_CONTRACTOR,True,True,2026-10-15T20:59:51.992000,Electricidad,6,0.0,Cableado|Mantenimiento,,True,,com.obratech.entity.Perfil,,
+id_c3a4a9c4a1,ROLE_ADMIN,True,False,2026-10-23T20:07:40.780000,,,,,,True,,com.obratech.entity.Perfil,,
+id_464e87a9bd,ROLE_CLIENT,True,False,2026-10-26T04:56:04.941000,,,,,,,,com.obratech.entity.Perfil,,

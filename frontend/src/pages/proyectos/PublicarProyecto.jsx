@@ -16,7 +16,11 @@ const projectTypes = [
 const emptyForm = {
   titulo: '',
   descripcion: '',
-  ubicacion: '',
+  ubicacionGeografica: {
+    departamento: '',
+    municipio: '',
+    detalle: '',
+  },
   tipoProyecto: '',
   presupuesto: '',
   fechaInicio: '',
@@ -39,6 +43,14 @@ function PublicarProyectoForm() {
   const updateField = (event) => {
     const { name, value } = event.target
     setForm((current) => ({ ...current, [name]: value }))
+  }
+
+  const updateLocation = (event) => {
+    const { name, value } = event.target
+    setForm((current) => ({
+      ...current,
+      ubicacionGeografica: { ...current.ubicacionGeografica, [name]: value },
+    }))
   }
 
   const handleSubmit = async (event) => {
@@ -95,10 +107,9 @@ function PublicarProyectoForm() {
             <textarea maxLength={4000} name="descripcion" onChange={updateField} placeholder="Describe los detalles y objetivos del proyecto…" required rows={5} value={form.descripcion} />
           </label>
 
-          <label className="publish-field">
-            <span>Ubicación</span>
-            <input maxLength={160} name="ubicacion" onChange={updateField} placeholder="Ej. Cartagena, Bolívar" required value={form.ubicacion} />
-          </label>
+          <label className="publish-field"><span>Departamento</span><input maxLength={100} name="departamento" onChange={updateLocation} placeholder="Ej. Bolívar" required value={form.ubicacionGeografica.departamento} /></label>
+          <label className="publish-field"><span>Municipio o ciudad</span><input maxLength={100} name="municipio" onChange={updateLocation} placeholder="Ej. Cartagena" required value={form.ubicacionGeografica.municipio} /></label>
+          <label className="publish-field publish-field-full"><span>Dirección, zona rural o vereda</span><input maxLength={180} name="detalle" onChange={updateLocation} placeholder="Ej. Vereda El Recreo, lote 12" required value={form.ubicacionGeografica.detalle} /></label>
 
           <fieldset className="publish-field publish-field-full">
             <legend>Tipo de proyecto</legend>

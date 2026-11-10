@@ -1,0 +1,107 @@
+REPORTE DE ESTRUCTURA: base 'obratech'
+Generado: 2026-11-02T22:30:25
+
+[postulaciones] documentos en la base: 5 | exportados: 5
+  Campos omitidos por sensibles: ninguno
+  - _id | tipo: {'str': 5} | vacíos: 0 | (identificador anonimizado, 5 distintos)
+  - proyecto | tipo: {'str': 5} | vacíos: 0 | (identificador anonimizado, 3 distintos)
+  - usuario | tipo: {'str': 5} | vacíos: 0 | (identificador anonimizado, 2 distintos)
+  - estado | tipo: {'str': 5} | vacíos: 0 | valores: ACCEPTED, REJECTED
+  - fechaPostulacion | tipo: {'str': 5} | vacíos: 0 | valores: 2026-09-14T05:02:19.497000, 2026-09-14T05:45:35.817000, 2026-10-11T19:39:16.785000, 2026-10-11T19:40:30.082000, 2026-10-13T18:01:42.289000
+  - _class | tipo: {'str': 5} | vacíos: 0 | valores: com.obratech.entity.Postulacion
+
+[calificaciones] documentos en la base: 1 | exportados: 1
+  Campos omitidos por sensibles: comentario
+  - _id | tipo: {'str': 1} | vacíos: 0 | (identificador anonimizado, 1 distintos)
+  - contratista | tipo: {'str': 1} | vacíos: 0 | (identificador anonimizado, 1 distintos)
+  - proyecto | tipo: {'str': 1} | vacíos: 0 | (identificador anonimizado, 1 distintos)
+  - puntuacion | tipo: {'int': 1} | vacíos: 0 | min=5 max=5 promedio=5.00
+  - fecha | tipo: {'str': 1} | vacíos: 0 | valores: 2026-09-24T15:32:11.485000
+  - _class | tipo: {'str': 1} | vacíos: 0 | valores: com.obratech.entity.Calificacion
+
+[perfiles] documentos en la base: 10 | exportados: 10
+  Campos omitidos por sensibles: apellido, cliente.empresa, contratista.ciudad, contratista.cvUrl, contratista.departamento, contratista.descripcion, contratista.estatutosUrl, contratista.fotoPerfilUrl, contratista.matriculaDocumentoUrl, contratista.matriculaProfesional, contratista.ubicacion, email, fotoPerfilUrl, nombre, telefono, username
+  - _id | tipo: {'str': 10} | vacíos: 0 | (identificador anonimizado, 10 distintos)
+  - roles | tipo: {'str': 10} | vacíos: 0 | valores: ROLE_ADMIN, ROLE_CLIENT, ROLE_CONTRACTOR, ROLE_CONTRACTOR|ROLE_WORKER, ROLE_WORKER
+  - activo | tipo: {'str': 10} | vacíos: 0 | valores: True
+  - verificado | tipo: {'str': 10} | vacíos: 0 | valores: False, True
+  - creado | tipo: {'str': 10} | vacíos: 0 | valores: 2026-09-12T03:58:23.716000, 2026-09-14T04:52:45.694000, 2026-09-14T05:18:31.210000, 2026-09-24T15:35:20.206000, 2026-10-01T06:29:43.476000, 2026-10-01T07:23:45.754000, 2026-10-01T22:18:27.466000, 2026-10-15T20:59:51.992000, 2026-10-23T20:07:40.780000, 2026-10-26T04:56:04.941000
+  - contratista.especialidad | tipo: {'str': 3} | vacíos: 7 | valores: Electricidad, Gestión de Proyectos, Pintura
+  - contratista.experiencia | tipo: {'int': 5} | vacíos: 5 | min=3 max=7 promedio=5.20
+  - contratista.calificacionPromedio | tipo: {'float': 3} | vacíos: 7 | min=0.0 max=5.0 promedio=1.67
+  - contratista.subespecialidades | tipo: {'str': 3} | vacíos: 7 | valores: Cableado|Mantenimiento, Mantenimiento|Seguridad Industrial, Subestaciones|RETIE|Alta Tensión|Mantenimiento
+  - contratista.proyectos | tipo: {} | vacíos: 10 | 
+  - trabajador.disponibilidad | tipo: {'str': 9} | vacíos: 1 | valores: False, True
+  - trabajador.proyectos | tipo: {} | vacíos: 10 | 
+  - _class | tipo: {'str': 10} | vacíos: 0 | valores: com.obratech.entity.Perfil
+  - cliente.proyectos | tipo: {} | vacíos: 10 | 
+  - trabajador.oficio | tipo: {'str': 3} | vacíos: 7 | valores: Albañil, Electricista, maestro de obra
+
+[proyectos] documentos en la base: 52 | exportados: 52
+  Campos omitidos por sensibles: descripcion, documentoLegalNombre, documentoLegalUrl, evidenciasFotograficas, latitud, longitud, titulo, ubicacion
+  - _id | tipo: {'str': 52} | vacíos: 0 | (identificador anonimizado, 52 distintos)
+  - presupuesto | tipo: {'float': 52} | vacíos: 0 | min=10244.0 max=500000000.0 promedio=9762934.19
+  - estadoAsignacion | tipo: {'str': 52} | vacíos: 0 | valores: ASIGNADO, SIN_ASIGNAR
+  - estadoEjecucion | tipo: {'str': 52} | vacíos: 0 | valores: EN_PROGRESO, PENDIENTE
+  - fechaCreacion | tipo: {'str': 52} | vacíos: 0 | 52 valores distintos
+  - estadoValidacion | tipo: {'str': 52} | vacíos: 0 | valores: APROBADO, PENDIENTE, RECHAZADO
+  - postulacionesAbiertas | tipo: {'str': 3} | vacíos: 49 | valores: False, True
+  - equipoTrabajo | tipo: {'str': 2} | vacíos: 50 | (identificador anonimizado, 2 distintos)
+  - _class | tipo: {'str': 52} | vacíos: 0 | valores: com.obratech.entity.Proyecto
+  - tipoProyecto | tipo: {'str': 2} | vacíos: 50 | valores: Residencial
+  - plazoEstimado | tipo: {'int': 2} | vacíos: 50 | min=24 max=24 promedio=24.00
+  - fechaInicio | tipo: {'str': 2} | vacíos: 50 | valores: 2026-08-15T05:00:00, 2026-08-25T05:00:00
+  - fechaEntrega | tipo: {'str': 2} | vacíos: 50 | valores: 2027-02-25T05:00:00, 2029-08-15T05:00:00
+  - faseActual | tipo: {'str': 2} | vacíos: 50 | valores: PLANEACION
+  - estadoFaseActual | tipo: {'str': 2} | vacíos: 50 | valores: BLOQUEADA
+  - semanasEstimadasFase1 | tipo: {'int': 2} | vacíos: 50 | min=3 max=3 promedio=3.00
+  - semanasEstimadasFase2 | tipo: {'int': 2} | vacíos: 50 | min=10 max=10 promedio=10.00
+  - cuotasSemanaPagadas | tipo: {'int': 2} | vacíos: 50 | min=0 max=0 promedio=0.00
+  - cuotasTotalesEsperadas | tipo: {'int': 2} | vacíos: 50 | min=0 max=0 promedio=0.00
+  - tareasFaseCompletadas | tipo: {'str': 2} | vacíos: 50 | valores: False
+  - aprobacionClienteFase | tipo: {'str': 2} | vacíos: 50 | valores: False
+  - limpiezaProfundaCompletada | tipo: {'str': 2} | vacíos: 50 | valores: False
+  - areaTotal | tipo: {'float': 2} | vacíos: 50 | min=4567.0 max=5000.0 promedio=4783.50
+  - cliente | tipo: {'str': 2} | vacíos: 50 | (identificador anonimizado, 1 distintos)
+  - contratistaAsignado | tipo: {'str': 2} | vacíos: 50 | (identificador anonimizado, 1 distintos)
+
+[usuarios] documentos en la base: 11 | exportados: 11
+  Campos omitidos por sensibles: password, username
+  - _id | tipo: {'str': 11} | vacíos: 0 | (identificador anonimizado, 11 distintos)
+  - roles | tipo: {'str': 11} | vacíos: 0 | valores: ROLE_CLIENT, ROLE_CONTRACTOR, ROLE_CONTRACTOR|ROLE_WORKER, ROLE_USER|ROLE_ADMIN, ROLE_WORKER
+  - activo | tipo: {'str': 11} | vacíos: 0 | valores: True
+  - verificado | tipo: {'str': 11} | vacíos: 0 | valores: False, True
+  - intentosFallidos | tipo: {'int': 11} | vacíos: 0 | min=0 max=0 promedio=0.00
+  - creado | tipo: {'str': 11} | vacíos: 0 | valores: 2026-09-12T03:33:30.710000, 2026-09-12T03:58:23.641000, 2026-09-14T04:52:45.648000, 2026-09-14T05:18:31.183000, 2026-09-24T15:35:20.194000, 2026-09-30T01:31:04.728000, 2026-10-01T06:29:43.453000, 2026-10-01T07:23:45.737000, 2026-10-01T22:18:27.454000, 2026-10-15T20:59:51.925000, 2026-10-26T04:56:04.886000
+  - _class | tipo: {'str': 11} | vacíos: 0 | valores: com.obratech.entity.Usuario
+  - ultimoAcceso | tipo: {'str': 1} | vacíos: 10 | valores: 2026-10-01T07:27:30.987000
+
+[equipos_trabajo] documentos en la base: 6 | exportados: 6
+  Campos omitidos por sensibles: actividad, nombre
+  - _id | tipo: {'str': 6} | vacíos: 0 | (identificador anonimizado, 6 distintos)
+  - porcentajeAvance | tipo: {'float': 6} | vacíos: 0 | min=0.0 max=100.0 promedio=42.93
+  - proyecto | tipo: {'str': 5} | vacíos: 1 | (identificador anonimizado, 3 distintos)
+  - integrantes | tipo: {'str': 6} | vacíos: 0 | (identificador anonimizado, 4 distintos)
+  - _class | tipo: {'str': 6} | vacíos: 0 | valores: com.obratech.entity.EquipoTrabajo
+  - fase | tipo: {'str': 1} | vacíos: 5 | valores: PLANEACION
+
+[invitaciones_trabajo] documentos en la base: 9 | exportados: 9
+  Campos omitidos por sensibles: proyectoTitulo, proyectoUbicacion
+  - _id | tipo: {'str': 9} | vacíos: 0 | (identificador anonimizado, 9 distintos)
+  - proyecto | tipo: {'str': 8} | vacíos: 1 | (identificador anonimizado, 3 distintos)
+  - trabajador | tipo: {'str': 9} | vacíos: 0 | (identificador anonimizado, 3 distintos)
+  - contratista | tipo: {'str': 9} | vacíos: 0 | (identificador anonimizado, 1 distintos)
+  - estado | tipo: {'str': 9} | vacíos: 0 | valores: ACEPTADA, EXPIRADA
+  - fechaCreacion | tipo: {'str': 9} | vacíos: 0 | valores: 2026-09-14T05:27:20.938000, 2026-10-02T04:28:54.503000, 2026-10-02T04:28:56.494000, 2026-10-11T19:47:11.124000, 2026-10-11T19:47:16.883000, 2026-10-11T19:47:18.182000, 2026-10-13T18:05:27.886000, 2026-10-13T18:05:36.587000, 2026-10-13T18:05:37.978000
+  - _class | tipo: {'str': 9} | vacíos: 0 | valores: com.obratech.entity.InvitacionTrabajo
+  - proyectoId | tipo: {'str': 3} | vacíos: 6 | (identificador anonimizado, 1 distintos)
+  - clientePerfilId | tipo: {'str': 3} | vacíos: 6 | (identificador anonimizado, 1 distintos)
+  - pagoOfrecido | tipo: {'float': 3} | vacíos: 6 | min=2500000.0 max=2500000.0 promedio=2500000.00
+
+[historial_proyectos] documentos en la base: 3 | exportados: 3
+  Campos omitidos por sensibles: ninguno
+  - _id | tipo: {'str': 3} | vacíos: 0 | (identificador anonimizado, 3 distintos)
+  - estadoNuevo | tipo: {'str': 3} | vacíos: 0 | valores: PENDIENTE
+  - fechaCambio | tipo: {'str': 3} | vacíos: 0 | valores: 2026-09-14T05:01:05.235000, 2026-10-11T19:28:46.009000, 2026-10-13T18:00:35.960000
+  - proyecto | tipo: {'str': 3} | vacíos: 0 | (identificador anonimizado, 3 distintos)
+  - _class | tipo: {'str': 3} | vacíos: 0 | valores: com.obratech.entity.HistorialProyecto

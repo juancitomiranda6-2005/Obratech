@@ -96,7 +96,8 @@ public class ParticipantProjectsApiController {
                 .map(proyecto -> toProjectItem(proyecto, usuario))
                 .toList();
         return ResponseEntity.ok(new ProjectMarketResponse(
-            usuario.isVerificado(), perfilCompleto, requisitosFaltantes, projects));
+            usuario.isVerificado(), perfilCompleto, requisitosFaltantes,
+            isContractor && perfil != null ? perfil.getId() : null, projects));
     }
 
     @GetMapping("/applications")
@@ -220,6 +221,7 @@ public class ParticipantProjectsApiController {
             boolean usuarioVerificado,
             boolean perfilCompleto,
             List<String> requisitosFaltantes,
+            String contratistaId,
             List<ProjectItem> proyectos) {}
 
     public record ApplicationRequest(String mensaje) {}

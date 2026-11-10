@@ -354,6 +354,18 @@ public class TeamApiController {
         proyecto.setEstadoEjecucion(allComplete
                 ? EstadoEjecucion.COMPLETADO
                 : hasProgress ? EstadoEjecucion.EN_PROGRESO : EstadoEjecucion.PENDIENTE);
+        if (allComplete) {
+            if (proyecto.getFechaFinReal() == null) {
+                proyecto.setFechaFinReal(java.time.LocalDate.now());
+            }
+            java.time.LocalDate fechaBase = proyecto.getFechaEntregaOriginal() != null
+                    ? proyecto.getFechaEntregaOriginal()
+                    : proyecto.getFechaEntrega();
+            proyecto.setDiasRetraso(fechaBase == null
+                    ? null
+                    : Math.max(0, (int) java.time.temporal.ChronoUnit.DAYS.between(
+                            fechaBase, proyecto.getFechaFinReal())));
+        }
         proyectoRepository.save(proyecto);
     }
 

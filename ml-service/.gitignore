@@ -1,0 +1,13 @@
+# TODO: Revisar estas exclusiones cuando se defina la estrategia de versionado de datos.
+models/*.joblib
+data/raw/*
+!data/raw/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+data/synthetic/*
+!data/synthetic/.gitkeep
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.env

@@ -4,6 +4,8 @@ export const clientProjectsService = {
   listMine: () => api.get('/client/projects'),
   getMineById: (id) => api.get(`/client/projects/${id}`),
   getWorkspace: (id) => api.get(`/projects/${id}/workspace`),
+  listPredictionObservations: (id) => api.get(`/projects/${id}/prediction-observations`),
+  createPredictionObservation: (id, payload) => api.post(`/projects/${id}/prediction-observations`, payload),
   getPhaseStatus: (id) => api.get(`/projects/${id}/phase-status`),
   advancePhase: (id) => api.post(`/projects/${id}/phase/advance`),
   updatePhaseTasks: (id, completadas, limpiezaProfundaCompletada = false) => api.put(

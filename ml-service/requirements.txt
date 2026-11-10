@@ -1,0 +1,12 @@
+# TODO: Fijar versiones después de validar compatibilidad en el entorno de despliegue.
+fastapi
+uvicorn[standard]
+pandas
+numpy
+scikit-learn
+xgboost
+joblib
+requests
+pydantic
+pytest
+httpx

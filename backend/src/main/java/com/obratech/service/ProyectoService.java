@@ -2,6 +2,7 @@ package com.obratech.service;
 
 import com.obratech.entity.HistorialProyecto;
 import com.obratech.entity.Proyecto;
+import com.obratech.entity.UbicacionProyecto;
 import com.obratech.entity.Usuario;
 import com.obratech.entity.enums.EstadoAsignacion;
 import com.obratech.entity.enums.EstadoEjecucion;
@@ -40,6 +41,7 @@ public class ProyectoService {
     }
 
     public Proyecto publicarProyecto(Proyecto proyecto, Usuario cliente) {
+        sincronizarUbicacion(proyecto);
         proyecto.setCliente(cliente);
         proyecto.setEstadoAsignacion(EstadoAsignacion.SIN_ASIGNAR);
         proyecto.setEstadoEjecucion(EstadoEjecucion.PENDIENTE);
@@ -71,6 +73,7 @@ public class ProyectoService {
             return null;
         Optional<Proyecto> existente = repo.findById(id);
         if (existente.isPresent()) {
+            sincronizarUbicacion(proyecto);
             proyecto.setId(id);
             return repo.save(proyecto);
         }
@@ -80,7 +83,27 @@ public class ProyectoService {
     public Proyecto save(Proyecto proyecto) {
         if (proyecto == null)
             return null;
+        sincronizarUbicacion(proyecto);
         return repo.save(proyecto);
+    }
+
+    public boolean ubicacionValida(UbicacionProyecto ubicacion) {
+        return ubicacion != null
+                && ubicacion.hasRequiredValues()
+                && ubicacion.getDepartamento().trim().length() <= 100
+                && ubicacion.getMunicipio().trim().length() <= 100
+                && ubicacion.getDetalle().trim().length() <= 180;
+    }
+
+    private void sincronizarUbicacion(Proyecto proyecto) {
+        if (proyecto == null || proyecto.getUbicacionGeografica() == null) {
+            return;
+        }
+        UbicacionProyecto ubicacion = proyecto.getUbicacionGeografica();
+        ubicacion.setDepartamento(ubicacion.getDepartamento().trim());
+        ubicacion.setMunicipio(ubicacion.getMunicipio().trim());
+        ubicacion.setDetalle(ubicacion.getDetalle().trim());
+        proyecto.setUbicacion(ubicacion.toDisplayString());
     }
 
     public void deleteById(String id) {

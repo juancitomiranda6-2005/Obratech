@@ -6,6 +6,8 @@ target/
 
 # Compiled class file
 *.class
+__pycache__/
+*.pyc
 
 # Log files
 *.log

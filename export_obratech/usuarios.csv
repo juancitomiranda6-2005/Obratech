@@ -1,0 +1,12 @@
+﻿_id,roles,activo,verificado,intentosFallidos,creado,_class,ultimoAcceso
+id_7e8c84a616,ROLE_USER|ROLE_ADMIN,True,False,0,2026-09-12T03:33:30.710000,com.obratech.entity.Usuario,
+id_452ca4d711,ROLE_CONTRACTOR,True,True,0,2026-09-12T03:58:23.641000,com.obratech.entity.Usuario,2026-10-01T07:27:30.987000
+id_b4609d7173,ROLE_CLIENT,True,True,0,2026-09-14T04:52:45.648000,com.obratech.entity.Usuario,
+id_1f509ab6e5,ROLE_WORKER,True,True,0,2026-09-14T05:18:31.183000,com.obratech.entity.Usuario,
+id_e688b9b296,ROLE_CONTRACTOR|ROLE_WORKER,True,True,0,2026-09-24T15:35:20.194000,com.obratech.entity.Usuario,
+id_be35db42f0,ROLE_USER|ROLE_ADMIN,True,False,0,2026-09-30T01:31:04.728000,com.obratech.entity.Usuario,
+id_02264f5dc0,ROLE_WORKER,True,True,0,2026-10-01T06:29:43.453000,com.obratech.entity.Usuario,
+id_32160085e4,ROLE_CLIENT,True,False,0,2026-10-01T07:23:45.737000,com.obratech.entity.Usuario,
+id_2b71665151,ROLE_CLIENT,True,False,0,2026-10-01T22:18:27.454000,com.obratech.entity.Usuario,
+id_4b0d95cd3e,ROLE_CONTRACTOR,True,True,0,2026-10-15T20:59:51.925000,com.obratech.entity.Usuario,
+id_107cf32eb8,ROLE_CLIENT,True,False,0,2026-10-26T04:56:04.886000,com.obratech.entity.Usuario,

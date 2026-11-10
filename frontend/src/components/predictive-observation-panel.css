@@ -1,0 +1,100 @@
+.predictive-observation-panel {
+  display: grid;
+  gap: 1rem;
+  border: 1px solid var(--ot-line);
+  border-radius: var(--ot-radius);
+  background: var(--ot-panel);
+}
+
+.predictive-observation-heading,
+.predictive-observation-heading > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+}
+
+.predictive-observation-heading h3,
+.predictive-observation-history h4 {
+  margin: 0;
+  color: var(--ot-text);
+}
+
+.predictive-observation-heading > strong {
+  color: var(--ot-orange-text);
+}
+
+.predictive-observation-help,
+.predictive-observation-history p,
+.predictive-observation-error {
+  margin: 0;
+  color: var(--ot-muted);
+  line-height: 1.5;
+}
+
+.predictive-observation-error {
+  color: #a52c2c;
+}
+
+.predictive-observation-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: .75rem;
+}
+
+.predictive-observation-form label {
+  display: grid;
+  gap: .35rem;
+}
+
+.predictive-observation-form label span {
+  color: var(--ot-muted);
+  font-size: .78rem;
+}
+
+.predictive-observation-form input,
+.predictive-observation-form select {
+  width: 100%;
+  min-height: 2.4rem;
+  padding: .5rem;
+  border: 1px solid var(--ot-line);
+  border-radius: .5rem;
+  color: var(--ot-text);
+  background: var(--ot-panel-2);
+}
+
+.predictive-observation-submit {
+  align-self: end;
+}
+
+.predictive-observation-history {
+  display: grid;
+  gap: .6rem;
+  padding-top: .9rem;
+  border-top: 1px solid var(--ot-line);
+}
+
+.predictive-observation-history ul {
+  display: grid;
+  gap: .5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.predictive-observation-history li {
+  display: grid;
+  gap: .15rem;
+  padding: .65rem .75rem;
+  border-radius: .5rem;
+  background: var(--ot-panel-2);
+}
+
+.predictive-observation-history li strong {
+  color: var(--ot-text);
+}
+
+.predictive-observation-history li span {
+  color: var(--ot-muted);
+  font-size: .82rem;
+}

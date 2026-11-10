@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { participantProjectsService } from '../../services/participantProjectsService.js'
+import { FitSimulationPanel } from '../../components/FitSimulationPanel.jsx'
 
 const money = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 })
 
@@ -141,6 +142,9 @@ function AvailableProjects({ onLogout, role, projectId = '' }) {
               {selectedProject.observaciones && <section className="market-project-scope"><h3>Detalles adicionales</h3><p>{selectedProject.observaciones}</p></section>}
               {/* Mensaje opcional que acompana la postulacion y se envia con ella a la API. */}
               {!selectedProject.yaPostulado && <label className="market-application-message"><span>Mensaje para el cliente (opcional)</span><textarea maxLength={1000} onChange={(event) => setApplicationMessage(event.target.value)} placeholder="Presenta brevemente tu experiencia para este proyecto." rows={4} value={applicationMessage} /></label>}
+              {role?.toUpperCase() === 'ROLE_CONTRACTOR' && !selectedProject.yaPostulado && (
+                <FitSimulationPanel contractorId={market.contratistaId} projectId={selectedProject.id} />
+              )}
               {/* Permite volver al mercado o enviar la postulacion si cumple los requisitos. */}
               <div className="market-detail-actions"><Link className="button button-secondary" to="/postulaciones">Cancelar</Link><button className="button button-primary" disabled={!canApply || selectedProject.yaPostulado || applyingTo === selectedProject.id} onClick={() => apply(selectedProject)} type="button"><span className="material-symbols-outlined" aria-hidden="true">{selectedProject.yaPostulado ? 'check' : 'send'}</span>{selectedProject.yaPostulado ? 'Ya postulaste' : applyingTo === selectedProject.id ? 'Enviando…' : 'Postularme'}</button></div>
             </article>}
@@ -165,11 +169,18 @@ function AvailableProjects({ onLogout, role, projectId = '' }) {
                     <p className="market-project-client">Cliente: {project.clientePerfilId ? <Link to={`/clientes/perfil/${project.clientePerfilId}`}>Ver perfil del cliente</Link> : project.clienteNombre || 'No disponible'}</p>
                     <div className="market-project-info"><span><span className="material-symbols-outlined" aria-hidden="true">location_on</span>{project.ubicacion || 'Ubicación pendiente'}</span><strong>{money.format(project.presupuesto || 0)}</strong></div>
                     <div className="market-project-dates"><span>Inicio: {project.fechaInicio || 'Por definir'}</span><span>Límite: {project.fechaLimitePostulacion || 'Abierto'}</span></div>
-                    {/* Envia una postulacion a esta obra sin abrir antes su detalle. */}
-                    <button className="button button-primary market-apply" disabled={!canApply || project.yaPostulado || applyingTo === project.id} onClick={() => apply(project)} type="button">
-                      <span className="material-symbols-outlined" aria-hidden="true">{project.yaPostulado ? 'check' : 'send'}</span>
-                      {project.yaPostulado ? 'Ya postulaste' : applyingTo === project.id ? 'Enviando…' : 'Postularme'}
-                    </button>
+                    {/* Abre el detalle para mostrar la simulacion antes de enviar la postulacion. */}
+                    {project.yaPostulado ? (
+                      <button className="button button-primary market-apply" disabled type="button">
+                        <span className="material-symbols-outlined" aria-hidden="true">check</span>
+                        Ya postulaste
+                      </button>
+                    ) : (
+                      <Link className="button button-primary market-apply" to={`/postulaciones/${project.id}`}>
+                        <span className="material-symbols-outlined" aria-hidden="true">visibility</span>
+                        Ver compatibilidad y postularme
+                      </Link>
+                    )}
                   </article>
                 ))}
               </section>

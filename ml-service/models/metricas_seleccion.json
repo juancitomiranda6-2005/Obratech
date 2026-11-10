@@ -1,0 +1,23 @@
+{
+  "n_postulaciones": 14151,
+  "n_proyectos": 2000,
+  "tasa_escogidos": 0.1413,
+  "brier_sin_modelo": 0.1216,
+  "candidatos": {
+    "regresion_logistica": {
+      "roc_auc": 0.8023,
+      "log_loss": 0.3309,
+      "brier": 0.1013,
+      "acierto_top1_por_proyecto": 0.4325,
+      "acierto_top1_al_azar": 0.1914
+    },
+    "gradient_boosting_calibrado": {
+      "roc_auc": 0.805,
+      "log_loss": 0.3285,
+      "brier": 0.1002,
+      "acierto_top1_por_proyecto": 0.44,
+      "acierto_top1_al_azar": 0.1914
+    }
+  },
+  "modelo_elegido": "gradient_boosting_calibrado"
+}

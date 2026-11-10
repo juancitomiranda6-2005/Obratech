@@ -1,7 +1,7 @@
 package com.obratech.controllers;
 
-import java.io.IOException;
 import java.net.URI;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
@@ -9,41 +9,39 @@ import java.util.Set;
 import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.gridfs.GridFsTemplate;
 import org.springframework.http.MediaType;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.obratech.entity.EquipoTrabajo;
 import com.obratech.entity.Proyecto;
+import com.obratech.entity.EquipoTrabajo;
+import com.obratech.entity.UbicacionProyecto;
 import com.obratech.entity.Usuario;
 import com.obratech.repository.EquipoTrabajoRepository;
-import com.obratech.repository.PerfilRepository;
 import com.obratech.repository.PostulacionRepository;
+import com.obratech.repository.PerfilRepository;
 import com.obratech.repository.ProyectoRepository;
 import com.obratech.repository.UsuarioRepository;
-import com.obratech.service.PerfilVerificationService;
-import com.obratech.service.ProyectoFaseService;
 import com.obratech.service.ProyectoService;
+import com.obratech.service.ProyectoFaseService;
+import com.obratech.service.PerfilVerificationService;
 
 @RestController
 @RequestMapping("/api/client/projects")
 public class ClientProjectsApiController {
 
     private static final Set<String> PROJECT_TYPES = Set.of(
-            "Residencial", "Comercial", "Industrial", "Institucional", "Infraestructura", "Mixto", "Ambiental", "Energético");
-
-    public static Set<String> getPROJECT_TYPES() {
-        return PROJECT_TYPES;
-    }
+            "Residencial", "Comercial", "Industrial", "Institucional", "Infraestructura");
 
     private final UsuarioRepository usuarioRepository;
     private final PerfilRepository perfilRepository;
@@ -175,7 +173,7 @@ public class ClientProjectsApiController {
             @RequestBody ProjectRequest request,
             Authentication authentication) {
         if (!isValid(request)) {
-            return ResponseEntity.badRequest().body(new ApiError("Revisa los campos obligatorios, el presupuesto y las fechas."));
+            return ResponseEntity.badRequest().body(new ApiError("Revisa los campos obligatorios, la ubicación, el presupuesto y las fechas."));
         }
         Usuario cliente = usuarioRepository.findByUsernameIgnoreCase(authentication.getName()).orElse(null);
         Proyecto proyecto = proyectoRepository.findById(id).orElse(null);
@@ -230,8 +228,9 @@ public class ClientProjectsApiController {
         if (request == null) {
             return ResponseEntity.badRequest().body(new ApiError("Los datos del proyecto son obligatorios."));
         }
-        if (isBlank(request.titulo()) || isBlank(request.descripcion()) || isBlank(request.ubicacion())) {
-            return ResponseEntity.badRequest().body(new ApiError("Completa el título, la descripción y la ubicación."));
+        if (isBlank(request.titulo()) || isBlank(request.descripcion())
+                || !proyectoService.ubicacionValida(toUbicacionProyecto(request.ubicacionGeografica()))) {
+            return ResponseEntity.badRequest().body(new ApiError("Completa título, descripción, departamento, municipio y dirección o vereda."));
         }
         if (!PROJECT_TYPES.contains(request.tipoProyecto())) {
             return ResponseEntity.badRequest().body(new ApiError("Selecciona un tipo de proyecto válido."));
@@ -297,7 +296,7 @@ public class ClientProjectsApiController {
         return request != null
                 && !isBlank(request.titulo())
                 && !isBlank(request.descripcion())
-                && !isBlank(request.ubicacion())
+                && proyectoService.ubicacionValida(toUbicacionProyecto(request.ubicacionGeografica()))
                 && PROJECT_TYPES.contains(request.tipoProyecto())
                 && request.presupuesto() != null && request.presupuesto() >= 1_000_000
                 && request.fechaInicio() != null && request.fechaEntrega() != null
@@ -309,7 +308,9 @@ public class ClientProjectsApiController {
     private void applyRequest(Proyecto proyecto, ProjectRequest request) {
         proyecto.setTitulo(request.titulo().trim());
         proyecto.setDescripcion(request.descripcion().trim());
-        proyecto.setUbicacion(request.ubicacion().trim());
+        UbicacionProyecto ubicacion = toUbicacionProyecto(request.ubicacionGeografica());
+        proyecto.setUbicacionGeografica(ubicacion);
+        proyecto.setUbicacion(proyecto.getUbicacionGeografica().toDisplayString());
         proyecto.setTipoProyecto(request.tipoProyecto());
         proyecto.setPresupuesto(request.presupuesto());
         proyecto.setFechaInicio(request.fechaInicio());
@@ -325,12 +326,17 @@ public class ClientProjectsApiController {
                 && proyecto.getCliente().getUsername().equalsIgnoreCase(cliente.getUsername());
     }
 
+    private UbicacionProyecto toUbicacionProyecto(UbicacionRequest request) {
+        return request == null ? null
+                : new UbicacionProyecto(request.departamento(), request.municipio(), request.detalle());
+    }
+
     private ProjectSummary toSummary(Proyecto project) {
         List<EquipoTrabajo> teams = equipoTrabajoRepository.findByProyectoId(project.getId());
         double progress = proyectoFaseService.calcularAvanceObra(project);
         return new ProjectSummary(
                 project.getId(), project.getTitulo(), project.getDescripcion(), project.getTipoProyecto(),
-                project.getUbicacion(), project.getPresupuesto(),
+                project.getUbicacion(), project.getUbicacionGeografica(), project.getPresupuesto(),
                 project.getEstadoValidacion() == null ? "PENDIENTE" : project.getEstadoValidacion().name(),
                 project.getEstadoEjecucion() == null ? "PENDIENTE" : project.getEstadoEjecucion().name(), project.getFechaInicio(), project.getFechaEntrega(),
                 project.getPlazoEstimado(), project.getAreaTotal(),
@@ -342,6 +348,7 @@ public class ClientProjectsApiController {
             String titulo,
             String descripcion,
             String ubicacion,
+            UbicacionRequest ubicacionGeografica,
             String tipoProyecto,
             Double presupuesto,
             LocalDate fechaInicio,
@@ -350,12 +357,18 @@ public class ClientProjectsApiController {
             Double areaTotal,
             String observaciones) {}
 
+    public record UbicacionRequest(
+            String departamento,
+            String municipio,
+            String detalle) {}
+
     public record ProjectSummary(
             String id,
             String titulo,
             String descripcion,
             String tipoProyecto,
             String ubicacion,
+            UbicacionProyecto ubicacionGeografica,
             Double presupuesto,
             String estadoValidacion,
             String estadoEjecucion,
