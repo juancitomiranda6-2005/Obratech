@@ -323,7 +323,7 @@ function ProjectWorkspace({ id, editing }) {
               <p>{project.miembrosEquipo} trabajadores vinculados · {project.totalPostulantes} postulaciones recibidas</p>
             </section>
           </section>
-        </div>
+        </main>
       )}
     </div>
   )
