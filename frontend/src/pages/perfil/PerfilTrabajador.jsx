@@ -92,7 +92,7 @@ export function PerfilTrabajador({ editing = false }) {
       </aside>
 
       <main className="client-main">
-        <header className="client-header">
+        <header className="client-header contractor-dashboard-header">
           <div>
             <p className="client-eyebrow">Perfil profesional</p>
             <h1>{editing ? 'Editar perfil laboral' : `${profile?.nombre || ''} ${profile?.apellido || ''}`.trim() || 'Mi perfil'}</h1>

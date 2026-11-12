@@ -806,7 +806,7 @@ export function EquiposPage({ role, onLogout, projectId: initialProjectId = '' }
 
       <main className="client-main">
         {/* Encabezado y recarga manual de equipos */}
-        <header className="client-header">
+        <header className="client-header contractor-dashboard-header">
           <div><p className="client-eyebrow">{isContractor ? 'Gestión de cuadrillas' : 'Trabajo asignado'}</p><h1>{isContractor ? 'Equipos de trabajo' : 'Mi equipo de trabajo'}</h1><p>{isContractor ? 'Organiza integrantes y actividades de tus proyectos.' : 'Consulta tus actividades y reporta el avance de tu equipo.'}</p></div>
           <button aria-label="Actualizar equipos" className="admin-icon-button" disabled={loading} onClick={() => loadData()} title="Actualizar" type="button"><span className="material-symbols-outlined" aria-hidden="true">refresh</span></button>
         </header>

@@ -77,7 +77,7 @@ export function MisContratistasPage({ onLogout }) {
       </aside>
 
       <main className="client-main">
-        <header className="client-header">
+        <header className="client-header contractor-dashboard-header">
           <div><p className="client-eyebrow">Relaciones de trabajo</p><h1>Mis contratistas</h1><p>Contratistas asignados a tus proyectos.</p></div>
           <button aria-label="Actualizar contratistas" className="admin-icon-button" disabled={refreshing} onClick={() => reload(true)} title="Actualizar" type="button"><span className="material-symbols-outlined" aria-hidden="true">refresh</span></button>
         </header>

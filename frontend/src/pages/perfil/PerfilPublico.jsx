@@ -54,7 +54,7 @@ export function PerfilPublico({ id, onLogout, viewerRole }) {
         <div className="client-sidebar-footer"><button className="client-logout" onClick={onLogout} type="button"><span className="material-symbols-outlined" aria-hidden="true">logout</span>Cerrar sesión</button></div>
       </aside>
       <main className="client-main">
-        <header className="client-header"><div><p className="client-eyebrow">Directorio ObraTech</p><h1>{isClient ? 'Perfil del cliente' : 'Perfil público'}</h1><p>{profileType}</p></div></header>
+        <header className="client-header contractor-dashboard-header"><div><p className="client-eyebrow">Directorio ObraTech</p><h1>{isClient ? 'Perfil del cliente' : 'Perfil público'}</h1><p>{profileType}</p></div></header>
         {loading && <div className="admin-loading" role="status">Cargando perfil…</div>}
         {error && <div className="admin-alert admin-alert-error" role="alert">{error}</div>}
         {profile && <>

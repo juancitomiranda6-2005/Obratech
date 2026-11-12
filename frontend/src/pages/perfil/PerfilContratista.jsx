@@ -115,7 +115,7 @@ function ContractorProfile({ editing }) {
       </aside>
 
       <main className="client-main">
-        <header className="client-header"><div><p className="client-eyebrow">Perfil profesional</p><h1>{editing ? 'Editar perfil' : `${profile?.nombre || ''} ${profile?.apellido || ''}`.trim() || profile?.username}</h1><p>{editing ? 'Mantén tu información y documentación al día.' : profile?.especialidad || 'Contratista'}</p></div>{!editing && <Link className="button button-primary" to="/perfil-contratista/editar"><span className="material-symbols-outlined" aria-hidden="true">edit</span>Editar perfil</Link>}</header>
+        <header className="client-header contractor-dashboard-header"><div><p className="client-eyebrow">Perfil profesional</p><h1>{editing ? 'Editar perfil' : `${profile?.nombre || ''} ${profile?.apellido || ''}`.trim() || profile?.username}</h1><p>{editing ? 'Mantén tu información y documentación al día.' : profile?.especialidad || 'Contratista'}</p></div>{!editing && <Link className="button button-primary" to="/perfil-contratista/editar"><span className="material-symbols-outlined" aria-hidden="true">edit</span>Editar perfil</Link>}</header>
         {error && <div className="admin-alert admin-alert-error" role="alert">{error}</div>}
 
         {profile && editing && form && (

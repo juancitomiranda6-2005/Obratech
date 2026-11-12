@@ -61,7 +61,7 @@ export function PostulacionesRecibidas({ onLogout }) {
       </aside>
 
       <main className="client-main">
-        <header className="client-header">
+        <header className="client-header contractor-dashboard-header">
           <div><p className="client-eyebrow">Selección de profesionales</p><h1>Postulaciones recibidas</h1><p>{loading ? 'Cargando solicitudes…' : `${totalApplications} solicitudes en ${projectsWithApplications.length} proyectos`}</p></div>
           <Link className="button button-secondary" to="/mis-proyectos"><span className="material-symbols-outlined" aria-hidden="true">arrow_back</span>Mis proyectos</Link>
         </header>

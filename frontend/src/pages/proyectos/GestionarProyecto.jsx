@@ -4,7 +4,7 @@ import { clientProjectsService } from '../../services/proyectoService.js'
 import { PhasePanel, PhaseRequirementActions } from '../../components/PhasePanel.jsx'
 import { ProjectRiskPanel } from '../../components/ProjectRiskPanel.jsx'
 
-const projectTypes = ['Residencial', 'Comercial', 'Industrial', 'Institucional', 'Infraestructura']
+const projectTypes = ['Residencial', 'Comercial', 'Industrial', 'Institucional', 'Infraestructura', 'Mixto', 'Ambiental', 'Energético']
 const stateLabels = {
   PENDIENTE: 'Pendiente',
   EN_PROGRESO: 'En progreso',

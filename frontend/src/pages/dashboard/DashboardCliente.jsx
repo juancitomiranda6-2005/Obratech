@@ -305,7 +305,7 @@ function ClientDashboard() {
 
       {/* ── Main content ───────────────────────────────── */}
       <main className="client-main" id="resumen">
-        <header className="client-header">
+        <header className="client-header contractor-dashboard-header">
           <div>
             <p className="client-eyebrow">Área de cliente</p>
             <h1>Bienvenido, {displayName}</h1>

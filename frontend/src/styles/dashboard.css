@@ -2490,6 +2490,11 @@
   background: #0b0f17;
   scrollbar-width: thin;
   scrollbar-color: #475569 transparent;
+  background: var(--ot-panel);
+  border: 1px solid var(--ot-line);
+  color: var(--ot-text);
+  background: var(--ot-panel);
+  border: 1px solid var(--ot-line);
 }
 
 .contractor-follow-up-tabs button {
@@ -2509,11 +2514,13 @@
   white-space: nowrap;
   cursor: pointer;
   transition: color 150ms ease, background-color 150ms ease, border-color 150ms ease;
+  color: var(--ot-muted);
 }
 
 .contractor-follow-up-tabs button:hover {
   color: #f8fafc;
   background: rgba(148, 163, 184, 0.1);
+  color: var(--ot-text);
 }
 
 .contractor-follow-up-tabs button.is-active {
@@ -2521,6 +2528,9 @@
   color: #fff;
   background: #ff6b00;
   box-shadow: 0 4px 14px rgba(255, 107, 0, 0.2);
+  color: #000000;
+  background: var(--ot-orange);
+  border-color: rgba(255, 107, 0, 0.34);
 }
 
 .contractor-follow-up-tabs button:focus-visible {
@@ -3762,4 +3772,54 @@
 
 .project-list-meta strong {
   font-size: 12px;
+}
+
+.contractor-dashboard .client-verification {
+  border-color: var(--ot-line);
+  background: var(--ot-panel);
+}
+
+.contractor-dashboard .client-verification > .material-symbols-outlinead {
+  color: var(--ot-orange);
+}
+
+.contractor-dashboard .client-verification .client-req-tag{
+  border-color: var(--ot-line);
+  background: var(--ot-bg-2);
+  color: var(--ot-text);
+}
+
+.contractor-dashboard .client-verification .client-req-tag .material-symbols-outlined {
+  color: var(--ot-orange);
+}
+
+
+.contractor-dashboard .client-verification .client-review-badge {
+  border-color: var(--ot-line);
+  background: var(--ot-bg-2);
+  color: var(--ot-muted);
+}
+
+.contractor-dashboard .client-header {
+  min-height: 130px;
+  margin-top: 20px;
+  padding: 24px;
+  border-bottom: 1px solid var(--ot-line);
+  border-radius: 16px;
+  background: var(--ot-panel);
+  box-shadow: var(--ot-shadow);
+}
+
+:root[data-theme='light'].contractor-dashboard .client-header {
+  background: var(--ot-panel);
+}
+
+.contractor-dashboard-header {
+  min-height: 130px;
+  margin-top: 20px;
+  padding: 24px;
+  border: 1px solid var(--ot-line);
+  border-radius: 16px;
+  background: var(--ot-panel);
+  box-shadow: var(--ot-shadow);
 }

@@ -208,7 +208,7 @@ function ProjectsList({ onLogout: _onLogout, inProgressOnly }) {
 
       {/* ── Contenido Principal ──────────────────────────────── */}
       <main className="client-main">
-        <header className="client-header">
+        <header className="client-header contractor-dashboard-header">
           <div>
             <p className="client-eyebrow">Área de cliente · Gestión</p>
             <h1>{inProgressOnly ? 'Proyectos en proceso' : 'Mis proyectos'}</h1>

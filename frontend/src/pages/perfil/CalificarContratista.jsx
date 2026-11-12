@@ -64,7 +64,7 @@ export function CalificarContratista({ projectId, contractorId, ratingId, onLogo
       </aside>
 
       <main className="client-main">
-        <header className="client-header"><div><p className="client-eyebrow">Opinión del cliente</p><h1>{rating?.puntuacion ? 'Editar calificación' : 'Calificar contratista'}</h1><p>Tu opinión ayuda a otros clientes a elegir profesionales.</p></div></header>
+        <header className="client-header contractor-dashboard-header"><div><p className="client-eyebrow">Opinión del cliente</p><h1>{rating?.puntuacion ? 'Editar calificación' : 'Calificar contratista'}</h1><p>Tu opinión ayuda a otros clientes a elegir profesionales.</p></div></header>
         {error && <div className="admin-alert admin-alert-error" role="alert">{error}</div>}
         {notice && <div className="admin-alert admin-alert-success" role="status">{notice}</div>}
         {loading ? <div className="admin-loading" role="status">Cargando calificación…</div> : rating && (

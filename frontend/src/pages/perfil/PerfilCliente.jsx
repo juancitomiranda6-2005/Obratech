@@ -60,7 +60,7 @@ function ClientProfile({ editing }) {
       </aside>
 
       <main className="client-main">
-        <header className="client-header"><div><p className="client-eyebrow">Cuenta cliente</p><h1>{editing ? 'Editar perfil' : 'Mi perfil'}</h1><p>Información de contacto y verificación de la cuenta.</p></div>{!editing && <Link className="button button-primary" to="/perfil-cliente/editar"><span className="material-symbols-outlined" aria-hidden="true">edit</span>Editar perfil</Link>}</header>
+        <header className="client-header contractor-dashboard-header"><div><p className="client-eyebrow">Cuenta cliente</p><h1>{editing ? 'Editar perfil' : 'Mi perfil'}</h1><p>Información de contacto y verificación de la cuenta.</p></div>{!editing && <Link className="button button-primary" to="/perfil-cliente/editar"><span className="material-symbols-outlined" aria-hidden="true">edit</span>Editar perfil</Link>}</header>
         {error && <div className="admin-alert admin-alert-error" role="alert">{error}</div>}
         {notice && <div className="admin-alert admin-alert-success" role="status">{notice}</div>}
         {profile && editing && form && (

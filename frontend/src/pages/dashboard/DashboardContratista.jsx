@@ -194,7 +194,7 @@ function ContractorDashboard() {
       </aside>
 
       <main className="client-main" id="resumen">
-        <header className="client-header">
+        <header className="client-header contractor-dashboard-header">
           <div><p className="client-eyebrow">Área de contratista</p><h1>Bienvenido, {dashboard?.nombre || '…'}</h1><p>Gestiona tu equipo y tus proyectos de construcción.</p></div>
           <button aria-label="Actualizar dashboard" className="admin-icon-button" disabled={loading} onClick={reload} title={loading ? 'Actualizando…' : 'Actualizar'} type="button"><span className={`material-symbols-outlined ${loading ? 'is-refreshing' : ''}`} aria-hidden="true">refresh</span></button>
         </header>

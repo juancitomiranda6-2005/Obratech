@@ -108,7 +108,7 @@ export function MercadoTrabajadores({ onLogout, workerId = '' }) {
       </aside>
 
       <main className="client-main">
-        <header className="client-header">
+        <header className="client-header contractor-dashboard-header">
           <div><p className="client-eyebrow">Talento disponible</p><h1>Mercado de trabajadores</h1><p>Encuentra trabajadores para tus proyectos y envíales una invitación.</p></div>
           <button aria-label="Actualizar trabajadores" className="admin-icon-button" disabled={loading} onClick={() => loadMarket(projectId)} title="Actualizar" type="button"><span className="material-symbols-outlined" aria-hidden="true">refresh</span></button>
         </header>

@@ -62,7 +62,7 @@ export function ReportesPage({ onLogout }) {
       </aside>
 
       <main className="client-main">
-        <header className="client-header">
+        <header className="client-header contractor-dashboard-header">
           <div><p className="client-eyebrow">Actividad de la cuenta</p><h1>Reportes de actividad</h1><p>Consulta tus proyectos y los informes de avance enviados por tus contratistas.</p></div>
           <button aria-label="Actualizar reportes" className="admin-icon-button" onClick={reload} title="Actualizar" type="button"><span className="material-symbols-outlined" aria-hidden="true">refresh</span></button>
         </header>

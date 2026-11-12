@@ -52,7 +52,7 @@ export function HistorialContratista({ onLogout }) {
       </aside>
 
       <main className="client-main">
-        <header className="client-header">
+        <header className="client-header contractor-dashboard-header">
           <div><p className="client-eyebrow">Trayectoria profesional</p><h1>Historial de proyectos</h1><p>Consulta las obras que completaste y sus datos principales.</p></div>
           <button aria-label="Actualizar historial" className="admin-icon-button" disabled={refreshing} onClick={() => loadHistory(true)} title="Actualizar" type="button"><span className="material-symbols-outlined" aria-hidden="true">refresh</span></button>
         </header>

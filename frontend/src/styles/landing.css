@@ -168,14 +168,17 @@
 
 .landing-eyebrow .material-symbols-outlined {
   font-size: 17px;
+  color: #ff8a1c;
 }
 
 .landing-hero-content > .landing-eyebrow {
   width: fit-content;
-  padding: 7px 12px;
-  border: 1px solid rgba(255, 138, 28, .3);
+  padding: 10px 18px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 999px;
-  background: rgba(15, 26, 39, .66);
+  background: rgba(15, 26, 39, 0.89);
+  color: #f4f7fb;
+  box-shadow: 0 8px 24px rgba( 0, 0, 0, 0.16);
 }
 
 .landing-hero h1 {
@@ -1141,6 +1144,11 @@ html[data-theme='light'] .landing-footer-bottom {
   color: #657386;
 }
 
+html[data-theme='light'] .landing-cta h2,
+html[data-theme='light'] .landing-cta > div > p:last-child {
+  color: #fff;
+}
+
 @media (max-height: 760px) and (min-width: 761px) {
   .landing-hero {
     min-height: min(790px, max(620px, 100svh));
@@ -1291,4 +1299,12 @@ html[data-theme='light'] .landing-footer-bottom {
 @media (prefers-reduced-motion: reduce) {
   .landing-button { transition: none; }
   .landing-button:hover { transform: none; }
+}
+
+
+html[data-theme='light'] .landing-page .landing-hero-content > .landing-eyebrow {
+  background: rgba(255, 255, 255, 0.94);
+  border-color: rgba(18, 34, 52, 0.12);
+  color: #192536;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
 }

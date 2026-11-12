@@ -8,6 +8,9 @@ const projectTypes = [
   { value: 'Industrial', icon: 'factory' },
   { value: 'Institucional', icon: 'school' },
   { value: 'Infraestructura', icon: 'traffic' },
+  { value: 'Mixto', icon: 'apartment' },
+  {value: 'Ambiental', icon: 'eco'},
+  {value: 'Energético', icon: 'energy_savings_leaf'},
 ]
 
 const emptyForm = {

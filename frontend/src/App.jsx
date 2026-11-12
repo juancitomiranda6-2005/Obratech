@@ -49,7 +49,7 @@ function RoleSelectionPage({ roles, onSelect, onLogout }) {
   const availableRoles = roles.filter((role) => roleOptions[role])
 
   return (
-    <main className="auth-page">
+    <main className="auth-page role-selection-page">
       <section className="auth-shell role-selection-shell">
         <a className="brand-mark" href="/" aria-label="ObraTech">
           <span className="material-symbols-outlined" aria-hidden="true">construction</span>
@@ -226,7 +226,12 @@ function AppRoutes() {
           selectRole(role)
           navigate('/', { replace: true })
         }}
-        onLogout={logout}
+        onLogout={() => {
+          logout()
+          navigate('/', {replace: true})
+        }
+
+        }
       />
     )
   }

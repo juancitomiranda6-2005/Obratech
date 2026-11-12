@@ -105,7 +105,7 @@ function AvailableProjects({ onLogout, role, projectId = '' }) {
 
       <main className="client-main">
         {/* Titulo del mercado y boton para actualizar proyectos */}
-        <header className="client-header">
+        <header className="client-header contractor-dashboard-header">
           <div><p className="client-eyebrow">Mercado laboral · {roleName}</p><h1>Proyectos disponibles</h1><p>Explora las obras aprobadas y postúlate a las que te interesan.</p></div>
           {/* Boton para volver a consultar las oportunidades */}
           <button aria-label="Actualizar proyectos" className="admin-icon-button" disabled={loading} onClick={reload} title={loading ? 'Actualizando…' : 'Actualizar'} type="button"><span className={`material-symbols-outlined ${loading ? 'is-refreshing' : ''}`} aria-hidden="true">refresh</span></button>
@@ -148,7 +148,7 @@ function AvailableProjects({ onLogout, role, projectId = '' }) {
             {/* Controles que cambian el estado de filtros usado para reducir la lista. */}
             {!projectId && <section aria-label="Filtros de proyectos" className="market-filters">
               <label className="market-search"><span className="material-symbols-outlined" aria-hidden="true">search</span><span className="sr-only">Buscar por título o descripción</span><input onChange={(event) => setSearch(event.target.value)} placeholder="Buscar por título o descripción" type="search" value={search} /></label>
-              <label><span className="sr-only">Tipo de proyecto</span><select onChange={(event) => setType(event.target.value)} value={type}><option value="">Todos los tipos</option>{['Residencial', 'Comercial', 'Industrial', 'Institucional', 'Infraestructura'].map((option) => <option key={option}>{option}</option>)}</select></label>
+              <label><span className="sr-only">Tipo de proyecto</span><select onChange={(event) => setType(event.target.value)} value={type}><option value="">Todos los tipos</option>{['Residencial', 'Comercial', 'Industrial', 'Institucional', 'Infraestructura', 'Mixto', 'Ambiental', 'Energético'].map((option) => <option key={option}>{option}</option>)}</select></label>
               <label><span className="sr-only">Ubicación</span><select onChange={(event) => setLocation(event.target.value)} value={location}><option value="">Todas las ubicaciones</option>{locations.map((option) => <option key={option}>{option}</option>)}</select></label>
               <label><span className="sr-only">Presupuesto mínimo</span><select onChange={(event) => setMinimumBudget(Number(event.target.value))} value={minimumBudget}><option value={0}>Cualquier presupuesto</option><option value={1000000}>Más de $1.000.000</option><option value={5000000}>Más de $5.000.000</option><option value={20000000}>Más de $20.000.000</option></select></label>
               <span className="market-result-count">{filtered.length} de {projects.length} proyectos</span>

@@ -42,7 +42,7 @@ export function DetallePostulacion({ id, role, onLogout }) {
       </aside>
       <main className="client-main">
         {/* Identifica el rol y ofrece volver a la lista de postulaciones propias. */}
-        <header className="client-header"><div><p className="client-eyebrow">{role === 'ROLE_CONTRACTOR' ? 'Contratista' : 'Trabajador'}</p><h1>Detalle de postulación</h1><p>Consulta el estado y los datos enviados de tu solicitud.</p></div><Link className="button button-secondary" to="/mis-postulaciones"><span className="material-symbols-outlined" aria-hidden="true">arrow_back</span>Volver</Link></header>
+        <header className="client-header contractor-dashboard-header"><div><p className="client-eyebrow">{role === 'ROLE_CONTRACTOR' ? 'Contratista' : 'Trabajador'}</p><h1>Detalle de postulación</h1><p>Consulta el estado y los datos enviados de tu solicitud.</p></div><Link className="button button-secondary" to="/mis-postulaciones"><span className="material-symbols-outlined" aria-hidden="true">arrow_back</span>Volver</Link></header>
         {loading && <div className="admin-loading" role="status">Cargando postulación…</div>}
         {error && <div className="admin-alert admin-alert-error" role="alert">{error}</div>}
         {/* Agrupa estado, alcance, condiciones, perfil del cliente y mensaje enviado. */}

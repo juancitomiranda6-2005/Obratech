@@ -1,7 +1,7 @@
 package com.obratech.controllers;
 
-import java.net.URI;
 import java.io.IOException;
+import java.net.URI;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
@@ -9,38 +9,41 @@ import java.util.Set;
 import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.gridfs.GridFsTemplate;
 import org.springframework.http.MediaType;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.obratech.entity.Proyecto;
 import com.obratech.entity.EquipoTrabajo;
+import com.obratech.entity.Proyecto;
 import com.obratech.entity.Usuario;
 import com.obratech.repository.EquipoTrabajoRepository;
-import com.obratech.repository.PostulacionRepository;
 import com.obratech.repository.PerfilRepository;
+import com.obratech.repository.PostulacionRepository;
 import com.obratech.repository.ProyectoRepository;
 import com.obratech.repository.UsuarioRepository;
-import com.obratech.service.ProyectoService;
-import com.obratech.service.ProyectoFaseService;
 import com.obratech.service.PerfilVerificationService;
+import com.obratech.service.ProyectoFaseService;
+import com.obratech.service.ProyectoService;
 
 @RestController
 @RequestMapping("/api/client/projects")
 public class ClientProjectsApiController {
 
     private static final Set<String> PROJECT_TYPES = Set.of(
-            "Residencial", "Comercial", "Industrial", "Institucional", "Infraestructura");
+            "Residencial", "Comercial", "Industrial", "Institucional", "Infraestructura", "Mixto", "Ambiental", "Energético");
+
+    public static Set<String> getPROJECT_TYPES() {
+        return PROJECT_TYPES;
+    }
 
     private final UsuarioRepository usuarioRepository;
     private final PerfilRepository perfilRepository;

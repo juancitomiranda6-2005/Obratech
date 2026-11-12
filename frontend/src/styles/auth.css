@@ -8,6 +8,12 @@
   padding: 36px 20px;
 }
 
+:root[data-theme='light'] .role-selection-page {
+  background:
+    radial-gradient(circle at 85% 15%, rgba(255, 106, 26, 0.08), transparent 28rem),
+    linear-gradient(135deg, #f8fafc, #edf2f8 60%, #e8eef6);
+}
+
 .auth-shell {
   width: min(100%, 432px);
   display: flex;
@@ -43,11 +49,12 @@
   font-size: 25px;
   line-height: 1.25;
   font-weight: 700;
+  color: var(--ot-text);
 }
 
 .auth-heading p {
   margin: 8px 0 0;
-  color: var(--text-muted);
+  color: var(--ot-muted);
   font-size: 14px;
 }
 
@@ -91,6 +98,7 @@
   text-align: left;
   cursor: pointer;
   transition: border-color 160ms ease, background-color 160ms ease;
+  color: var(--ot-text);
 }
 
 .role-choice:hover,
@@ -1099,4 +1107,26 @@
     top: auto !important;
     bottom: 130px !important;
   }
+}
+
+:root[data-theme='light'] .role-selection-page {
+  background:
+    radial-gradient(
+      ellipse 100% 110% at 100% 0%,
+      rgba(255, 106, 26, 0.24) 0%,
+      rgba(255, 106, 26, 0.12) 38%,
+      transparent 76%
+    ),
+    linear-gradient(135deg, #f8fbff 0%, #e8eef7 52%, #fff5ed 100%);
+}
+
+:root[data-theme='dark'] .role-selection-page {
+  background:
+    radial-gradien(
+      ellipse 120% 140% at 100% 0%,
+      rgba(255, 106, 26, 0.24) 0%,
+      rgba(255, 106, 26, 0.12) 42%,
+      transparent 78%
+    ),
+    linear-gradient(135deg, #060a13, #0a1120);
 }

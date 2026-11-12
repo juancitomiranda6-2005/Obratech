@@ -42,7 +42,7 @@ export function DirectorioPerfiles({ kind, specialty = '', availableOnly = false
         <div className="client-sidebar-footer"><button className="client-logout" onClick={onLogout} type="button"><span className="material-symbols-outlined" aria-hidden="true">logout</span>Cerrar sesión</button></div>
       </aside>
       <main className="client-main">
-        <header className="client-header">
+        <header className="client-header contractor-dashboard-header">
           <div><p className="client-eyebrow">Red ObraTech</p><h1>{isContractorDirectory ? 'Directorio de contratistas' : isWorkerDirectory ? availableOnly ? 'Trabajadores disponibles' : 'Directorio de trabajadores' : 'Directorio de clientes'}</h1><p>{specialty ? `Especialidad: ${specialty}` : isContractorDirectory ? 'Consulta profesionales activos, su especialidad y reputación.' : isWorkerDirectory ? 'Consulta oficio, experiencia y disponibilidad de los trabajadores.' : 'Consulta los clientes activos de la plataforma.'}</p></div>
           <span className="market-result-count">{filtered.length} perfiles</span>
         </header>

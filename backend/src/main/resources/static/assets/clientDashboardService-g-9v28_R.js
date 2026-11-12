@@ -1,1 +1,0 @@
-import{a as e}from"./index-C6LSmkVp.js";var t={getDashboard:()=>e.get(`/dashboard/cliente`),getReports:()=>e.get(`/dashboard/cliente/reportes`),getContractors:()=>e.get(`/dashboard/cliente/contratistas`)};export{t};

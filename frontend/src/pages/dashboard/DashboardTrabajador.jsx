@@ -83,7 +83,7 @@ function WorkerDashboard() {
       </aside>
 
       <main className="client-main" id="resumen">
-        <header className="client-header">
+        <header className="client-header contractor-dashboard-header">
           <div><p className="client-eyebrow">Espacio de trabajo</p><h1>Hola, {dashboard?.nombre || '…'}</h1><p>Revisa tus proyectos asignados y tu estado laboral.</p></div>
           <div className="client-header-actions">
             <Link className="button button-primary" to="/perfil-trabajador/editar"><span className="material-symbols-outlined" aria-hidden="true">edit</span>Editar perfil</Link>
