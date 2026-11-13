@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { clientProjectsService } from '../../services/proyectoService.js'
+import { DetallesModalidad } from './DetallesModalidad.jsx'
 
 const projectTypes = [
   { value: 'Residencial', icon: 'home' },
@@ -13,7 +14,18 @@ const projectTypes = [
   {value: 'Energético', icon: 'energy_savings_leaf'},
 ]
 
+const WorkModalities = [
+  'Construcción nueva',
+  'Remodelación',
+  'Ampliación',
+  'Mantenimiento',
+  'Reparación',
+  'Demolición',
+]
+
 const emptyForm = {
+  modalidadTrabajo: '',
+  detallesModalidad: {},
   titulo: '',
   descripcion: '',
   ubicacionGeografica: {
@@ -77,6 +89,26 @@ function PublicarProyectoForm() {
     }
   }
 
+  const updateModality = (event) => {
+    setForm((current) => ({
+      ...current,
+      modalidadTrabajo: event.target.value,
+      detallesModalidad: {},
+    }))
+  }
+
+  const updateModalityDetail = (event) => {
+    const { name, value } = event.target
+    setForm((current) => ({
+      ...current,
+      detallesModalidad: {
+        ...current.detallesModalidad,
+        [name]: value,
+      },
+    }))
+  }
+
+
   return (
     <div className="publish-layout">
       <aside className="client-sidebar">
@@ -103,6 +135,16 @@ function PublicarProyectoForm() {
           </label>
 
           <label className="publish-field publish-field-full">
+            <span>Modalidad del trabajo</span>
+            <select name="modalidadTrabajo" onChange={updateModality} required value={form.modalidadTrabajo}>
+              <option value="">Selecciona la modalidad de trabajo</option>
+              {WorkModalities.map((modality) => (
+                <option key={modality} value={modality}>{modality}</option>
+              ))}
+            </select>
+          </label>
+
+          <label className="publish-field publish-field-full">
             <span>Descripción</span>
             <textarea maxLength={4000} name="descripcion" onChange={updateField} placeholder="Describe los detalles y objetivos del proyecto…" required rows={5} value={form.descripcion} />
           </label>
@@ -123,6 +165,12 @@ function PublicarProyectoForm() {
               ))}
             </div>
           </fieldset>
+
+          <DetallesModalidad
+            modalidadTrabajo={form.modalidadTrabajo}
+            detallesModalidad={form.detallesModalidad}
+            onChange={updateModalityDetail}
+          />
 
           <label className="publish-field">
             <span>Presupuesto estimado (COP)</span>

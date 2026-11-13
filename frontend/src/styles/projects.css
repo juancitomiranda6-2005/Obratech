@@ -643,6 +643,15 @@
   margin-bottom: 10px;
 }
 
+.publish-form .modality-details-fields {
+  display: grid;
+  gap: 16px;
+}
+
+.publish-form .modality-details-fields legend {
+  margin-bottom: 0;
+}
+
 .project-type-grid {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
