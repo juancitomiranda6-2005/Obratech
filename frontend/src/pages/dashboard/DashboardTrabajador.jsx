@@ -4,6 +4,7 @@ import { workerDashboardService } from '../../services/professionalDashboardServ
 import { ProfileAvatar } from '../../components/shared/ProfileAvatar.jsx'
 import { ProjectRiskPanel } from '../../components/ProjectRiskPanel.jsx'
 import { SettingsMenu } from '../../components/layout/SettingsMenu.jsx'
+import { AttentionBand } from '../../components/shared/AttentionBand.jsx'
 
 const money = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 })
 
@@ -11,11 +12,43 @@ function formatDate(date) {
   return date ? new Intl.DateTimeFormat('es-CO', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(date)) : 'No disponible'
 }
 
+function buildWorkerAttentionItems(dashboard) {
+  if (!dashboard) return []
+  const items = []
+
+  if (dashboard.perfilIncompleto && dashboard.requisitosFaltantes?.length > 0) {
+    items.push({
+      key: 'perfil',
+      icon: 'person_alert',
+      label: 'Perfil incompleto',
+      detail: `Faltan ${dashboard.requisitosFaltantes.length} requisitos: ${dashboard.requisitosFaltantes
+        .map((r) => r.replace(/\.$/, '').replace(/^Debes cargar /i, '').replace(/^La presentación profesional /i, 'Presentación '))
+        .slice(0, 3)
+        .join(', ')}${dashboard.requisitosFaltantes.length > 3 ? ` (+${dashboard.requisitosFaltantes.length - 3} más)` : ''}`,
+      to: '/perfil-trabajador/editar',
+    })
+  }
+
+  if (dashboard.invitacionesPendientes?.length > 0) {
+    items.push({
+      key: 'invitaciones',
+      icon: 'mail',
+      label: `${dashboard.invitacionesPendientes.length} invitación${dashboard.invitacionesPendientes.length > 1 ? 'es' : ''} de trabajo pendiente${dashboard.invitacionesPendientes.length > 1 ? 's' : ''}`,
+      detail: 'Revisa y responde a las invitaciones de contratistas para unirte a nuevos proyectos.',
+      to: '#invitaciones',
+    })
+  }
+
+  return items
+}
+
 function WorkerDashboard() {
   const [dashboard, setDashboard] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [pendingInvitation, setPendingInvitation] = useState('')
+
+  const attentionItems = buildWorkerAttentionItems(dashboard)
 
   const reload = async () => {
     setLoading(true)
@@ -98,37 +131,7 @@ function WorkerDashboard() {
 
         {dashboard && (
           <>
-            {!dashboard.usuarioVerificado && (
-              <section className="client-verification" aria-label="Estado de verificación">
-                <span className="material-symbols-outlined" aria-hidden="true">gpp_maybe</span>
-                <div>
-                  <h2>Completa tu perfil para obtener la insignia</h2>
-                  <p>Tu cuenta está activa. Al completar los requisitos se habilitará automáticamente tu insignia de verificación.</p>
-                  {dashboard.perfilIncompleto && (
-                    <div className="client-missing-chips">
-                      <div className="client-missing-tags">
-                        {dashboard.requisitosFaltantes.slice(0, 4).map((req, i) => (
-                          <span className="client-req-tag" key={i}>
-                            <span className="material-symbols-outlined" style={{ fontSize: '13px' }} aria-hidden="true">pending</span>
-                            {req.length > 35 ? req.substring(0, 33) + '…' : req}
-                          </span>
-                        ))}
-                        {dashboard.requisitosFaltantes.length > 4 && (
-                          <span className="client-req-tag-more">
-                            +{dashboard.requisitosFaltantes.length - 4} requisitos más
-                          </span>
-                        )}
-                      </div>
-                      <Link className="client-verification-action" to="/perfil-trabajador/editar">
-                        <span className="material-symbols-outlined" aria-hidden="true">edit</span>
-                        Completar requisitos
-                      </Link>
-                    </div>
-                  )}
-                </div>
-                <span className="client-review-badge">Activa</span>
-              </section>
-            )}
+            <AttentionBand items={attentionItems} />
 
             <section className="worker-summary-grid">
               <article className="client-profile"><p className="client-eyebrow">Tu perfil</p><h2>{dashboard.oficio || 'Oficio general'}</h2><div className="client-profile-total"><span>Experiencia</span><strong>{dashboard.experiencia} años</strong></div><div className="client-profile-status"><span className={`client-status-dot ${dashboard.usuarioVerificado ? 'is-verified' : ''}`} /><span>{dashboard.usuarioVerificado ? 'Cuenta verificada' : 'Insignia pendiente'}</span></div><div className="client-profile-status"><span className={`client-status-dot ${dashboard.cvDisponible ? 'is-verified' : ''}`} /><span>{dashboard.cvDisponible ? 'CV registrado' : 'Sin CV registrado'}</span></div></article>

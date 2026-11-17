@@ -7,6 +7,7 @@ import { participantProjectsService } from '../../services/participantProjectsSe
 import { PhasePanel } from '../../components/PhasePanel.jsx'
 import { ProjectRiskPanel } from '../../components/ProjectRiskPanel.jsx'
 import { SettingsMenu } from '../../components/layout/SettingsMenu.jsx'
+import { AttentionBand } from '../../components/shared/AttentionBand.jsx'
 
 async function loadProjectWorkerReports(projects = []) {
   const entries = await Promise.all(projects.map(async (project) => {
@@ -18,6 +19,39 @@ async function loadProjectWorkerReports(projects = []) {
     }
   }))
   return Object.fromEntries(entries)
+}
+
+function buildContractorAttentionItems(dashboard) {
+  if (!dashboard) return []
+  const items = []
+
+  if (dashboard.perfilIncompleto && dashboard.requisitosFaltantes?.length > 0) {
+    items.push({
+      key: 'perfil',
+      icon: 'person_alert',
+      label: 'Perfil incompleto',
+      detail: `Faltan ${dashboard.requisitosFaltantes.length} requisitos: ${dashboard.requisitosFaltantes
+        .map((r) => r.replace(/\.$/, '').replace(/^Debes cargar /i, '').replace(/^La presentación profesional /i, 'Presentación '))
+        .slice(0, 3)
+        .join(', ')}${dashboard.requisitosFaltantes.length > 3 ? ` (+${dashboard.requisitosFaltantes.length - 3} más)` : ''}`,
+      to: '/perfil-contratista/editar',
+    })
+  }
+
+  const conRiesgo = (dashboard.proyectos || []).filter(
+    (p) => p.indicadores && (p.indicadores.nivelRiesgo === 'ALTO' || p.indicadores.nivelRiesgo === 'CRITICO'),
+  )
+  if (conRiesgo.length > 0) {
+    items.push({
+      key: 'riesgo',
+      icon: 'warning',
+      label: `${conRiesgo.length} proyecto${conRiesgo.length > 1 ? 's' : ''} con riesgo elevado`,
+      detail: conRiesgo.map((p) => p.titulo || 'Sin título').join(', '),
+      to: '#proyectos',
+    })
+  }
+
+  return items
 }
 
 function ContractorDashboard() {
@@ -33,6 +67,8 @@ function ContractorDashboard() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
+
+  const attentionItems = buildContractorAttentionItems(dashboard)
   const [selectedProjectId, setSelectedProjectId] = useState('')
   const [reportsShowAll, setReportsShowAll] = useState(false)
   const [selectedPhaseStatus, setSelectedPhaseStatus] = useState(null)
@@ -224,37 +260,7 @@ function ContractorDashboard() {
           <>
             {activeFollowUpTab === 'overview' && (
               <>
-            {!dashboard.usuarioVerificado && (
-              <section className="client-verification" aria-label="Estado de verificación">
-                <span className="material-symbols-outlined" aria-hidden="true">gpp_maybe</span>
-                <div>
-                  <h2>Completa tu perfil para obtener la insignia</h2>
-                  <p>Tu cuenta está activa. Al completar los requisitos se habilitará automáticamente tu insignia de verificación.</p>
-                  {dashboard.perfilIncompleto && (
-                    <div className="client-missing-chips">
-                      <div className="client-missing-tags">
-                        {dashboard.requisitosFaltantes.slice(0, 4).map((req, i) => (
-                          <span className="client-req-tag" key={i}>
-                            <span className="material-symbols-outlined" style={{ fontSize: '13px' }} aria-hidden="true">pending</span>
-                            {req.length > 35 ? req.substring(0, 33) + '…' : req}
-                          </span>
-                        ))}
-                        {dashboard.requisitosFaltantes.length > 4 && (
-                          <span className="client-req-tag-more">
-                            +{dashboard.requisitosFaltantes.length - 4} requisitos más
-                          </span>
-                        )}
-                      </div>
-                      <Link className="client-verification-action" to="/perfil-contratista/editar">
-                        <span className="material-symbols-outlined" aria-hidden="true">edit</span>
-                        Completar requisitos
-                      </Link>
-                    </div>
-                  )}
-                </div>
-                <span className="client-review-badge">Activa</span>
-              </section>
-            )}
+                <AttentionBand items={attentionItems} />
 
             <section aria-label="Estadísticas del contratista" className="client-stats">
               <ContractorStat icon="groups" label="Trabajadores en equipo" value={dashboard.miembrosEquipo} tone="blue" />

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth.js'
 import { useTheme } from '../../context/themeContext.js'
 
@@ -11,6 +11,7 @@ const profilePaths = {
 
 export function SettingsMenu({ inline = false, triggerContent, triggerLabel = 'Configuración' }) {
   const { user, isAuthenticated, logout } = useAuth()
+  const navigate = useNavigate()
   const { theme, toggleTheme } = useTheme()
   const [isOpen, setIsOpen] = useState(false)
   const menuRef = useRef(null)
@@ -85,6 +86,7 @@ export function SettingsMenu({ inline = false, triggerContent, triggerLabel = 'C
             onClick={() => {
               setIsOpen(false)
               logout()
+              navigate('/login', { replace: true })
             }}
             type="button"
           >
